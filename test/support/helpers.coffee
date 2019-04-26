@@ -13,8 +13,8 @@ arrayEgal = (a, b) ->
     return no for el, idx in a when not arrayEgal el, b[idx]
     yes
 
-exports.eq      = (a, b, msg) -> ok egal(a, b), msg or "Expected\n>>>\n#{a}<<< to equal >>>\n#{b}<<<"
-exports.arrayEq = (a, b, msg) -> ok arrayEgal(a,b), msg or "Expected\n>>>\n#{a}<<< to deep equal >>>\n#{b}<<<"
+exports.eq      = (a, b, msg) -> ok egal(a, b), msg or "\x1B[0;90m\n <<< expected >>>\n\x1B[0;93m#{a}\x1B[0;90m<<< to equal >>>\n\x1B[0;93m#{b}\x1B[0;90m<<< expected >>>\n"
+exports.arrayEq = (a, b, msg) -> ok arrayEgal(a,b), msg or "\x1B[0;90m\n >>>\n\x1B[0;93m#{a}\x1B[0;90m<<< to deep equal >>>\n\x1B[0;93m#{b}\x1B[0;90m<<< expected >>>\n"
 
 exports.toJS = (str) ->
   Koffee.compile str, bare: yes

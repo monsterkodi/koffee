@@ -11,7 +11,7 @@
 
 test "Basic array comprehensions.", ->
 
-    nums        = (n * n for n in [1, 2, 3] when n & 1)
+    nums    = (n * n for n in [1, 2, 3] when n & 1)
     results = (n * 2 for n in nums)
 
     ok results.join(',') is '2,18'
@@ -19,12 +19,12 @@ test "Basic array comprehensions.", ->
 
 test "Basic object comprehensions.", ->
 
-    obj     = {one: 1, two: 2, three: 3}
+    obj   = {one: 1, two: 2, three: 3}
     names = (prop + '!' for prop of obj)
-    odds    = (prop + '!' for prop, value of obj when value & 1)
+    odds  = (prop + '!' for prop, value of obj when value & 1)
 
     ok names.join(' ') is "one! two! three!"
-    ok odds.join(' ')    is "one! three!"
+    ok odds.join(' ')  is "one! three!"
 
 
 test "Basic range comprehensions.", ->
@@ -102,8 +102,8 @@ test "Ensure that the closure wrapper preserves local variables.", ->
         obj[method] = ->
             "I'm " + method
 
-    ok obj.one()     is "I'm one"
-    ok obj.two()     is "I'm two"
+    ok obj.one()   is "I'm one"
+    ok obj.two()   is "I'm two"
     ok obj.three() is "I'm three"
 
 

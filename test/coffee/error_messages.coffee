@@ -102,7 +102,7 @@ if require?
         doesNotThrow(-> error.stack)
         notEqual error.stack.toString().indexOf(filePath), -1
 
-    test "#4418 stack traces for compiled files reference the correct line number", ->
+    test "require #4418 stack traces for compiled files reference the correct line number", ->
         filePath = path.join os.tmpdir(), 'StackTraceLineNumberTestFile.coffee'
         fileContents = """
             testCompiledFileStackTraceLineNumber = ->
@@ -123,7 +123,7 @@ if require?
         eq /StackTraceLineNumberTestFile.coffee:(\d)/.exec(error.stack.toString())[1], '3'
 
 
-test "#4418 stack traces for compiled strings reference the correct line number", ->
+test "no require #4418 stack traces for compiled strings reference the correct line number", ->
     try
         Koffee.run """
             testCompiledStringStackTraceLineNumber = ->

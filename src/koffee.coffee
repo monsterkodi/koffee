@@ -311,7 +311,7 @@ formatSourcePosition = (frame, getSourceMapping) ->
         line = frame.getLineNumber()
         column = frame.getColumnNumber()
 
-        # Check for a sourceMap position
+        # Check for a sourceMap positionc
         source = getSourceMapping filename, line, column
         fileLocation =
             if source

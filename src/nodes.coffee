@@ -174,20 +174,18 @@ exports.Base = class Base
 
     # Default implementations of the common node properties and methods. Nodes
     # will override these with custom logic, if needed.
-    children: []
-
-    isStatement  : NO
-    jumps        : NO
-    isComplex    : YES
-    isChainable  : NO
-    isAssignable : NO
-    isNumber     : NO
-
-    unwrap       : THIS
-    unfoldSoak   : NO
+    children:     []
+    isStatement:  NO
+    jumps:        NO
+    isComplex:    YES
+    isChainable:  NO
+    isAssignable: NO
+    isNumber:     NO
+    unwrap:       THIS
+    unfoldSoak:   NO
 
     # Is this node used to assign a certain variable?
-    assigns: NO
+    assigns:      NO
 
     # For this node and all descendents, set the location data to `locationData`
     # if the location data is not already set.
@@ -319,14 +317,14 @@ exports.Block = class Block extends Base
     # It would be better not to generate them in the first place, but for now,
     # clean up obvious double-parentheses.
     compileRoot: (o) ->
-        o.indent    = if o.bare then '' else TAB
-        o.level     = LEVEL_TOP
-        @spaced     = yes
-        o.scope     = new Scope null, this, null, o.referencedVars ? []
+        o.indent = if o.bare then '' else TAB
+        o.level  = LEVEL_TOP
+        @spaced  = yes
+        o.scope  = new Scope null, this, null, o.referencedVars ? []
         # Mark given local variables in the root scope as parameters so they don't
         # end up being declared on this block.
         o.scope.parameter name for name in o.locals or []
-        prelude     = []
+        prelude = []
         unless o.bare
             preludeExps = for exp, i in @expressions
                 break unless exp.unwrap() instanceof Comment
@@ -466,9 +464,9 @@ exports.Return = class Return extends Base
 
     children: ['expression']
 
-    isStatement:         YES
-    makeReturn:          THIS
-    jumps:                   THIS
+    isStatement: YES
+    makeReturn:  THIS
+    jumps:       THIS
 
     compileToFragments: (o, level) ->
         expr = @expression?.makeReturn()
@@ -498,9 +496,9 @@ exports.YieldReturn = class YieldReturn extends Return
 exports.Value = class Value extends Base
     constructor: (base, props, tag) ->
         return base if not props and base instanceof Value
-        @base               = base
+        @base       = base
         @properties = props or []
-        @[tag]          = true if tag
+        @[tag]      = true if tag
         return this
 
     children: ['base', 'properties']
@@ -517,28 +515,28 @@ exports.Value = class Value extends Base
         not @properties.length and @base instanceof type
 
     # Some boolean checks for the benefit of other nodes.
-    isArray              : -> @bareLiteral(Arr)
-    isRange              : -> @bareLiteral(Range)
-    isComplex            : -> @hasProperties() or @base.isComplex()
-    isAssignable     : -> @hasProperties() or @base.isAssignable()
-    isNumber             : -> @bareLiteral(NumberLiteral)
-    isString             : -> @bareLiteral(StringLiteral)
-    isRegex              : -> @bareLiteral(RegexLiteral)
-    isUndefined      : -> @bareLiteral(UndefinedLiteral)
-    isNull               : -> @bareLiteral(NullLiteral)
-    isBoolean            : -> @bareLiteral(BooleanLiteral)
-    isAtomic             : ->
+    isArray:      -> @bareLiteral(Arr)
+    isRange:      -> @bareLiteral(Range)
+    isComplex:    -> @hasProperties() or @base.isComplex()
+    isAssignable: -> @hasProperties() or @base.isAssignable()
+    isNumber:     -> @bareLiteral(NumberLiteral)
+    isString:     -> @bareLiteral(StringLiteral)
+    isRegex:      -> @bareLiteral(RegexLiteral)
+    isUndefined:  -> @bareLiteral(UndefinedLiteral)
+    isNull:       -> @bareLiteral(NullLiteral)
+    isBoolean:    -> @bareLiteral(BooleanLiteral)
+    isAtomic:     ->
         for node in @properties.concat @base
             return no if node.soak or node instanceof Call
         yes
 
-    isNotCallable    : -> @isNumber() or @isString() or @isRegex() or
-                                            @isArray() or @isRange() or @isSplice() or @isObject() or
-                                            @isUndefined() or @isNull() or @isBoolean()
+    isNotCallable: -> @isNumber() or @isString() or @isRegex() or
+                                     @isArray() or @isRange() or @isSplice() or @isObject() or
+                                     @isUndefined() or @isNull() or @isBoolean()
 
-    isStatement : (o)        -> not @properties.length and @base.isStatement o
-    assigns         : (name) -> not @properties.length and @base.assigns name
-    jumps               : (o)        -> not @properties.length and @base.jumps o
+    isStatement: (o)    -> not @properties.length and @base.isStatement o
+    assigns:     (name) -> not @properties.length and @base.assigns name
+    jumps:       (o)    -> not @properties.length and @base.jumps o
 
     isObject: (onlyGenerated) ->
         return no if @properties.length
@@ -834,7 +832,7 @@ exports.Extends = class Extends extends Base
 # an access into the object's prototype.
 exports.Access = class Access extends Base
     constructor: (@name, tag) ->
-        @soak    = tag is 'soak'
+        @soak = tag is 'soak'
 
     children: ['name']
 
@@ -878,18 +876,16 @@ exports.Range = class Range extends Base
         @exclusive = tag is 'exclusive'
         @equals = if @exclusive then '' else '='
 
-
-
     # Compiles the range's source variables -- where it starts and where it ends.
     # But only if they need to be cached to avoid double evaluation.
     compileVariables: (o) ->
         o = merge o, top: true
         isComplex = del o, 'isComplex'
-        [@fromC, @fromVar]  =    @cacheToCodeFragments @from.cache o, LEVEL_LIST, isComplex
-        [@toC, @toVar]          =    @cacheToCodeFragments @to.cache o, LEVEL_LIST, isComplex
-        [@step, @stepVar]       =    @cacheToCodeFragments step.cache o, LEVEL_LIST, isComplex if step = del o, 'step'
+        [@fromC, @fromVar] = @cacheToCodeFragments @from.cache o, LEVEL_LIST, isComplex
+        [@toC, @toVar]     = @cacheToCodeFragments @to.cache o, LEVEL_LIST, isComplex
+        [@step, @stepVar]  = @cacheToCodeFragments step.cache o, LEVEL_LIST, isComplex if step = del o, 'step'
         @fromNum = if @from.isNumber() then Number @fromVar else null
-        @toNum   = if @to.isNumber()     then Number @toVar     else null
+        @toNum   = if @to.isNumber()   then Number @toVar   else null
         @stepNum = if step?.isNumber() then Number @stepVar else null
 
     # When compiled normally, the range returns the contents of the *for loop*
@@ -899,8 +895,8 @@ exports.Range = class Range extends Base
         return @compileArray(o) unless o.index
 
         # Set up endpoints.
-        known        = @fromNum? and @toNum?
-        idx          = del o, 'index'
+        known    = @fromNum? and @toNum?
+        idx      = del o, 'index'
         idxName  = del o, 'name'
         namedIndex = idxName and idxName isnt idx
         varPart  = "#{idx} = #{@fromC}"
@@ -946,20 +942,20 @@ exports.Range = class Range extends Base
             range = [@fromNum..@toNum]
             range.pop() if @exclusive
             return [@makeCode "[#{ range.join(', ') }]"]
-        idt      = @tab + TAB
-        i            = o.scope.freeVariable 'i', single: true
+        idt    = @tab + TAB
+        i      = o.scope.freeVariable 'i', single: true
         result = o.scope.freeVariable 'results'
-        pre      = "\n#{idt}#{result} = [];"
+        pre    = "\n#{idt}#{result} = [];"
         if known
             o.index = i
-            body        = fragmentsToText @compileNode o
+            body = fragmentsToText @compileNode o
         else
-            vars        = "#{i} = #{@fromC}" + if @toC isnt @toVar then ", #{@toC}" else ''
-            cond        = "#{@fromVar} <= #{@toVar}"
-            body        = "var #{vars}; #{cond} ? #{i} <#{@equals} #{@toVar} : #{i} >#{@equals} #{@toVar}; #{cond} ? #{i}++ : #{i}--"
+            vars = "#{i} = #{@fromC}" + if @toC isnt @toVar then ", #{@toC}" else ''
+            cond = "#{@fromVar} <= #{@toVar}"
+            body = "var #{vars}; #{cond} ? #{i} <#{@equals} #{@toVar} : #{i} >#{@equals} #{@toVar}; #{cond} ? #{i}++ : #{i}--"
         post     = "{ #{result}.push(#{i}); }\n#{idt}return #{result};\n#{o.indent}"
         hasArgs = (node) -> node?.contains isLiteralArguments
-        args     = ', arguments' if hasArgs(@from) or hasArgs(@to)
+        args    = ', arguments' if hasArgs(@from) or hasArgs(@to)
         [@makeCode "(function() {#{pre}\n#{idt}for (#{body})#{post}}).apply(this#{args ? ''})"]
 
 #### Slice
@@ -1223,10 +1219,10 @@ exports.Class = class Class extends Base
         if argumentsNode = @body.contains isLiteralArguments
             argumentsNode.error "Class bodies shouldn't reference arguments"
 
-        name    = @determineName()
+        name  = @determineName()
         lname = new IdentifierLiteral name
-        func    = new Code [], Block.wrap [@body]
-        args    = []
+        func  = new Code [], Block.wrap [@body]
+        args  = []
         o.classScope = func.makeScope o.scope
 
         @hoistDirectivePrologue()
@@ -1425,7 +1421,7 @@ exports.Assign = class Assign extends Base
     compileNode: (o) ->
         if isValue = @variable instanceof Value
             return @compilePatternMatch o if @variable.isArray() or @variable.isObject()
-            return @compileSplice               o if @variable.isSplice()
+            return @compileSplice       o if @variable.isSplice()
             return @compileConditional  o if @context in ['||=', '&&=', '?=']
             return @compileSpecialMath  o if @context in ['**=', '//=', '%%=']
         if @value instanceof Code
@@ -1510,7 +1506,7 @@ exports.Assign = class Assign extends Base
             obj.error message if message
             value = new Op '?', value, defaultValue if defaultValue
             return new Assign(obj, value, null, param: @param).compileToFragments o, LEVEL_TOP
-        vvar         = value.compileToFragments o, LEVEL_LIST
+        vvar     = value.compileToFragments o, LEVEL_LIST
         vvarText = fragmentsToText vvar
         assigns  = []
         expandedIdx = false
@@ -1628,9 +1624,9 @@ exports.Assign = class Assign extends Base
 # has no *children* -- they're within the inner scope.
 exports.Code = class Code extends Base
     constructor: (params, body, tag) ->
-        @params          = params or []
-        @body                = body or new Block
-        @bound           = tag is 'boundfunc'
+        @params = params or []
+        @body   = body or new Block
+        @bound  = tag is 'boundfunc'
         @isGenerator = !!@body.contains (node) ->
             (node instanceof Op and node.isYield()) or node instanceof YieldReturn
 
@@ -1928,16 +1924,16 @@ exports.Op = class Op extends Base
             return first.newInstance() if first instanceof Call and not first.do and not first.isNew
             first = new Parens first     if first instanceof Code and first.bound or first.do
         @operator = CONVERSIONS[op] or op
-        @first      = first
-        @second     = second
-        @flip           = !!flip
+        @first    = first
+        @second   = second
+        @flip     = !!flip
         return this
 
     # The map of conversions from Koffee to JavaScript symbols.
     CONVERSIONS =
-        '==':                '==='
-        '!=':                '!=='
-        'of':                'in'
+        '==':        '==='
+        '!=':        '!=='
+        'of':        'in'
         'yieldfrom': 'yield*'
 
     # The map of invertible operators.
@@ -2021,9 +2017,9 @@ exports.Op = class Op extends Base
         if @operator in ['--', '++']
             message = isUnassignable @first.unwrapAll().value
             @first.error message if message
-        return @compileYield         o if @isYield()
-        return @compileUnary         o if @isUnary()
-        return @compileChain         o if isChain
+        return @compileYield o if @isYield()
+        return @compileUnary o if @isUnary()
+        return @compileChain o if isChain
         switch @operator
             when '?'    then @compileExistence o
             when '**' then @compilePower o
@@ -2159,7 +2155,7 @@ exports.Try = class Try extends Base
     jumps: (o) -> @attempt.jumps(o) or @recovery?.jumps(o)
 
     makeReturn: (res) ->
-        @attempt    = @attempt .makeReturn res if @attempt
+        @attempt  = @attempt .makeReturn res if @attempt
         @recovery = @recovery.makeReturn res if @recovery
         this
 
@@ -2200,7 +2196,7 @@ exports.Throw = class Throw extends Base
     children: ['expression']
 
     isStatement: YES
-    jumps:           NO
+    jumps:       NO
 
     # A **Throw** is already a return, of sorts...
     makeReturn: THIS
@@ -2243,8 +2239,8 @@ exports.Parens = class Parens extends Base
 
     children: ['body']
 
-    unwrap      : -> @body
-    isComplex : -> @body.isComplex()
+    unwrap:    -> @body
+    isComplex: -> @body.isComplex()
 
     compileNode: (o) ->
         expr = @body.unwrap()
@@ -2321,10 +2317,10 @@ exports.StringWithInterpolations = class StringWithInterpolations extends Parens
 exports.For = class For extends While
     constructor: (body, source) ->
         {@source, @guard, @step, @name, @index} = source
-        @body        = Block.wrap [body]
-        @own         = !!source.own
-        @object  = !!source.object
-        @from        = !!source.from
+        @body   = Block.wrap [body]
+        @own    = !!source.own
+        @object = !!source.object
+        @from   = !!source.from
         @index.error 'cannot use index with for-from' if @from and @index
         source.ownTag.error "cannot use own with for-#{if @from then 'from' else 'in'}" if @own and not @object
         [@name, @index] = [@index, @name] if @object
@@ -2342,40 +2338,40 @@ exports.For = class For extends While
     # comprehensions. Some of the generated code can be shared in common, and
     # some cannot.
     compileNode: (o) ->
-        body                = Block.wrap [@body]
+        body        = Block.wrap [@body]
         [..., last] = body.expressions
-        @returns        = no if last?.jumps() instanceof Return
-        source          = if @range then @source.base else @source
-        scope               = o.scope
-        name                = @name  and (@name.compile o, LEVEL_LIST) if not @pattern
-        index               = @index and (@index.compile o, LEVEL_LIST)
-        scope.find(name)    if name and not @pattern
+        @returns    = no if last?.jumps() instanceof Return
+        source      = if @range then @source.base else @source
+        scope       = o.scope
+        name        = @name  and (@name.compile o, LEVEL_LIST) if not @pattern
+        index       = @index and (@index.compile o, LEVEL_LIST)
+        scope.find(name)  if name and not @pattern
         scope.find(index) if index and @index not instanceof Value
-        rvar                = scope.freeVariable 'results' if @returns
+        rvar = scope.freeVariable 'results' if @returns
         if @from
             ivar = scope.freeVariable 'x', single: true if @pattern
         else
             ivar = (@object and index) or scope.freeVariable 'i', single: true
-        kvar                = ((@range or @from) and name) or index or ivar
+        kvar = ((@range or @from) and name) or index or ivar
         kvarAssign  = if kvar isnt ivar then "#{kvar} = " else ""
         if @step and not @range
             [step, stepVar] = @cacheToCodeFragments @step.cache o, LEVEL_LIST, isComplexOrAssignable
-            stepNum     = Number stepVar if @step.isNumber()
-        name                = ivar if @pattern
-        varPart         = ''
-        guardPart       = ''
-        defPart         = ''
-        idt1                = @tab + TAB
+            stepNum = Number stepVar if @step.isNumber()
+        name      = ivar if @pattern
+        varPart   = ''
+        guardPart = ''
+        defPart   = ''
+        idt1      = @tab + TAB
         if @range
             forPartFragments = source.compileToFragments merge o,
                 {index: ivar, name, @step, isComplex: isComplexOrAssignable}
         else
-            svar        = @source.compile o, LEVEL_LIST
+            svar = @source.compile o, LEVEL_LIST
             if (name or @own) and @source.unwrap() not instanceof IdentifierLiteral
-                defPart      += "#{@tab}#{ref = scope.freeVariable 'ref'} = #{svar};\n"
-                svar             = ref
+                defPart += "#{@tab}#{ref = scope.freeVariable 'ref'} = #{svar};\n"
+                svar = ref
             if name and not @pattern and not @from
-                namePart     = "#{name} = #{svar}[#{kvar}]"
+                namePart = "#{name} = #{svar}[#{kvar}]"
             if not @object and not @from
                 defPart += "#{@tab}#{step};\n" if step isnt stepVar
                 down = stepNum < 0
@@ -2620,7 +2616,7 @@ LEVEL_TOP        = 1    # ...;
 LEVEL_PAREN  = 2    # (...)
 LEVEL_LIST   = 3    # [...]
 LEVEL_COND   = 4    # ... ? x : y
-LEVEL_OP         = 5    # !...
+LEVEL_OP     = 5    # !...
 LEVEL_ACCESS = 6    # ...[0]
 
 # Tabs are 4 spaces for pretty printing.

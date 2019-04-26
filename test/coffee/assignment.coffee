@@ -96,7 +96,7 @@ test "compound assignment with implicit objects", ->
         two: 2
 
     eq undefined, obj.one
-    eq               2, obj.two
+    eq 2, obj.two
 
 test "compound assignment (math operators)", ->
     num = 10

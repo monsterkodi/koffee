@@ -1,0 +1,16 @@
+#!/usr/bin/env node
+
+var path = require('path');
+var fs   = require('fs');
+
+var potentialPaths = [
+  path.join(process.cwd(), 'node_modules/koffee/lib'),
+  path.join(__dirname, '../lib')
+];
+
+for (var i = 0, len = potentialPaths.length; i < len; i++) {
+  if (fs.existsSync(potentialPaths[i])) {
+    require(potentialPaths[i] + '/command').run();
+    break;
+  }
+}

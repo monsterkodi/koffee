@@ -1,0 +1,31 @@
+name            koffee
+description     coffeescript clone
+keywords
+                javascript
+                language
+                coffeescript
+                compiler
+author          Jeremy Ashkenas
+version         0.1.0
+license         MIT
+engines
+                node  >=11.11.0
+directories
+                lib  ./lib
+main            ./lib/koffee
+bin
+                koffee  ./bin/koffee
+                kake    ./bin/kake
+files
+                bin
+                lib
+scripts
+                test  node ./bin/kake test
+bugs            https://github.com/monsterkodi/koffee/issues
+repository
+                type  git
+                url   git://github.com/monsterkodi/koffee.git
+devDependencies
+                google-closure-compiler-js  ~20170910.0.1
+                jison           ~0.4.18
+                underscore      ~1.8.3

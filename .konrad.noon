@@ -1,0 +1,2 @@
+coffee  . ext js   . replace .. /src/ /lib/ 
+ignore  . test . kake.coffee . konrad.noon

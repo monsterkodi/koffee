@@ -50,7 +50,7 @@ test "named method parameters", ->
     eq a.a, 666
     eq a.b, 777
     
-test "named this parameters", ->
+test "named method parameters assigned to this", ->
     
     class A
         @: ({a:@a = 666, b:@b = 777}) ->
@@ -71,8 +71,10 @@ test "named this parameters", ->
     eq a.a, 666
     eq a.b, 777
 
-test "named super parameters", ->
+test "named method parameters get overridden in base", ->
     
+    # the behavior of CS1 we want to avoid!
+
     class B
         @: ({a:@a = 555, b:@b = 777}) ->
         
@@ -80,7 +82,7 @@ test "named super parameters", ->
         @: ({a:@a = 666, c:@c = 888}) -> super
         
     a = new A {}
-    eq a.a, 555
+    eq a.a, 555 # this should be 666
     eq a.b, 777
     eq a.c, 888
             
@@ -90,24 +92,25 @@ test "named super parameters", ->
     eq a.c, 888
     
     a = new A b:5
-    eq a.a, 555
+    eq a.a, 555 # this should be 666
     eq a.b, 5
     eq a.c, 888
     
     a = new A c:6
-    eq a.a, 555
+    eq a.a, 555 # this should be 666
     eq a.b, 777
     eq a.c, 6
     
-test "named config parameters", ->
+test "config parameters don't get overridden in base", ->
+
+    # the behavior we want to achieve implemented in plain CS1
 
     class B
         @: ({a:@a = 555, b:@b = 777}) ->
 
     class A1 extends B
         @: ({a:a = 666, c:c = 888}) -> 
-            arguments[0].a = a
-            arguments[0].c = c
+            arguments[0] = _.defaults {a:a, c:c}, arguments[0]
             super 
     
     a = new A1 {}
@@ -128,8 +131,7 @@ test "named config parameters", ->
             
     class A2 extends B
         @: ({a:@a = 666, c:@c = 888}) -> 
-            arguments[0].a = @a
-            arguments[0].c = @c
+            arguments[0] = _.defaults {a:@a, c:@c}, arguments[0]
             super 
     
     a = new A2 {}
@@ -151,17 +153,16 @@ test "named config parameters", ->
     eq a.a, 666
     eq a.b, 777
     eq a.c, 6
-    
 
-test "named config parameters dont modify", ->
+test "config parameters don't modify argument", ->
+
+    # make sure that the passed config dictionary doesn't get modified
 
     class B
         @: ({a:@a = 555, b:@b = 777}) ->
 
     class A extends B
         @: ({a:@a = 666, c:@c = 888}) -> 
-            # arguments[0].a = @a
-            # arguments[0].c = @c
             arguments[0] = _.defaults {a:@a, c:@c}, arguments[0]
             super 
     
@@ -185,4 +186,50 @@ test "named config parameters dont modify", ->
     eq a.b, 777
     eq a.c, 3
     deepEqual d, a:null, c:3
+
+    d = {}
+    a = new A d
+    eq a.a, 666
+    eq a.b, 777
+    eq a.c, 888
+    deepEqual d, {}
     
+test "config parameters are available in base", ->
+
+    class B
+        @: ({a:@a = 555, b:@b = 777}) ->
+            eq @a, 1
+            eq @b, 777
+            eq @c, 888
+
+    class A extends B
+        @: ({a:@a = 666, c:@c = 888}) -> 
+            arguments[0] = _.defaults {a:@a, c:@c}, arguments[0]
+            super 
+    
+    new A a:1
+
+test "config parameters shortcut", ->
+
+    # instead of this ...
+    # 
+    # class A
+    #       @: ({a: a=1, b: b=2 })           -> arguments[0] = _.defaults {a:a, b:b}, arguments[0] ...
+    #       a: ({a:@a=1, b: b=2 })           -> arguments[0] = _.defaults {a:@a, b:b}, arguments[0] ...
+    #       b: ({a:@a=1, b:@b=2 })           -> arguments[0] = _.defaults {a:@a, b:@b}, arguments[0] ...
+    #       c: ({a: a=1, b:@b=2 })           -> arguments[0] = _.defaults {a:a, b:@b}, arguments[0] ...
+    #       d: ({a: a=1, b: b=2 }, arg )     -> arguments[0] = _.defaults {a:a, b:b}, arguments[0] ...
+    #       e: ({a: a=1, b: b=2 }, arg=1 )   -> arguments[0] = _.defaults {a:a, b:b}, arguments[0] ...
+    #       f: ({a: a=1, b: b=2 }, arg=c:1 ) -> arguments[0] = _.defaults {a:a, b:b}, arguments[0] ...
+    # 
+    # ... it would be nice to just write ...
+    #
+    # class A
+    #       @: (  a:1,  b:2 )          -> ...
+    #       a: ( @a:1,  b:2 )          -> ...
+    #       b: ( @a:1, @b:2 )          -> ...
+    #       c: (  a:1, @b:2 )          -> ...
+    #       d: (  a:1,  b:2, arg )     -> ...
+    #       e: (  a:1,  b:2, arg=1 )   -> ...
+    #       f: (  a:1,  b:2, arg=c:1 ) -> ...
+

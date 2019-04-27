@@ -40,7 +40,7 @@ test "constructor shortcut invalid elsewhere", ->
     throws -> Koffee.compile "a = @:1"
     throws -> Koffee.compile "d = @:(1+2)"
      
-test "weird, but ok", ->
+test "constructor shortcut in dictionary - weird, but ok", ->
     
     f = -> 2+3
     d = a:1, f:f, @: -> (1+2)

@@ -3,7 +3,7 @@ require('../../lib/helpers').initTest() if not global.test
 test "method names", ->
     
     class A
-        constructor: -> @name='A'
+        @: -> @name='A'
         @new: -> 'class'
         new: -> 'instance'
         A: -> 'constructor'
@@ -22,7 +22,7 @@ test "method names", ->
 test "default arguments", ->
     
     class A
-        constructor: (@a='A', @b, @c='C') ->
+        @: (@a='A', @b, @c='C') ->
             
     a = new A 1, 2, 3
     eq a.a, 1
@@ -45,17 +45,17 @@ test "default arguments", ->
     eq a.c, 'C'
 
     class B
-        constructor: (@a='A', @b='B', @c) ->
+        @: (@a='A', @b='B', @c) ->
     
     class C extends B
-        constructor: (@a='Ab', @b, @c='Cb') ->
+        @: (@a='Ab', @b, @c='Cb') ->
             super # C.__super__.constructor.apply(this, arguments)
             
     c = new C
     eq c.a, 'A'
     
     class D extends B
-        constructor: (@a='Ab', @b, @c='Cb') ->
+        @: (@a='Ab', @b, @c='Cb') ->
             super @a, @b, @c # D.__super__.constructor.call(this, this.a, this.b, this.c)
 
     d = new D
@@ -86,15 +86,15 @@ test "interesting 1", ->
 test "hierarchy", ->    
 
     class A
-        constructor: (arg) ->
+        @: (arg) ->
             @prop = 'A-' + arg
 
     class B extends A
-        constructor: (arg) ->
+        @: (arg) ->
             super 'B-' + arg
 
     class C extends B
-        constructor: ->
+        @: ->
             super 'C'
 
     eq (new C).prop, 'A-B-C'

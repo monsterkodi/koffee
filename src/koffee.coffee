@@ -16,10 +16,8 @@ exports.VERSION = pkg.version # The current Koffee version number.
 exports.FILE_EXTENSIONS = FILE_EXTENSIONS = ['.coffee', '.koffee']
 
 exports.helpers = helpers
-
-# btoa in both nodejs and the browser.
     
-base64encode = (src) -> 
+base64encode = (src) ->
     
     switch
         when typeof Buffer is 'function'
@@ -34,7 +32,7 @@ base64encode = (src) ->
         else
             throw new Error('Unable to base64 encode inline sourcemap.')
 
-# Function wrapper to add source file information to SyntaxErrors thrown by the lexer/parser/compiler.
+# Wrapper to add source file information to SyntaxErrors thrown by the lexer/parser/compiler.
 
 withPrettyErrors = (fn) ->
     
@@ -76,9 +74,11 @@ exports.compile = compile = withPrettyErrors (code, options) ->
     
     {merge, extend} = helpers
     options = extend {}, options
+    
     # Always generate a source map if no filename is passed in, since without a
     # a filename we have no way to retrieve this source later in the event that
     # we need to recompile it to get a source map for `prepareStackTrace`.
+        
     generateSourceMap = options.sourceMap or options.inlineMap or not options.filename?
     filename = options.filename or '<anonymous>'
 
@@ -87,13 +87,14 @@ exports.compile = compile = withPrettyErrors (code, options) ->
 
     tokens = lexer.tokenize code, options
 
-    # Pass a list of referenced variables, so that generated variables won't get
-    # the same name.
+    # Pass a list of referenced variables, so that generated variables won't get the same name.
+    
     options.referencedVars = (
         token[1] for token in tokens when token[0] is 'IDENTIFIER'
     )
 
     # Check for import or export; if found, force bare mode.
+        
     unless options.bare? and options.bare is yes
         for token in tokens
             if token[0] in ['IMPORT', 'EXPORT']
@@ -107,6 +108,7 @@ exports.compile = compile = withPrettyErrors (code, options) ->
     currentLine += 1 if options.shiftLine
     currentColumn = 0
     js = ""
+    
     for fragment in fragments
         # Update the sourcemap with data from each fragment.
         if generateSourceMap
@@ -164,10 +166,10 @@ exports.nodes = withPrettyErrors (source, options) ->
     else
         parser.parse source
 
-# Compile and execute a string of Koffee (on the server), correctly
-# setting `__filename`, `__dirname`, and relative `require()`.
+# Compile and execute a string of Koffee (on the server), correctly setting `__filename`, `__dirname`, and relative `require()`.
 
 exports.run = (code, options = {}) ->
+    
     mainModule = require.main
 
     # Set the filename.
@@ -191,8 +193,7 @@ exports.run = (code, options = {}) ->
 
     mainModule._compile code, mainModule.filename
 
-# Compile and evaluate a string of Koffee (in a Node.js-like environment).
-# The REPL uses this to run the input.
+# Compile and evaluate a string in a Node.js-like environment. The REPL uses this to run the input.
 
 exports.eval = (code, options = {}) ->
     
@@ -270,7 +271,6 @@ parser.lexer =
             @yylineno = @yylloc.first_line
         else
             tag = ''
-
         tag
     setInput: (tokens) ->
         parser.tokens = tokens
@@ -329,7 +329,7 @@ formatSourcePosition = (frame, getSourceMapping) ->
         line = frame.getLineNumber()
         column = frame.getColumnNumber()
 
-        # Check for a sourceMap positionc
+        # Check for a sourceMap position
         source = getSourceMapping filename, line, column
         fileLocation =
             if source
@@ -364,13 +364,11 @@ formatSourcePosition = (frame, getSourceMapping) ->
 
 getSourceMap = (filename) ->
      
+    # Koffee compiled in a browser may get compiled with `options.filename` of `<anonymous>`, 
+    # but the browser may request the stack trace with the filename of the script file.
+    
     if sourceMaps[filename]?
         sourceMaps[filename]
-         
-    # Koffee compiled in a browser may get compiled with `options.filename`
-    # of `<anonymous>`, but the browser may request the stack trace with the
-    # filename of the script file.
-     
     else if sourceMaps['<anonymous>']?
         sourceMaps['<anonymous>']
     else if sources[filename]?
@@ -383,8 +381,7 @@ getSourceMap = (filename) ->
 
 # Based on [michaelficarra/KoffeeRedux](http://goo.gl/ZTx1p)
 # NodeJS / V8 have no support for transforming positions in stack traces using
-# sourceMap, so we must monkey-patch Error to display Koffee source
-# positions.
+# sourceMap, so we must monkey-patch Error to display Koffee source positions.
 
 Error.prepareStackTrace = (err, stack) ->
     

@@ -1,6 +1,7 @@
 fs      = require 'fs'
 os      = require 'os'
 path    = require 'path'
+noon    = require 'noon'
 _       = require 'underscore'
 childp  = require 'child_process'
 Koffee  = require './lib/koffee'
@@ -51,9 +52,6 @@ build = (callback) ->
     
     buildParser()
     buildCompiler callback
-
-libPath = './lib'    
-libDir  = path.dirname(require.resolve libPath) + '/'
     
 #  0000000   000   000  0000000    000000000  00000000   0000000  000000000  
 # 000   000  0000  000  000   000     000     000       000          000     
@@ -61,8 +59,10 @@ libDir  = path.dirname(require.resolve libPath) + '/'
 # 000   000  000  0000  000   000     000     000            000     000     
 # 000   000  000   000  0000000       000     00000000  0000000      000     
 
+libDir = path.dirname(require.resolve './lib') + '/'
+
 andTest = (testsets=['koffee', 'coffee'], doExit=true) =>
-    
+
     for mod of require.cache when libDir is mod[0 ... libDir.length]
         delete require.cache[mod]
 
@@ -136,37 +136,37 @@ task 'bench', 'benchmark of compilation time', ->
 
 runTests = (testsets) ->
     
-    startTime   = Date.now()
-    currentFile = null
-    passedTests = 0
-    failures    = []
+    startTime     = Date.now()
+    currentFile   = null
+    failures      = []
+    passedTests   = 0
+    failedTests   = 0
 
-    global[name] = func for name, func of require 'assert'
-        
-    global.Koffee = require libDir + 'koffee'
-    global.Repl   = require libDir + 'repl'
+    global.Koffee = Koffee
+
+    global.log  = console.log
     
-    global.Koffee.register()
-
     global.test = (description, fn) ->
         try
             fn.test = {description, currentFile}
             fn.call(fn)
             ++passedTests
-        catch e
+        catch err
+            ++failedTests
             failures.push
-                filename: currentFile
-                error: e
+                filename:    currentFile
+                error:       err
                 description: description if description?
-                source: fn.toString() if fn.toString?
+                source:      fn.toString() if fn.toString?
 
-    helpers.extend global, require libDir + '../test/support/helpers'
+    helpers.extend global, require 'assert' # ok, ...
+    helpers.extend global, helpers # eq, arrayEq, toJS
 
     files = []
     for testset in testsets
         files = files.concat fs.readdirSync("test/#{testset}").map (f) -> [testset, f]
         
-    red "#{files.length} test files ..."
+    green "#{files.length} test files ..."
         
     for [testset,file] in files when helpers.isCoffee file
         
@@ -174,11 +174,9 @@ runTests = (testsets) ->
         code = fs.readFileSync filename
         try
             Koffee.run code.toString(), {filename}
-            # green path.basename(file,'.coffee')
         catch error
             failures.push {filename, error}
             
-        # collect and print errors.
         if failures.length
             red path.basename(filename, '.coffee')
             for fail in failures
@@ -187,16 +185,18 @@ runTests = (testsets) ->
                 green  "    #{description}" if description
                 yellow "    #{error.message}"
                 gray   "    #{filename}"
-                white  "    #{source}" if source
+                if source
+                    white  "    #{source}" 
+                else
+                    red    "    #{error}"
         failures = []
             
-        
     time = ((Date.now() - startTime) / 1000).toFixed(2)
     message = "passed #{passedTests} tests in #{time} seconds"
-    if not failures.length 
+    if not failedTests
         green message
     else
-        red "failed #{failures.length} and #{message}"
+        red "failed #{failedTests} and #{message}"
     
     return !failures.length
 

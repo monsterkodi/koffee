@@ -2,10 +2,8 @@
 os = require 'os'
 fs = require 'fs'
 path = require 'path'
-
-# REPL
-# ----
 Stream = require 'stream'
+Repl = require '../../lib/repl'
 
 class MockInputStream extends Stream
     constructor: ->

@@ -6,6 +6,7 @@
 # parentheses, and generally clean things up.
 
 # Create a generated token: one that exists due to a use of implicit syntax.
+
 generate = (tag, value, origin) ->
     tok = [tag, value]
     tok.generated = yes
@@ -14,6 +15,7 @@ generate = (tag, value, origin) ->
 
 # The **Rewriter** class is used by the [Lexer](lexer.html), directly against
 # its internal array of tokens.
+
 exports.Rewriter = class Rewriter
 
     # Rewrite the token stream in multiple passes, one logical filter at
@@ -21,10 +23,12 @@ exports.Rewriter = class Rewriter
     # stream, with a big ol' efficient switch, but it's much nicer to work with
     # like this. The order of these passes matters -- indentation must be
     # corrected before implicit parentheses can be wrapped around blocks of code.
+    
     rewrite: (@tokens) ->
         # Helpful snippet for debugging:
-        #           console.log (t[0] + '/' + t[1] for t in @tokens).join ' '
+        # console.log (t[0] + '/' + t[1] for t in @tokens).join ' '
         @removeLeadingNewlines()
+        @constructorShortcut()
         @closeOpenCalls()
         @closeOpenIndexes()
         @normalizeLines()
@@ -39,6 +43,7 @@ exports.Rewriter = class Rewriter
     # forwards (or backwards) in the stream, to make sure we don't miss anything
     # as tokens are inserted and removed, and the stream changes length under
     # our feet.
+    
     scanTokens: (block) ->
         {tokens} = this
         i = 0
@@ -49,7 +54,7 @@ exports.Rewriter = class Rewriter
         {tokens} = this
         levels = 0
         while token = tokens[i]
-            return action.call this, token, i           if levels is 0 and condition.call this, token, i
+            return action.call this, token, i if levels is 0 and condition.call this, token, i
             return action.call this, token, i - 1 if not token or levels < 0
             if token[0] in EXPRESSION_START
                 levels += 1
@@ -58,15 +63,26 @@ exports.Rewriter = class Rewriter
             i += 1
         i - 1
 
-    # Leading newlines would introduce an ambiguity in the grammar, so we
-    # dispatch them here.
+    # Leading newlines would introduce an ambiguity in the grammar, so we dispatch them here.
+    
     removeLeadingNewlines: ->
         break for [tag], i in @tokens when tag isnt 'TERMINATOR'
         @tokens.splice 0, i if i
 
+    # replace `@:` with `constructor:`
+        
+    constructorShortcut: ->
+         
+        @scanTokens (token, i) ->
+            if token[0] is '@' and @tokens[i+1][0] is ':'
+                token[0] = 'PROPERTY'
+                token[1] = 'constructor'
+            1
+        
     # The lexer has tagged the opening parenthesis of a method call. Match it with
     # its paired close. We have the mis-nested outdent case included here for
     # calls that close on the same line, just before their outdent.
+    
     closeOpenCalls: ->
         condition = (token, i) ->
             token[0] in [')', 'CALL_END'] or
@@ -81,6 +97,7 @@ exports.Rewriter = class Rewriter
 
     # The lexer has tagged the opening parenthesis of an indexing operation call.
     # Match it with its paired close.
+    
     closeOpenIndexes: ->
         condition = (token, i) ->
             token[0] in [']', 'INDEX_END']
@@ -95,6 +112,7 @@ exports.Rewriter = class Rewriter
     # Match tags in token stream starting at `i` with `pattern`, skipping 'HERECOMMENT's.
     # `pattern` may consist of strings (equality), an array of strings (one of)
     # or null (wildcard). Returns the index of the match or -1 if no match.
+    
     indexOfTag: (i, pattern...) ->
         fuzz = 0
         for j in [0 ... pattern.length]
@@ -107,6 +125,7 @@ exports.Rewriter = class Rewriter
     # Returns `yes` if standing in front of something looking like
     # `@<x>:`, `<x>:` or `<EXPRESSION_START><x>...<EXPRESSION_END>:`,
     # skipping over 'HERECOMMENT's.
+    
     looksObjectish: (j) ->
         return yes if @indexOfTag(j, '@', null, ':') > -1 or @indexOfTag(j, null, ':') > -1
         index = @indexOfTag(j, EXPRESSION_START)
@@ -119,6 +138,7 @@ exports.Rewriter = class Rewriter
     # Returns `yes` if current line of tokens contain an element of tags on same
     # expression level. Stop searching at LINEBREAKS or explicit start of
     # containing balanced expression.
+    
     findTagsBackwards: (i, tags) ->
         backStack = []
         while i >= 0 and (backStack.length or
@@ -130,19 +150,19 @@ exports.Rewriter = class Rewriter
             i -= 1
         @tag(i) in tags
 
-    # Look for signs of implicit calls and objects in the token stream and
-    # add them.
+    # Look for signs of implicit calls and objects in the token stream and add them.
+        
     addImplicitBracesAndParens: ->
         # Track current balancing depth (both implicit and explicit) on stack.
         stack = []
         start = null
 
         @scanTokens (token, i, tokens) ->
-            [tag]           = token
+            [tag]     = token
             [prevTag] = prevToken = if i > 0 then tokens[i - 1] else []
             [nextTag] = if i < tokens.length - 1 then tokens[i + 1] else []
-            stackTop    = -> stack[stack.length - 1]
-            startIdx    = i
+            stackTop  = -> stack[stack.length - 1]
+            startIdx  = i
 
             # Helper function, used for keeping track of the number of tokens consumed
             # and spliced, when returning for getting a new token.

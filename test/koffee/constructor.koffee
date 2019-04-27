@@ -1,0 +1,50 @@
+    
+test "constructor shortcut", ->
+    
+    class A
+        @: -> @p = 'A'
+
+    a = new A
+    eq a.p, 'A'
+
+    class B
+        @: (@p='B') ->
+
+    b = new B
+    eq b.p, 'B'
+    
+test "constructor shortcut spaced", ->
+    
+    class A
+        @ : -> @p = 'A'
+
+    a = new A
+    eq a.p, 'A'
+
+    class B
+            @  :  -> @p = 'B'
+
+    b = new B
+    eq b.p, 'B'
+
+    class C
+            @  : (@p='C') ->
+
+    c = new C
+    eq c.p, 'C'
+    
+test "constructor shortcut invalid elsewhere", ->
+    
+    throws -> Koffee.compile "@:"
+    throws -> Koffee.compile "a = @:1"
+    throws -> Koffee.compile "d = @:(1+2)"
+     
+test "weird, but ok", ->
+    
+    f = -> 2+3
+    d = a:1, f:f, @: -> (1+2)
+    
+    ok d.constructor
+    ok d.constructor instanceof Function
+    eq typeof(d.constructor), 'function'
+    

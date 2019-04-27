@@ -76,10 +76,10 @@ buildAndTest = (parser=yes) ->
     node ['bin/kake', parser and 'build' or 'compiler'], 'both', ->
         node ['bin/kake', 'test'], 'both'
 
-task 'all',      'build twice, run the tests',      -> build -> build andTest
-task 'build',    'build the compiler and parser',   build
-task 'parser',   'build the parser',                buildParser
-task 'compiler', 'build the compiler',              buildCompiler
+task 'all',      'build twice, run the tests',    -> build -> build andTest
+task 'build',    'build the compiler and parser', build
+task 'parser',   'build the parser',              buildParser
+task 'compiler', 'build the compiler',            buildCompiler
 
 # 000   000   0000000   000000000   0000000  000   000  
 # 000 0 000  000   000     000     000       000   000  
@@ -89,20 +89,32 @@ task 'compiler', 'build the compiler',              buildCompiler
 
 task 'watch', 'rebuild and/or test on file changes', -> 
     
+    watch = (filename, cb) ->
+        
+        fs.watch filename, {interval: 200, recursive:yes}, (event, file) ->
+            if event is 'change' then cb event, file
+    
     blue 'watching ...'
-    fs.watch 'src/', interval: 200, (eventType, filename) ->
-        if eventType is 'change'
-            blue "src/#{filename} changed"
-            buildAndTest filename is 'grammar.coffee'
-    fs.watch 'test/coffee/', {interval: 200, recursive: yes}, (eventType, filename) ->
-        if eventType is 'change'
-            yellow "test/coffee/#{filename} changed"
-            andTest ['coffee'], false
-    fs.watch 'test/koffee', {interval: 200, recursive: no}, (eventType, filename) ->
-        if eventType is 'change'
-            yellow "test/koffee/#{filename} changed"
-            andTest ['koffee'], false
-
+    watch 'src/', (,file) ->
+        blue "src/#{file} changed"
+        buildAndTest file is 'grammar.coffee'
+            
+    watch 'test/coffee/', (,file) ->
+        yellow "test/coffee/#{file} changed"
+        andTest ['coffee'], false
+            
+    watch 'test/koffee', (,file) ->
+        yellow "test/koffee/#{file} changed"
+        andTest ['koffee'], false
+  
+    watch 'kake.coffee', ->
+        blue "kake.coffee changed!"
+        childp.execSync 'bin/kake watch', stdio: 'inherit', shell: true, cwd:process.cwd()
+        red 'done!'
+        process.exit 0
+            
+    process.on 'exit', -> log 'exit:', process.pid
+            
 # 0000000    00000000  000   000   0000000  000   000  
 # 000   000  000       0000  000  000       000   000  
 # 0000000    0000000   000 0 000  000       000000000  
@@ -111,20 +123,20 @@ task 'watch', 'rebuild and/or test on file changes', ->
 
 task 'bench', 'benchmark of compilation time', ->
     
-    {Rewriter} = require './lib/rewriter'
-    sources = ['koffee', 'grammar', 'helpers', 'lexer', 'nodes', 'rewriter', 'scope']
-    coffee  = sources.map((name) -> fs.readFileSync "src/#{name}.coffee").join '\n'
-    fmt     = (ms) -> " #{bold}#{ "     #{ms}".slice -4 }#{reset} ms"
-    total   = 0
-    now     = Date.now()
-    time    = -> total += ms = -(now - now = Date.now()); fmt ms
-    tokens  = Koffee.tokens coffee, rewrite: no
+    {Rewriter}  = require './lib/rewriter'
+    sources     = ['koffee', 'grammar', 'helpers', 'lexer', 'nodes', 'rewriter', 'scope']
+    coffee      = sources.map((name) -> fs.readFileSync "src/#{name}.coffee").join '\n'
+    fmt         = (ms) -> " #{bold}#{ "     #{ms}".slice -4 }#{reset} ms"
+    total       = 0
+    now         = Date.now()
+    time        = -> total += ms = -(now - now = Date.now()); fmt ms
+    tokens      = Koffee.tokens coffee, rewrite: no
     gray "Lex    #{time()} (#{tokens.length} tokens)"
-    tokens  = new Rewriter().rewrite tokens
+    tokens      = new Rewriter().rewrite tokens
     gray "Rewrite#{time()} (#{tokens.length} tokens)"
-    nodes   = Koffee.nodes tokens
+    nodes       = Koffee.nodes tokens
     gray "Parse  #{time()}"
-    js      = nodes.compile bare: yes
+    js          = nodes.compile bare: yes
     gray "Compile#{time()} (#{js.length} chars)"
     white "Total  #{ fmt total }"
 

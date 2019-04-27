@@ -33,24 +33,24 @@ exports.Lexer = class Lexer
     #
     # Before returning the token stream, run it through the [Rewriter](rewriter.html).
     tokenize: (code, opts = {}) ->
-        @indent         = 0                          # The current indentation level.
-        @baseIndent = 0                          # The overall minimum indentation level
-        @indebt         = 0                          # The over-indentation at the current level.
-        @outdebt        = 0                          # The under-outdentation at the current level.
-        @indents        = []                         # The stack of all current indentation levels.
-        @ends               = []                         # The stack for pairing up tokens.
-        @tokens         = []                         # Stream of parsed tokens in the form `['TYPE', value, location data]`.
-        @seenFor        = no                         # Used to recognize FORIN, FOROF and FORFROM tokens.
-        @seenImport = no                         # Used to recognize IMPORT FROM? AS? tokens.
-        @seenExport = no                         # Used to recognize EXPORT FROM? AS? tokens.
-        @importSpecifierList = no        # Used to identify when in an IMPORT {...} FROM? ...
-        @exportSpecifierList = no        # Used to identify when in an EXPORT {...} FROM? ...
+        @indent     = 0            # The current indentation level.
+        @baseIndent = 0            # The overall minimum indentation level
+        @indebt     = 0            # The over-indentation at the current level.
+        @outdebt    = 0            # The under-outdentation at the current level.
+        @indents    = []           # The stack of all current indentation levels.
+        @ends       = []           # The stack for pairing up tokens.
+        @tokens     = []           # Stream of parsed tokens in the form `['TYPE', value, location data]`.
+        @seenFor    = no           # Used to recognize FORIN, FOROF and FORFROM tokens.
+        @seenImport = no           # Used to recognize IMPORT FROM? AS? tokens.
+        @seenExport = no           # Used to recognize EXPORT FROM? AS? tokens.
+        @importSpecifierList = no  # Used to identify when in an IMPORT {...} FROM? ...
+        @exportSpecifierList = no  # Used to identify when in an EXPORT {...} FROM? ...
 
         @chunkLine =
-            opts.line or 0                       # The start line for the current @chunk.
+            opts.line or 0         # The start line for the current @chunk.
         @chunkColumn =
-            opts.column or 0                     # The start column of the current @chunk.
-        code = @clean code                   # The stripped, cleaned original source code.
+            opts.column or 0       # The start column of the current @chunk.
+        code = @clean code         # The stripped, cleaned original source code.
 
         # At every position, run through this list of attempted matches,
         # short-circuiting if any of them succeed. Their order determines precedence:
@@ -59,13 +59,13 @@ exports.Lexer = class Lexer
         while @chunk = code[i..]
             consumed = \
                      @identifierToken() or
-                     @commentToken()        or
+                     @commentToken()    or
                      @whitespaceToken() or
-                     @lineToken()               or
-                     @stringToken()         or
-                     @numberToken()         or
-                     @regexToken()          or
-                     @jsToken()                 or
+                     @lineToken()       or
+                     @stringToken()     or
+                     @numberToken()     or
+                     @regexToken()      or
+                     @jsToken()         or
                      @literalToken()
 
             # Update position

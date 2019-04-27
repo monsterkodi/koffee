@@ -29,5 +29,4 @@ devDependencies
                 google-closure-compiler-js  ~20170910.0.1
                 jison           ~0.4.18
                 underscore      ~1.8.3
-dependencies
-                noon  ^1.5.0
+                noon            ^1.5.0

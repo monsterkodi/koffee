@@ -1093,8 +1093,8 @@ exports.Arr = class Arr extends Base
 #### Class
 
 # The Koffee class definition.
-# Initialize a **Class** with its name, an optional superclass, and a
-# list of prototype property assignments.
+# Initialize a **Class** with its name, an optional superclass, and a list of prototype property assignments.
+
 exports.Class = class Class extends Base
     constructor: (@variable, @parent, @body = new Block) ->
         @boundFuncs = []
@@ -1105,6 +1105,7 @@ exports.Class = class Class extends Base
     defaultClassVariableName: '_Class'
 
     # Figure out the appropriate name for the constructor function of this class.
+        
     determineName: ->
         return @defaultClassVariableName unless @variable
         [..., tail] = @variable.properties
@@ -1120,8 +1121,8 @@ exports.Class = class Class extends Base
             @variable.error message if message
         if name in JS_FORBIDDEN then "_#{name}" else name
 
-    # For all `this`-references and bound functions in the class definition,
-    # `this` is the Class being constructed.
+    # For all `this`-references and bound functions in the class definition, `this` is the Class being constructed.
+        
     setContext: (name) ->
         @body.traverseChildren false, (node) ->
             return false if node.classBody
@@ -1130,16 +1131,16 @@ exports.Class = class Class extends Base
             else if node instanceof Code
                 node.context    = name if node.bound
 
-    # Ensure that all functions bound to the instance are proxied in the
-    # constructor.
+    # Ensure that all functions bound to the instance are proxied in the constructor.
+    
     addBoundFunctions: (o) ->
         for bvar in @boundFuncs
             lhs = (new Value (new ThisLiteral), [new Access bvar]).compile o
             @ctor.body.unshift new Literal "#{lhs} = #{utility 'bind', o}(#{lhs}, this)"
         return
 
-    # Merge the properties from a top-level object as prototypal properties
-    # on the class.
+    # Merge the properties from a top-level object as prototypal properties on the class.
+    
     addProperties: (node, name, o) ->
         props = node.base.properties[..]
         exprs = while assign = props.shift()

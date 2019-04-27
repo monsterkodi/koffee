@@ -74,9 +74,9 @@ exports.Rewriter = class Rewriter
     constructorShortcut: ->
          
         @scanTokens (token, i) ->
-            if token[0] is '@' and @tokens[i+1][0] is ':'
-                token[0] = 'PROPERTY'
-                token[1] = 'constructor'
+            if i > 0 and @tokens[i-1][0] is '@' and @tokens[i][0] is ':' and @tokens[i+1][0] in ['->', 'PARAM_START']
+                @tokens[i-1][0] = 'PROPERTY'
+                @tokens[i-1][1] = 'constructor'
             1
         
     # The lexer has tagged the opening parenthesis of a method call. Match it with

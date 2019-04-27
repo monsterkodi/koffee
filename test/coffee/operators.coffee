@@ -120,7 +120,7 @@ test "postfix existential operator on expressions", ->
     eq true, (1 or 0)?, true
 
 
-# `is`,`isnt`,`==`,`!=`
+# `is`,`!=`,`==`,`!=`
 
 test "`==` and `is` should be interchangeable", ->
     a = b = 1
@@ -128,12 +128,12 @@ test "`==` and `is` should be interchangeable", ->
     ok a == b
     ok a is b
 
-test "`!=` and `isnt` should be interchangeable", ->
+test "`!=` and `!=` should be interchangeable", ->
     a = 0
     b = 1
-    ok a isnt 1 and b != 0
+    ok a != 1 and b != 0
     ok a != b
-    ok a isnt b
+    ok a != b
 
 
 # [not] in/of
@@ -233,9 +233,9 @@ test "chainable operators", ->
     ok 100 > 10 > 1 > 0 > -1
     ok -1 < 0 < 1 < 10 < 100
 
-test "`is` and `isnt` may be chained", ->
+test "`is` and `!=` may be chained", ->
     ok true is not false is true is not false
-    ok 0 is 0 isnt 1 is 1
+    ok 0 is 0 != 1 is 1
 
 test "different comparison operators (`>`,`<`,`is`,etc.) may be combined", ->
     ok 1 < 2 > 1

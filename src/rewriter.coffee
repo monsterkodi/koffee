@@ -4,19 +4,9 @@
 # a series of passes over the token stream, using this **Rewriter** to convert
 # shorthand into the unambiguous long form, add implicit indentation and
 # parentheses, and generally clean things up.
+# The Rewriter is used by the Lexer, directly against its internal array of tokens.
 
-# Create a generated token: one that exists due to a use of implicit syntax.
-
-generate = (tag, value, origin) ->
-    tok = [tag, value]
-    tok.generated = yes
-    tok.origin = origin if origin
-    tok
-
-# The **Rewriter** class is used by the [Lexer](lexer.html), directly against
-# its internal array of tokens.
-
-exports.Rewriter = class Rewriter
+class Rewriter
 
     # Rewrite the token stream in multiple passes, one logical filter at
     # a time. This could certainly be changed into a single pass through the
@@ -29,6 +19,7 @@ exports.Rewriter = class Rewriter
         # console.log (t[0] + '/' + t[1] for t in @tokens).join ' '
         @removeLeadingNewlines()
         @constructorShortcut()
+        # @optionArguments()
         @closeOpenCalls()
         @closeOpenIndexes()
         @normalizeLines()
@@ -66,7 +57,7 @@ exports.Rewriter = class Rewriter
     # Leading newlines would introduce an ambiguity in the grammar, so we dispatch them here.
     
     removeLeadingNewlines: ->
-        break for [tag], i in @tokens when tag isnt 'TERMINATOR'
+        break for [tag], i in @tokens when tag != 'TERMINATOR'
         @tokens.splice 0, i if i
 
     # replace `@:` with `constructor:`
@@ -77,6 +68,19 @@ exports.Rewriter = class Rewriter
             if i > 0 and @tokens[i-1][0] is '@' and @tokens[i][0] is ':' and @tokens[i+1][0] in ['->', 'PARAM_START']
                 @tokens[i-1][0] = 'PROPERTY'
                 @tokens[i-1][1] = 'constructor'
+            1
+        
+    # insert `option_arguments=` if parameter list starts with { followed by @ or PROPERTY
+            
+    optionArguments: ->
+        
+        @scanTokens (token, i) ->
+            if i > 0 and @tokens[i-1][0] is 'PARAM_START' and @tokens[i][0] is '{' and @tokens[i+1][0] in ['@', 'PROPERTY']
+                console.log 'before------------------------', @tokens
+                @tokens.splice i, 0, Rewriter.generate '=', '=', @tokens[i]
+                @tokens.splice i, 0, Rewriter.generate 'IDENTIFIER', 'option_arguments', @tokens[i+1]
+                console.log 'after-------------------------', @tokens
+                return -1
             1
         
     # The lexer has tagged the opening parenthesis of a method call. Match it with
@@ -135,9 +139,8 @@ exports.Rewriter = class Rewriter
             return yes if @tag(end + 1) is ':'
         no
 
-    # Returns `yes` if current line of tokens contain an element of tags on same
-    # expression level. Stop searching at LINEBREAKS or explicit start of
-    # containing balanced expression.
+    # Returns `yes` if current line of tokens contain an element of tags on same expression level. 
+    # Stop searching at LINEBREAKS or explicit start of containing balanced expression.
     
     findTagsBackwards: (i, tags) ->
         backStack = []
@@ -163,6 +166,7 @@ exports.Rewriter = class Rewriter
             [nextTag] = if i < tokens.length - 1 then tokens[i + 1] else []
             stackTop  = -> stack[stack.length - 1]
             startIdx  = i
+            generate  = Rewriter.generate
 
             # Helper function, used for keeping track of the number of tokens consumed
             # and spliced, when returning for getting a new token.
@@ -332,17 +336,17 @@ exports.Rewriter = class Rewriter
                 while inImplicit()
                     [stackTag, stackIdx, {sameLine, startsLine}] = stackTop()
                     # Close implicit calls when reached end of argument list
-                    if inImplicitCall() and prevTag isnt ','
+                    if inImplicitCall() and prevTag != ','
                         endImplicitCall()
                     # Close implicit objects such as:
                     # return a: 1, b: 2 unless true
                     else if inImplicitObject() and not @insideForDeclaration and sameLine and
-                                    tag isnt 'TERMINATOR' and prevTag isnt ':'
+                                    tag != 'TERMINATOR' and prevTag != ':'
                         endImplicitObject()
                     # Close implicit objects when at end of line, line didn't end with a comma
                     # and the implicit object didn't start the line or the next line doesn't look like
                     # the continuation of an object.
-                    else if inImplicitObject() and tag is 'TERMINATOR' and prevTag isnt ',' and
+                    else if inImplicitObject() and tag is 'TERMINATOR' and prevTag != ',' and
                                     not (startsLine and @looksObjectish(i + 1))
                         return forward 1 if nextTag is 'HERECOMMENT'
                         endImplicitObject()
@@ -364,7 +368,7 @@ exports.Rewriter = class Rewriter
             #
             if tag is ',' and not @looksObjectish(i + 1) and inImplicitObject() and
                  not @insideForDeclaration and
-                 (nextTag isnt 'TERMINATOR' or not @looksObjectish(i + 2))
+                 (nextTag != 'TERMINATOR' or not @looksObjectish(i + 2))
                 # When nextTag is OUTDENT the comma is insignificant and
                 # should just be ignored so embed it in the implicit object.
                 #
@@ -377,9 +381,10 @@ exports.Rewriter = class Rewriter
             return forward(1)
 
     # Add location data to all tokens generated by the rewriter.
+    
     addLocationDataToGeneratedTokens: ->
         @scanTokens (token, i, tokens) ->
-            return 1 if         token[2]
+            return 1 if token[2]
             return 1 unless token.generated or token.explicit
             if token[0] is '{' and nextLocation=tokens[i + 1]?[2]
                 {first_line: line, first_column: column} = nextLocation
@@ -388,10 +393,10 @@ exports.Rewriter = class Rewriter
             else
                 line = column = 0
             token[2] =
-                first_line:     line
+                first_line:   line
                 first_column: column
-                last_line:      line
-                last_column:    column
+                last_line:    line
+                last_column:  column
             return 1
 
     # OUTDENT tokens should always be positioned at the last character of the
@@ -404,10 +409,10 @@ exports.Rewriter = class Rewriter
                 (token.generated and token[0] is '}')
             prevLocationData = tokens[i - 1][2]
             token[2] =
-                first_line:     prevLocationData.last_line
+                first_line:   prevLocationData.last_line
                 first_column: prevLocationData.last_column
-                last_line:      prevLocationData.last_line
-                last_column:    prevLocationData.last_column
+                last_line:    prevLocationData.last_line
+                last_column:  prevLocationData.last_column
             return 1
 
     # Because our grammar is LALR(1), it can't handle some single-line
@@ -419,9 +424,9 @@ exports.Rewriter = class Rewriter
         starter = indent = outdent = null
 
         condition = (token, i) ->
-            token[1] isnt ';' and token[0] in SINGLE_CLOSERS and
+            token[1] != ';' and token[0] in SINGLE_CLOSERS and
             not (token[0] is 'TERMINATOR' and @tag(i + 1) in EXPRESSION_CLOSE) and
-            not (token[0] is 'ELSE' and starter isnt 'THEN') and
+            not (token[0] is 'ELSE' and starter != 'THEN') and
             not (token[0] in ['CATCH', 'FINALLY'] and starter in ['->', '=>']) or
             token[0] in CALL_CLOSERS and
             (@tokens[i - 1].newLine or @tokens[i - 1][0] is 'OUTDENT')
@@ -432,7 +437,7 @@ exports.Rewriter = class Rewriter
         @scanTokens (token, i, tokens) ->
             [tag] = token
             if tag is 'TERMINATOR'
-                if @tag(i + 1) is 'ELSE' and @tag(i - 1) isnt 'OUTDENT'
+                if @tag(i + 1) is 'ELSE' and @tag(i - 1) != 'OUTDENT'
                     tokens.splice i, 1, @indentation()...
                     return 1
                 if @tag(i + 1) in EXPRESSION_CLOSE
@@ -442,7 +447,7 @@ exports.Rewriter = class Rewriter
                 for j in [1..2] when @tag(i + j) in ['OUTDENT', 'TERMINATOR', 'FINALLY']
                     tokens.splice i + j, 0, @indentation()...
                     return 2 + j
-            if tag in SINGLE_LINERS and @tag(i + 1) isnt 'INDENT' and
+            if tag in SINGLE_LINERS and @tag(i + 1) != 'INDENT' and
                  not (tag is 'ELSE' and @tag(i + 1) is 'IF')
                 starter = tag
                 [indent, outdent] = @indentation tokens[i]
@@ -465,7 +470,7 @@ exports.Rewriter = class Rewriter
             tag is 'TERMINATOR' or (tag is 'INDENT' and prevTag not in SINGLE_LINERS)
 
         action = (token, i) ->
-            if token[0] isnt 'INDENT' or (token.generated and not token.fromThen)
+            if token[0] != 'INDENT' or (token.generated and not token.fromThen)
                 original[0] = 'POST_' + original[0]
 
         @scanTokens (token, i) ->
@@ -475,7 +480,9 @@ exports.Rewriter = class Rewriter
             return 1
 
     # Generate the indentation tokens, based on another token on the same line.
+    
     indentation: (origin) ->
+        
         indent  = ['INDENT', 4]
         outdent = ['OUTDENT', 4]
         if origin
@@ -485,10 +492,15 @@ exports.Rewriter = class Rewriter
             indent.explicit = outdent.explicit = yes
         [indent, outdent]
 
-    generate: generate
+    # Create a generated token: one that exists due to a use of implicit syntax.
+    
+    @generate: (tag, value, origin) ->
+        tok = [tag, value]
+        tok.generated = yes
+        tok.origin = origin if origin
+        tok
 
-    # Look up a tag by token index.
-    tag: (i) -> @tokens[i]?[0]
+    tag: (i) -> @tokens[i]?[0] # Look up a tag by token index.
 
 # Constants
 # ---------
@@ -506,9 +518,10 @@ BALANCED_PAIRS = [
     ['REGEX_START', 'REGEX_END']
 ]
 
-# The inverse mappings of `BALANCED_PAIRS` we're trying to fix up, so we can
-# look things up from either end.
+# The inverse mappings of `BALANCED_PAIRS` we're trying to fix up, so we can look things up from either end.
+
 exports.INVERSES = INVERSES = {}
+exports.Rewriter = Rewriter
 
 # The tokens that signal the start/end of a balanced pair.
 EXPRESSION_START = []

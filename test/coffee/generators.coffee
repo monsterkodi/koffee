@@ -67,7 +67,7 @@ test "bound generator", ->
                         yield this
 
     eq obj, obj.bound().next().value
-    ok obj isnt obj.unbound().next().value
+    ok obj != obj.unbound().next().value
     eq obj, obj.nested().next().value.next().value.next().value
 
 test "`yield from` support", ->
@@ -188,7 +188,7 @@ test "`throw` can be yielded", ->
 test "symbolic operators has precedence over the `yield`", ->
     symbolic     = '+ - * / << >> & | || && ** ^ // or and'.split ' '
     compound     = ("#{op}=" for op in symbolic)
-    relations    = '< > == != <= >= is isnt'.split ' '
+    relations    = '< > == != <= >= is !='.split ' '
 
     operators    = [symbolic..., '=', compound..., relations...]
 

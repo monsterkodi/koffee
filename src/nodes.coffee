@@ -548,7 +548,7 @@ exports.Value = class Value extends Base
 
     looksStatic: (className) ->
         @base.value is className and @properties.length is 1 and
-            @properties[0].name?.value isnt 'prototype'
+            @properties[0].name?.value != 'prototype'
 
     # The value can be unwrapped as its inner node, if there are no attached
     # properties.
@@ -898,10 +898,10 @@ exports.Range = class Range extends Base
         known    = @fromNum? and @toNum?
         idx      = del o, 'index'
         idxName  = del o, 'name'
-        namedIndex = idxName and idxName isnt idx
+        namedIndex = idxName and idxName != idx
         varPart  = "#{idx} = #{@fromC}"
-        varPart += ", #{@toC}" if @toC isnt @toVar
-        varPart += ", #{@step}" if @step isnt @stepVar
+        varPart += ", #{@toC}" if @toC != @toVar
+        varPart += ", #{@step}" if @step != @stepVar
         [lt, gt] = ["#{idx} <#{@equals}", "#{idx} >#{@equals}"]
 
         # Generate the condition.
@@ -950,7 +950,7 @@ exports.Range = class Range extends Base
             o.index = i
             body = fragmentsToText @compileNode o
         else
-            vars = "#{i} = #{@fromC}" + if @toC isnt @toVar then ", #{@toC}" else ''
+            vars = "#{i} = #{@fromC}" + if @toC != @toVar then ", #{@toC}" else ''
             cond = "#{@fromVar} <= #{@toVar}"
             body = "var #{vars}; #{cond} ? #{i} <#{@equals} #{@toVar} : #{i} >#{@equals} #{@toVar}; #{cond} ? #{i}++ : #{i}--"
         post     = "{ #{result}.push(#{i}); }\n#{idt}return #{result};\n#{o.indent}"
@@ -1026,7 +1026,7 @@ exports.Obj = class Obj extends Base
             indent = if prop instanceof Comment then '' else idt
             indent += TAB if hasDynamic and i < dynamicIndex
             if prop instanceof Assign
-                if prop.context isnt 'object'
+                if prop.context != 'object'
                     prop.operatorToken.error "unexpected #{prop.operatorToken.value}"
                 if prop.variable instanceof Value and prop.variable.hasProperties()
                     prop.variable.error 'invalid object key'
@@ -1263,7 +1263,7 @@ exports.ModuleDeclaration = class ModuleDeclaration extends Base
             @source.error 'the name of the module to be imported from must be an uninterpolated string'
 
     checkScope: (o, moduleDeclarationType) ->
-        if o.indent.length isnt 0
+        if o.indent.length != 0
             @error "#{moduleDeclarationType} statements must be at top-level scope"
 
 exports.ImportDeclaration = class ImportDeclaration extends ModuleDeclaration
@@ -1342,7 +1342,7 @@ exports.ModuleSpecifierList = class ModuleSpecifierList extends Base
         o.indent += TAB
         compiledList = (specifier.compileToFragments o, LEVEL_LIST for specifier in @specifiers)
 
-        if @specifiers.length isnt 0
+        if @specifiers.length != 0
             code.push @makeCode "{\n#{o.indent}"
             for fragments, index in compiledList
                 code.push @makeCode(",\n#{o.indent}") if index
@@ -2083,7 +2083,7 @@ exports.Op = class Op extends Base
         else
             parts.push [@makeCode "("] if o.level >= LEVEL_PAREN
             parts.push [@makeCode op]
-            parts.push [@makeCode " "] if @first.base?.value isnt ''
+            parts.push [@makeCode " "] if @first.base?.value != ''
             parts.push @first.compileToFragments o, LEVEL_OP
             parts.push [@makeCode ")"] if o.level >= LEVEL_PAREN
         @joinFragmentArrays parts, ''
@@ -2354,7 +2354,7 @@ exports.For = class For extends While
         else
             ivar = (@object and index) or scope.freeVariable 'i', single: true
         kvar = ((@range or @from) and name) or index or ivar
-        kvarAssign  = if kvar isnt ivar then "#{kvar} = " else ""
+        kvarAssign  = if kvar != ivar then "#{kvar} = " else ""
         if @step and not @range
             [step, stepVar] = @cacheToCodeFragments @step.cache o, LEVEL_LIST, isComplexOrAssignable
             stepNum = Number stepVar if @step.isNumber()
@@ -2374,7 +2374,7 @@ exports.For = class For extends While
             if name and not @pattern and not @from
                 namePart = "#{name} = #{svar}[#{kvar}]"
             if not @object and not @from
-                defPart += "#{@tab}#{step};\n" if step isnt stepVar
+                defPart += "#{@tab}#{step};\n" if step != stepVar
                 down = stepNum < 0
                 lvar = scope.freeVariable 'len' unless @step and stepNum? and down
                 declare = "#{kvarAssign}#{ivar} = 0, #{lvar} = #{svar}.length"
@@ -2391,7 +2391,7 @@ exports.For = class For extends While
                         declare = "(#{stepVar} > 0 ? (#{declare}) : #{declareDown})"
                     increment = "#{ivar} += #{stepVar}"
                 else
-                    increment = "#{if kvar isnt ivar then "++#{ivar}" else "#{ivar}++"}"
+                    increment = "#{if kvar != ivar then "++#{ivar}" else "#{ivar}++"}"
                 forPartFragments = [@makeCode("#{declare}; #{compare}; #{kvarAssign}#{increment}")]
         if @returns
             resultPart   = "#{@tab}#{rvar} = [];\n"
@@ -2472,7 +2472,7 @@ exports.Switch = class Switch extends Base
             fragments = fragments.concat body, @makeCode('\n') if (body = block.compileToFragments o, LEVEL_TOP).length > 0
             break if i is @cases.length - 1 and not @otherwise
             expr = @lastNonComment block.expressions
-            continue if expr instanceof Return or (expr instanceof Literal and expr.jumps() and expr.value isnt 'debugger')
+            continue if expr instanceof Return or (expr instanceof Literal and expr.jumps() and expr.value != 'debugger')
             fragments.push cond.makeCode(idt2 + 'break;\n')
         if @otherwise and @otherwise.expressions.length
             fragments.push @makeCode(idt1 + "default:\n"), (@otherwise.compileToFragments o, LEVEL_TOP)..., @makeCode("\n")

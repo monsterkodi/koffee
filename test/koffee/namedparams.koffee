@@ -1,0 +1,188 @@
+require('../../lib/helpers').initTest() if not global.test
+
+test "named function parameters", ->
+    
+    (({a:x=666, b:y=777}) ->
+        eq x, 1
+        eq y, 777
+    ) a:1
+    
+    (({a:a=666, b:b=777}) ->
+        eq a, 666
+        eq b, 2
+    ) b:2
+
+    (({a:a, b:b=777}) ->
+        eq a, undefined
+        eq b, 3
+    ) b:3
+
+    (({a:a, b:b=777}) ->
+        eq a, undefined
+        eq b, 777
+    ) c:4
+    
+    (({a:a, b:b}) ->
+        eq a, undefined
+        eq b, 3
+    ) b:3
+    
+test "named method parameters", ->
+    
+    class A
+        @: ({a:a = 666, b:b = 777}) ->
+            @a = a
+            @b = b
+
+    a = new A {}
+    eq a.a, 666
+    eq a.b, 777
+            
+    a = new A a:4
+    eq a.a, 4
+    eq a.b, 777
+    
+    a = new A b:5
+    eq a.a, 666
+    eq a.b, 5
+
+    a = new A c:6
+    eq a.a, 666
+    eq a.b, 777
+    
+test "named this parameters", ->
+    
+    class A
+        @: ({a:@a = 666, b:@b = 777}) ->
+    
+    a = new A {}
+    eq a.a, 666
+    eq a.b, 777
+            
+    a = new A a:4
+    eq a.a, 4
+    eq a.b, 777
+    
+    a = new A b:5
+    eq a.a, 666
+    eq a.b, 5
+    
+    a = new A c:6
+    eq a.a, 666
+    eq a.b, 777
+
+test "named super parameters", ->
+    
+    class B
+        @: ({a:@a = 555, b:@b = 777}) ->
+        
+    class A extends B
+        @: ({a:@a = 666, c:@c = 888}) -> super
+        
+    a = new A {}
+    eq a.a, 555
+    eq a.b, 777
+    eq a.c, 888
+            
+    a = new A a:4
+    eq a.a, 4
+    eq a.b, 777
+    eq a.c, 888
+    
+    a = new A b:5
+    eq a.a, 555
+    eq a.b, 5
+    eq a.c, 888
+    
+    a = new A c:6
+    eq a.a, 555
+    eq a.b, 777
+    eq a.c, 6
+    
+test "named config parameters", ->
+
+    class B
+        @: ({a:@a = 555, b:@b = 777}) ->
+
+    class A1 extends B
+        @: ({a:a = 666, c:c = 888}) -> 
+            arguments[0].a = a
+            arguments[0].c = c
+            super 
+    
+    a = new A1 {}
+    eq a.a, 666
+    eq a.b, 777
+            
+    a = new A1 a:4
+    eq a.a, 4
+    eq a.b, 777
+    
+    a = new A1 b:5
+    eq a.a, 666
+    eq a.b, 5
+    
+    a = new A1 c:6
+    eq a.a, 666
+    eq a.b, 777
+            
+    class A2 extends B
+        @: ({a:@a = 666, c:@c = 888}) -> 
+            arguments[0].a = @a
+            arguments[0].c = @c
+            super 
+    
+    a = new A2 {}
+    eq a.a, 666
+    eq a.b, 777
+    eq a.c, 888
+            
+    a = new A2 a:4
+    eq a.a, 4
+    eq a.b, 777
+    eq a.c, 888
+    
+    a = new A2 b:5
+    eq a.a, 666
+    eq a.b, 5
+    eq a.c, 888
+    
+    a = new A2 c:6
+    eq a.a, 666
+    eq a.b, 777
+    eq a.c, 6
+    
+
+test "named config parameters dont modify", ->
+
+    class B
+        @: ({a:@a = 555, b:@b = 777}) ->
+
+    class A extends B
+        @: ({a:@a = 666, c:@c = 888}) -> 
+            # arguments[0].a = @a
+            # arguments[0].c = @c
+            arguments[0] = _.defaults {a:@a, c:@c}, arguments[0]
+            super 
+    
+    d = a:1, b:2, c:3
+    a = new A d
+    eq a.a, 1
+    eq a.b, 2
+    eq a.c, 3
+    deepEqual d, a:1, b:2, c:3
+
+    d = a:1, c:3
+    a = new A d
+    eq a.a, 1
+    eq a.b, 777
+    eq a.c, 3
+    deepEqual d, a:1, c:3
+
+    d = a:null, c:3
+    a = new A d
+    eq a.a, 666
+    eq a.b, 777
+    eq a.c, 3
+    deepEqual d, a:null, c:3
+    

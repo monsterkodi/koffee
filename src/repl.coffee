@@ -124,7 +124,7 @@ addHistory = (repl, filename, maxSize) ->
     fd = fs.openSync filename, 'a'
 
     repl.rli.addListener 'line', (code) ->
-        if code and code.length and code isnt '.history' and code isnt '.exit' and lastLine isnt code
+        if code and code.length and code != '.history' and code != '.exit' and lastLine != code
             # Save the latest command in the file
             fs.writeSync fd, "#{code}\n"
             lastLine = code

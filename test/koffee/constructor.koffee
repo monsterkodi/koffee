@@ -1,4 +1,5 @@
-    
+require('../../lib/helpers').initTest() if not global.test
+
 test "constructor shortcut", ->
     
     class A

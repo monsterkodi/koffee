@@ -38,14 +38,22 @@ exports.count = (string, substr) ->
 exports.merge = (options, overrides) ->
     extend (extend {}, options), overrides
 
+# 00000000  000   000  000000000  00000000  000   000  0000000    
+# 000        000 000      000     000       0000  000  000   000  
+# 0000000     00000       000     0000000   000 0 000  000   000  
+# 000        000 000      000     000       000  0000  000   000  
+# 00000000  000   000     000     00000000  000   000  0000000    
+
 # Extend a source object with the properties of another object (shallow copy).
-extend = exports.extend = (object, properties) ->
+
+exports.extend = extend = (object, properties) ->
     for key, val of properties
         object[key] = val
     object
 
 # Return a flattened version of an array.
 # Handy for getting a list of `children` from the nodes.
+    
 exports.flatten = flatten = (array) ->
     flattened = []
     for element in array
@@ -57,12 +65,14 @@ exports.flatten = flatten = (array) ->
 
 # Delete a key from an object, returning the value. Useful when a node is
 # looking for a particular method in an options hash.
+    
 exports.del = (obj, key) ->
-    val =    obj[key]
+    val =  obj[key]
     delete obj[key]
     val
 
 # Typical Array::some
+
 exports.some = Array::some ? (fn) ->
     return true for e in this when fn e
     false
@@ -101,6 +111,7 @@ exports.locationDataToString = (obj) ->
         "No location data"
 
 # A `.coffee.md` compatible version of `basename`, that returns the file sans-extension.
+
 exports.baseFileName = (file, stripExt = no, useWinPathSep = no) ->
     pathSep = if useWinPathSep then /\\|\// else /\//
     parts = file.split(pathSep)
@@ -142,6 +153,7 @@ exports.updateSyntaxError = (error, code, filename) ->
     error
 
 syntaxErrorToString = ->
+    
     return Error::toString.call @ unless @code and @location
 
     {first_line, first_column, last_line, last_column} = @location
@@ -179,14 +191,15 @@ exports.nameWhitespaceCharacter = (string) ->
         else string
 
 # Test support      
-        
+      
 egal = (a, b) ->
   if a is b
-    a isnt 0 or 1/a is 1/b
+    a != 0 or 1/a is 1/b
   else
-    a isnt a and b isnt b
+    a != a and b != b
 
 # A recursive functional equivalence helper; uses egal for testing equivalence.
+    
 arrayEgal = (a, b) ->
   if egal a, b then yes
   else if a instanceof Array and b instanceof Array
@@ -204,4 +217,15 @@ exports.toJS = (str) ->
 exports.stringify = (o) ->
     noon = require 'noon'
     noon.stringify o, circular: true
-        
+    
+# Initialize global variables used in test scripts 
+# Supports running single test via `koffee test/..`
+    
+exports.initTest = ->
+    extend global, require 'assert' 
+    global.Koffee = require './koffee'
+    global._ = require 'underscore'
+    extend global, exports
+    if not global.log  then global.log = console.log 
+    if not global.test then global.test = (n,f) -> log n; f()
+    

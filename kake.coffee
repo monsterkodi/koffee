@@ -7,10 +7,10 @@ childp  = require 'child_process'
 Koffee  = require './lib/koffee'
 helpers = require './lib/helpers'
 
-reset = '\x1B[0m'
-bold  = '\x1B[0;1m'
-log   = console.log
-cLog  = (color,args) -> console.log.apply console.log, [color].concat [].slice.call(args,0), [reset]
+reset  = '\x1B[0m'
+bold   = '\x1B[0;1m'
+log    = console.log
+cLog   = (color,args) -> console.log.apply console.log, [color].concat [].slice.call(args,0), [reset]
     
 yellow = -> cLog '\x1B[0;93m', arguments
 red    = -> cLog '\x1B[0;31m', arguments
@@ -30,7 +30,7 @@ node = (args, output='stderr', callback) ->
 run = (args, callback) ->
     
     node ['bin/koffee'].concat(args), 'stderr', (status) ->
-        process.exit(1) if status isnt 0
+        process.exit(1) if status != 0
         callback() if typeof callback is 'function'
 
 buildParser = ->
@@ -154,11 +154,8 @@ runTests = (testsets) ->
     passedTests   = 0
     failedTests   = 0
 
-    global.Koffee = Koffee
-
-    global.log  = console.log
-    
-    global.test = (description, fn) ->
+    global.Koffee = Koffee    
+    global.test   = (description, fn) ->
         try
             fn.test = {description, currentFile}
             fn.call(fn)
@@ -171,9 +168,8 @@ runTests = (testsets) ->
                 description: description if description?
                 source:      fn.toString() if fn.toString?
 
-    helpers.extend global, require 'assert' # ok, ...
-    helpers.extend global, helpers # eq, arrayEq, toJS
-
+    helpers.initTest()
+                
     files = []
     for testset in testsets
         files = files.concat fs.readdirSync("test/#{testset}").map (f) -> [testset, f]

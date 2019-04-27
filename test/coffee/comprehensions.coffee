@@ -130,7 +130,7 @@ test "Even when referenced in the filter.", ->
 
     list = ['one', 'two', 'three']
 
-    methods = for num, i in list when num isnt 'two' and i isnt 1
+    methods = for num, i in list when num != 'two' and i != 1
         do (num, i) ->
             -> num + ' ' + i
 

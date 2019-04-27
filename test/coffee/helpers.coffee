@@ -61,8 +61,8 @@ test "the `merge` helper makes a new object with all properties of the objects g
     ary = [0, 1, 2, 3, 4]
     obj = {}
     merged = merge obj, ary
-    ok merged isnt obj
-    ok merged isnt ary
+    ok merged != obj
+    ok merged != ary
     for own key, val of ary
         eq val, merged[key]
 

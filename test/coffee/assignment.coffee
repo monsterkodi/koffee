@@ -262,7 +262,7 @@ test "#1005: invalid identifiers allowed on LHS of destructuring assignment", ->
     throws (-> Koffee.compile "[#{disallowed.join ', '}] = x"), null, 'all disallowed'
     throws (-> Koffee.compile "[#{disallowed.join '..., '}...] = x"), null, 'all disallowed as splats'
     t = tSplat = null
-    for v in disallowed when v isnt 'class' # `class` by itself is an expression
+    for v in disallowed when v != 'class' # `class` by itself is an expression
         throws (-> Koffee.compile t), null, t = "[#{v}] = x"
         throws (-> Koffee.compile tSplat), null, tSplat = "[#{v}...] = x"
     doesNotThrow ->

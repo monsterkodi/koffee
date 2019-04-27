@@ -2,45 +2,47 @@
 # on Node.js/V8. This module contains the main entry functions for tokenizing, 
 # parsing, and compiling source Koffee into JavaScript.
 
-fs                      = require 'fs'
-vm                      = require 'vm'
-path                    = require 'path'
-{Lexer}             = require './lexer'
-{parser}            = require './parser'
-helpers             = require './helpers'
-SourceMap           = require './sourcemap'
-packageJson     = require '../package.json'
+fs         = require 'fs'
+vm         = require 'vm'
+path       = require 'path'
+{Lexer}    = require './lexer'
+{parser}   = require './parser'
+helpers    = require './helpers'
+SourceMap  = require './sourcemap'
+pkg        = require '../package.json'
 
-# The current Koffee version number.
-exports.VERSION = packageJson.version
+exports.VERSION = pkg.version # The current Koffee version number.
 
-exports.FILE_EXTENSIONS = ['.coffee', '.koffee']
+exports.FILE_EXTENSIONS = FILE_EXTENSIONS = ['.coffee', '.koffee']
 
-# Expose helpers for testing.
 exports.helpers = helpers
 
-# Function that allows for btoa in both nodejs and the browser.
-base64encode = (src) -> switch
-    when typeof Buffer is 'function'
-        Buffer.from(src).toString('base64')
-    when typeof btoa is 'function'
-        # The contents of a `<script>` block are encoded via UTF-16, so if any extended
-        # characters are used in the block, btoa will fail as it maxes out at UTF-8.
-        # See https://developer.mozilla.org/en-US/docs/Web/API/WindowBase64/Base64_encoding_and_decoding#The_Unicode_Problem
-        # for the gory details, and for the solution implemented here.
-        btoa encodeURIComponent(src).replace /%([0-9A-F]{2})/g, (match, p1) ->
-            String.fromCharCode '0x' + p1
-    else
-        throw new Error('Unable to base64 encode inline sourcemap.')
+# btoa in both nodejs and the browser.
+    
+base64encode = (src) -> 
+    
+    switch
+        when typeof Buffer is 'function'
+            Buffer.from(src).toString('base64')
+        when typeof btoa is 'function'
+            # The contents of a `<script>` block are encoded via UTF-16, so if any extended
+            # characters are used in the block, btoa will fail as it maxes out at UTF-8.
+            # See https://developer.mozilla.org/en-US/docs/Web/API/WindowBase64/Base64_encoding_and_decoding#The_Unicode_Problem
+            # for the gory details, and for the solution implemented here.
+            btoa encodeURIComponent(src).replace /%([0-9A-F]{2})/g, (match, p1) ->
+                String.fromCharCode '0x' + p1
+        else
+            throw new Error('Unable to base64 encode inline sourcemap.')
 
-# Function wrapper to add source file information to SyntaxErrors thrown by the
-# lexer/parser/compiler.
+# Function wrapper to add source file information to SyntaxErrors thrown by the lexer/parser/compiler.
+
 withPrettyErrors = (fn) ->
+    
     (code, options = {}) ->
         try
             fn.call @, code, options
         catch err
-            if typeof code isnt 'string' # Support `Koffee.nodes(tokens)`.
+            if typeof code != 'string' # Support `Koffee.nodes(tokens)`.
                 throw new Error(err.toString())
             else
                 throw helpers.updateSyntaxError err, code, options.filename
@@ -52,8 +54,11 @@ withPrettyErrors = (fn) ->
 # exceptions, it’s probably more efficient to compile twice only when we
 # need a stack trace, rather than always generating a source map even when
 # it’s not likely to be used. Save in form of `filename`: `(source)`
+
 sources = {}
+
 # Also save source maps if generated, in form of `filename`: `(source map)`.
+
 sourceMaps = {}
 
 # Compile Koffee code to JavaScript, using the Coffee/Jison compiler.
@@ -66,7 +71,9 @@ sourceMaps = {}
 # in which case this returns a `{js, v3SourceMap, sourceMap}`
 # object, where sourceMap is a sourcemap.coffee#SourceMap object, handy for
 # doing programmatic lookups.
+
 exports.compile = compile = withPrettyErrors (code, options) ->
+    
     {merge, extend} = helpers
     options = extend {}, options
     # Always generate a source map if no filename is passed in, since without a
@@ -143,12 +150,14 @@ exports.compile = compile = withPrettyErrors (code, options) ->
         js
 
 # Tokenize a string of Koffee code, and return the array of tokens.
+
 exports.tokens = withPrettyErrors (code, options) ->
     lexer.tokenize code, options
 
 # Parse a string of Koffee code or an array of lexed tokens, and
 # return the AST. You can then compile it by calling `.compile()` on the root,
 # or traverse it by using `.traverseChildren()` with a callback.
+
 exports.nodes = withPrettyErrors (source, options) ->
     if typeof source is 'string'
         parser.parse lexer.tokenize source, options
@@ -157,6 +166,7 @@ exports.nodes = withPrettyErrors (source, options) ->
 
 # Compile and execute a string of Koffee (on the server), correctly
 # setting `__filename`, `__dirname`, and relative `require()`.
+
 exports.run = (code, options = {}) ->
     mainModule = require.main
 
@@ -182,8 +192,10 @@ exports.run = (code, options = {}) ->
     mainModule._compile code, mainModule.filename
 
 # Compile and evaluate a string of Koffee (in a Node.js-like environment).
-# The Koffee REPL uses this to run the input.
+# The REPL uses this to run the input.
+
 exports.eval = (code, options = {}) ->
+    
     return unless code = code.trim()
     createContext = vm.Script.createContext ? vm.createContext
 
@@ -203,7 +215,7 @@ exports.eval = (code, options = {}) ->
         sandbox.__filename = options.filename || 'eval'
         sandbox.__dirname    = path.dirname sandbox.__filename
         # define module/require only if they chose not to specify their own
-        unless sandbox isnt global or sandbox.module or sandbox.require
+        unless sandbox != global or sandbox.module or sandbox.require
             Module = require 'module'
             sandbox.module  = _module    = new Module(options.modulename || 'eval')
             sandbox.require = _require = (path) ->  Module._load path, _module, true
@@ -225,6 +237,7 @@ exports.eval = (code, options = {}) ->
 exports.register = -> require './register'
 
 exports._compileFile = (filename, sourceMap = no, inlineMap = no) ->
+    
     raw = fs.readFileSync filename, 'utf8'
     # Strip the Unicode byte order mark, if this file begins with one.
     stripped = if raw.charCodeAt(0) is 0xFEFF then raw.substring 1 else raw
@@ -242,12 +255,12 @@ exports._compileFile = (filename, sourceMap = no, inlineMap = no) ->
 
     answer
 
-# Instantiate a Lexer for our use here.
-lexer = new Lexer
+lexer = new Lexer # Instantiate a Lexer for our use here.
 
 # The real Lexer produces a generic stream of tokens. This object provides a
 # thin wrapper around it, compatible with the Jison API. We can then pass it
 # directly as a "Jison lexer".
+
 parser.lexer =
     lex: ->
         token = parser.tokens[@pos++]
@@ -264,14 +277,17 @@ parser.lexer =
         @pos = 0
     upcomingInput: ->
         ""
-# Make all the AST nodes visible to the parser.
-parser.yy = require './nodes'
+        
+parser.yy = require './nodes' # Make all the AST nodes visible to the parser.
 
 # Override Jison's default error handling function.
+
 parser.yy.parseError = (message, {token}) ->
+    
     # Disregard Jison's message, it contains redundant line number information.
     # Disregard the token, we take its value directly from the lexer in case
     # the error is caused by a generated token which might refer to its origin.
+    
     {errorToken, tokens} = parser
     [errorTag, errorText, errorLoc] = errorToken
 
@@ -285,15 +301,17 @@ parser.yy.parseError = (message, {token}) ->
         else
             helpers.nameWhitespaceCharacter errorText
 
-    # The second argument has a `loc` property, which should have the location
-    # data for this token. Unfortunately, Jison seems to send an outdated `loc`
-    # (from the previous token), so we take the location information directly
-    # from the lexer.
+    # The second argument has a `loc` property, which should have the location data for this token. 
+    # Unfortunately, Jison seems to send an outdated `loc` (from the previous token), 
+    # so we take the location information directly from the lexer.
+    
     helpers.throwSyntaxError "unexpected #{errorText}", errorLoc
 
 # Based on http://v8.googlecode.com/svn/branches/bleeding_edge/src/messages.js
 # Modified to handle sourceMap
+
 formatSourcePosition = (frame, getSourceMapping) ->
+    
     filename = undefined
     fileLocation = ''
 
@@ -331,7 +349,7 @@ formatSourcePosition = (frame, getSourceMapping) ->
             tp = as = ''
             if typeName and functionName.indexOf typeName
                 tp = "#{typeName}."
-            if methodName and functionName.indexOf(".#{methodName}") isnt functionName.length - methodName.length - 1
+            if methodName and functionName.indexOf(".#{methodName}") != functionName.length - methodName.length - 1
                 as = " [as #{methodName}]"
 
             "#{tp}#{functionName}#{as} (#{fileLocation})"
@@ -345,11 +363,14 @@ formatSourcePosition = (frame, getSourceMapping) ->
         fileLocation
 
 getSourceMap = (filename) ->
+     
     if sourceMaps[filename]?
         sourceMaps[filename]
+         
     # Koffee compiled in a browser may get compiled with `options.filename`
     # of `<anonymous>`, but the browser may request the stack trace with the
     # filename of the script file.
+     
     else if sourceMaps['<anonymous>']?
         sourceMaps['<anonymous>']
     else if sources[filename]?
@@ -364,7 +385,9 @@ getSourceMap = (filename) ->
 # NodeJS / V8 have no support for transforming positions in stack traces using
 # sourceMap, so we must monkey-patch Error to display Koffee source
 # positions.
+
 Error.prepareStackTrace = (err, stack) ->
+    
     getSourceMapping = (filename, line, column) ->
         sourceMap = getSourceMap filename
         answer = sourceMap.sourceLocation [line - 1, column - 1] if sourceMap?
@@ -375,3 +398,5 @@ Error.prepareStackTrace = (err, stack) ->
         "        at #{formatSourcePosition frame, getSourceMapping}"
 
     "#{err.toString()}\n#{frames.join '\n'}\n"
+    
+    

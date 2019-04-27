@@ -1,0 +1,25 @@
+
+# class A
+    # a: ( a:1,  b:2)          -> 
+    # a: (@a:1,  b:2)          ->
+    # a: (@a:1, @b:2)          ->
+    # a: ( a:1, @b:2)          ->
+    # b: ( a:1,  b:2, arg)     ->
+    # b: ( a:1,  b:2, arg=1)   ->
+    # c: ( a:1,  b:2, arg=c:1) ->
+    # e: ( a:1,  b:2)          -> 
+    # f: (@a=1,  b=2)          -> 
+    # e: (opt= a:1, @b:2)      -> 
+    # e: (@opt= a:1, @b:2)     -> 
+
+# class A
+    # constructor: (@prop='A', @dict = a:[1,2,3], b:'4') ->
+
+# test "config constructors", ->
+#     
+#     class A
+#         constructor: (@prop='A', @dict = a:[1,2,3], b:'4') ->
+#             
+#     a = new A
+#     eq        a.prop, 'A'
+#     deepEqual a.dict, a:[1,2,3], b:'4'

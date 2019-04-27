@@ -111,13 +111,15 @@ exports.baseFileName = (file, stripExt = no, useWinPathSep = no) ->
     parts.pop() if /^[ck]offee$/.test(parts[parts.length-1]) and parts.length > 1
     parts.join('.')
 
-# Determine if a filename represents a Koffee file.
+# Determine if a filename represents a koffee file.
+
 exports.isCoffee = (file) -> /\.[ck]offee$/.test file
 
 # Throws a SyntaxError from a given location.
 # The error's `toString` will return an error message following the "standard"
 # format `<filename>:<line>:<col>: <message>` plus the line with the error and a
 # marker showing where the error is.
+
 exports.throwSyntaxError = (message, location) ->
     error = new SyntaxError message
     error.location = location
@@ -129,8 +131,8 @@ exports.throwSyntaxError = (message, location) ->
 
     throw error
 
-# Update a compiler SyntaxError with source code information if it didn't have
-# it already.
+# Update a compiler SyntaxError with source code information if it didn't have it already.
+
 exports.updateSyntaxError = (error, code, filename) ->
     # Avoid screwing up the `stack` property of other errors (i.e. possible bugs).
     if error.toString is syntaxErrorToString
@@ -148,9 +150,9 @@ syntaxErrorToString = ->
 
     filename = @filename or '[stdin]'
     codeLine = @code.split('\n')[first_line]
-    start        = first_column
+    start    = first_column
     # Show only the first line on multi-line errors.
-    end          = if first_line is last_line then last_column + 1 else codeLine.length
+    end      = if first_line is last_line then last_column + 1 else codeLine.length
     marker   = codeLine[...start].replace(/[^\s]/g, ' ') + repeat('^', end - start)
 
     # Check to see if we're running on a color-enabled TTY.
@@ -178,7 +180,6 @@ exports.nameWhitespaceCharacter = (string) ->
 
 # Test support      
         
-# See http://wiki.ecmascript.org/doku.php?id=harmony:egal
 egal = (a, b) ->
   if a is b
     a isnt 0 or 1/a is 1/b

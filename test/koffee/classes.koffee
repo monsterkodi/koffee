@@ -1,13 +1,4 @@
 
-test "config constructors", ->
-    
-    class A
-        constructor: (@prop='A', @dict = a:[1,2,3], b:'4') ->
-            
-    a = new A
-    eq        a.prop, 'A'
-    deepEqual a.dict, a:[1,2,3], b:'4'
-
 test "method names", ->
     
     class A

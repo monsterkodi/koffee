@@ -6,8 +6,9 @@
 #           parser  = new OptionParser switches, helpBanner
 #           options = parser.parse process.argv
 #
-# The first non-option is considered to be the start of the file (and file
-# option) list, and all subsequent arguments are left unparsed.
+# The first non-option is considered to be the start of the file (and file option) list, 
+# and all subsequent arguments are left unparsed.
+
 exports.OptionParser = class OptionParser
 
     # Initialize with a list of valid options, in the form:
@@ -15,6 +16,7 @@ exports.OptionParser = class OptionParser
     #           [short-flag, long-flag, description]
     #
     # Along with an optional banner for the usage help.
+        
     constructor: (rules, @banner) ->
         @rules = buildRules rules
 
@@ -22,8 +24,9 @@ exports.OptionParser = class OptionParser
     # specified options, and return it. Options after the first non-option
     # argument are treated as arguments. `options.arguments` will be an array
     # containing the remaining arguments. This is a simpler API than many option
-    # parsers that allow you to attach callback actions for every flag. Instead,
-    # you're responsible for interpreting the options object.
+    # parsers that allow you to attach callback actions for every flag. 
+    # Instead, you're responsible for interpreting the options object.
+        
     parse: (args) ->
         options = arguments: []
         skippingArgument = no
@@ -57,50 +60,52 @@ exports.OptionParser = class OptionParser
                 options.arguments.push arg
         options
 
-    # Return the help text for this **OptionParser**, listing and describing all
-    # of the valid options, for `--help` and such.
+    # Return the help text for this OptionParser
+        
     help: ->
         lines = []
         lines.unshift "#{@banner}\n" if @banner
         for rule in @rules
             spaces  = 15 - rule.longFlag.length
             spaces  = if spaces > 0 then repeat ' ', spaces else ''
-            letPart = if rule.shortFlag then rule.shortFlag + ', ' else '        '
-            lines.push '    ' + letPart + rule.longFlag + spaces + rule.description
+            letPart = if rule.shortFlag then rule.shortFlag + ', ' else '    '
+            lines.push '     ' + letPart + rule.longFlag + spaces + rule.description
         "\n#{ lines.join('\n') }\n"
-
+        
 # Helpers
 # -------
-
 # Regex matchers for option flags.
-LONG_FLAG    = /^(--\w[\w\-]*)/
+    
+LONG_FLAG  = /^(--\w[\w\-]*)/
 SHORT_FLAG = /^(-\w)$/
 MULTI_FLAG = /^-(\w{2,})/
-OPTIONAL     = /\[(\w+(\*?))\]/
+OPTIONAL   = /\[(\w+(\*?))\]/
 
-# Build and return the list of option rules. If the optional *short-flag* is
-# unspecified, leave it out by padding with `null`.
+# Build and return the list of option rules. 
+# If the optional *short-flag* is unspecified, leave it out by padding with `null`.
+
 buildRules = (rules) ->
     for tuple in rules
         tuple.unshift null if tuple.length < 3
         buildRule tuple...
 
-# Build a rule from a `-o` short flag, a `--output [DIR]` long flag, and the
-# description of what the option does.
+# Build a rule from a `-o` short flag, a `--output [DIR]` long flag, and the description of what the option does.
+
 buildRule = (shortFlag, longFlag, description, options = {}) ->
-    match           = longFlag.match(OPTIONAL)
-    longFlag    = longFlag.match(LONG_FLAG)[1]
+    match    = longFlag.match(OPTIONAL)
+    longFlag = longFlag.match(LONG_FLAG)[1]
     {
-        name:                   longFlag.substr 2
-        shortFlag:      shortFlag
-        longFlag:           longFlag
-        description:    description
-        hasArgument:    !!(match and match[1])
-        isList:             !!(match and match[2])
+        name:        longFlag.substr 2
+        shortFlag:   shortFlag
+        longFlag:    longFlag
+        description: description
+        hasArgument: !!(match and match[1])
+        isList:      !!(match and match[2])
     }
 
-# Normalize arguments by expanding merged flags into multiple flags. This allows
-# you to have `-wl` be the same as `--watch --lint`.
+# Normalize arguments by expanding merged flags into multiple flags. 
+# This allows you to have `-wl` be the same as `--watch --lint`.
+
 normalizeArguments = (args) ->
     args = args[..]
     result = []

@@ -33,50 +33,46 @@ class LineMap
 # SourceMap
 # ---------
 
-# Maps locations in a single generated JavaScript file back to locations in
-# the original Koffee source file.
+# Maps locations in a single generated JavaScript file back to locations in the original source file.
 
-# This is intentionally agnostic towards how a source map might be represented on
-# disk. Once the compiler is ready to produce a "v3"-style source map, we can walk
+# This is intentionally agnostic towards how a source map might be represented on disk. 
+# Once the compiler is ready to produce a "v3"-style source map, we can walk
 # through the arrays of line and column buffer to produce it.
 
 class SourceMap
     constructor: ->
         @lines = []
 
-# Adds a mapping to this SourceMap. `sourceLocation` and `generatedLocation`
-# are both `[line, column]` arrays. If `options.noReplace` is true, then if there
-# is already a mapping for the specified `line` and `column`, this will have no
-# effect.
-
+    # Adds a mapping to this SourceMap. 
+    # `sourceLocation` and `generatedLocation` are both `[line, column]` arrays. 
+    # If `options.noReplace` and there is already a mapping for the specified `line` and `column`, this will have no effect.
+    
     add: (sourceLocation, generatedLocation, options = {}) ->
         [line, column] = generatedLocation
         lineMap = (@lines[line] or= new LineMap(line))
         lineMap.add column, sourceLocation, options
 
-# Look up the original position of a given `line` and `column` in the generated
-# code.
+    # Look up the original position of a given `line` and `column` in the generated code.
 
     sourceLocation: ([line, column]) ->
         line-- until (lineMap = @lines[line]) or (line <= 0)
         lineMap and lineMap.sourceLocation column
 
 
-# V3 SourceMap Generation
-# -----------------------
-
-# Builds up a V3 source map, returning the generated JSON as a string.
-# `options.sourceRoot` may be used to specify the sourceRoot written to the source
-# map.  Also, `options.sourceFiles` and `options.generatedFile` may be passed to
-# set "sources" and "file", respectively.
+    # V3 SourceMap Generation
+    # -----------------------
+    
+    # Builds up a V3 source map, returning the generated JSON as a string.
+    # `options.sourceRoot` may be used to specify the sourceRoot written to the source map.
+    # Also, `options.sourceFiles` and `options.generatedFile` may be passed to set "sources" and "file", respectively.
 
     generate: (options = {}, code = null) ->
-        writingline             = 0
-        lastColumn              = 0
-        lastSourceLine      = 0
-        lastSourceColumn    = 0
-        needComma                   = no
-        buffer                      = ""
+        writingline      = 0
+        lastColumn       = 0
+        lastSourceLine   = 0
+        lastSourceColumn = 0
+        needComma        = no
+        buffer           = ""
 
         for lineMap, lineNumber in @lines when lineMap
             for mapping in lineMap.columns when mapping
@@ -86,37 +82,37 @@ class SourceMap
                     buffer += ";"
                     writingline++
 
-# Write a comma if we've already written a segment on this line.
+                # Write a comma if we've already written a segment on this line.
 
                 if needComma
                     buffer += ","
                     needComma = no
 
-# Write the next segment. Segments can be 1, 4, or 5 values.    If just one, then it
-# is a generated column which doesn't match anything in the source code.
-
-# The starting column in the generated source, relative to any previous recorded
-# column for the current line:
+                # Write the next segment. Segments can be 1, 4, or 5 values.    
+                # If just one, then it is a generated column which doesn't match anything in the source code.
+                
+                # The starting column in the generated source, relative to any previous recorded
+                # column for the current line:
 
                 buffer += @encodeVlq mapping.column - lastColumn
                 lastColumn = mapping.column
 
-# The index into the list of sources:
+                # The index into the list of sources:
 
                 buffer += @encodeVlq 0
 
-# The starting line in the original source, relative to the previous source line.
+                # The starting line in the original source, relative to the previous source line.
 
                 buffer += @encodeVlq mapping.sourceLine - lastSourceLine
                 lastSourceLine = mapping.sourceLine
 
-# The starting column in the original source, relative to the previous column.
+                # The starting column in the original source, relative to the previous column.
 
                 buffer += @encodeVlq mapping.sourceColumn - lastSourceColumn
                 lastSourceColumn = mapping.sourceColumn
                 needComma = yes
 
-# Produce the canonical JSON object format for a "v3" source map.
+        # Produce the canonical JSON object format for a "v3" source map.
 
         v3 =
             version:        3

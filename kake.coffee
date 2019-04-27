@@ -95,15 +95,15 @@ task 'watch', 'rebuild and/or test on file changes', ->
             if event is 'change' then cb event, file
     
     blue 'watching ...'
-    watch 'src/', (,file) ->
+    watch 'src/', (event,file) ->
         blue "src/#{file} changed"
         buildAndTest file is 'grammar.coffee'
             
-    watch 'test/coffee/', (,file) ->
+    watch 'test/coffee/', (event,file) ->
         yellow "test/coffee/#{file} changed"
         andTest ['coffee'], false
             
-    watch 'test/koffee', (,file) ->
+    watch 'test/koffee', (event,file) ->
         yellow "test/koffee/#{file} changed"
         andTest ['koffee'], false
   

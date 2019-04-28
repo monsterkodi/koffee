@@ -1,17 +1,24 @@
-# Koffee can be used both on the server and as a command-line compiler based
-# on Node.js/V8. This module contains the main entry functions for tokenizing, 
-# parsing, and compiling source Koffee into JavaScript.
+###
+000   000   0000000   00000000  00000000  00000000  00000000  
+000  000   000   000  000       000       000       000       
+0000000    000   000  000000    000000    0000000   0000000   
+000  000   000   000  000       000       000       000       
+000   000   0000000   000       000       00000000  00000000  
+###
 
-fs         = require 'fs'
-vm         = require 'vm'
-path       = require 'path'
-{Lexer}    = require './lexer'
-{parser}   = require './parser'
-helpers    = require './helpers'
-SourceMap  = require './sourcemap'
-pkg        = require '../package.json'
+# This module contains the main entry functions for tokenizing, 
+# parsing, and compiling koffee into JavaScript.
 
-exports.VERSION = pkg.version # The current Koffee version number.
+fs        = require 'fs'
+vm        = require 'vm'
+path      = require 'path'
+{Lexer}   = require './lexer'
+{parser}  = require './parser'
+helpers   = require './helpers'
+SourceMap = require './sourcemap'
+pkg       = require '../package.json'
+
+exports.VERSION = pkg.version # The current version number.
 
 exports.FILE_EXTENSIONS = FILE_EXTENSIONS = ['.coffee', '.koffee']
 
@@ -59,7 +66,13 @@ sources = {}
 
 sourceMaps = {}
 
-# Compile Koffee code to JavaScript, using the Coffee/Jison compiler.
+#  0000000   0000000   00     00  00000000   000  000      00000000  
+# 000       000   000  000   000  000   000  000  000      000       
+# 000       000   000  000000000  00000000   000  000      0000000   
+# 000       000   000  000 0 000  000        000  000      000       
+#  0000000   0000000   000   000  000        000  0000000  00000000  
+
+# Compile koffee to JavaScript, using the Jison compiler.
 #
 # If `options.sourceMap` is specified, then `options.filename` must also be
 # specified. All options that can be passed to `SourceMap#generate` may also
@@ -151,10 +164,22 @@ exports.compile = compile = withPrettyErrors (code, options) ->
     else
         js
 
-# Tokenize a string of Koffee code, and return the array of tokens.
+# 000000000   0000000   000   000  00000000  000   000   0000000  
+#    000     000   000  000  000   000       0000  000  000       
+#    000     000   000  0000000    0000000   000 0 000  0000000   
+#    000     000   000  000  000   000       000  0000       000  
+#    000      0000000   000   000  00000000  000   000  0000000   
+
+# Tokenize a string of koffee code, and return the array of tokens.
 
 exports.tokens = withPrettyErrors (code, options) ->
     lexer.tokenize code, options
+
+# 000   000   0000000   0000000    00000000   0000000  
+# 0000  000  000   000  000   000  000       000       
+# 000 0 000  000   000  000   000  0000000   0000000   
+# 000  0000  000   000  000   000  000            000  
+# 000   000   0000000   0000000    00000000  0000000   
 
 # Parse a string of Koffee code or an array of lexed tokens, and
 # return the AST. You can then compile it by calling `.compile()` on the root,
@@ -166,7 +191,13 @@ exports.nodes = withPrettyErrors (source, options) ->
     else
         parser.parse source
 
-# Compile and execute a string of Koffee (on the server), correctly setting `__filename`, `__dirname`, and relative `require()`.
+# 00000000   000   000  000   000  
+# 000   000  000   000  0000  000  
+# 0000000    000   000  000 0 000  
+# 000   000  000   000  000  0000  
+# 000   000   0000000   000   000  
+
+# Compile and execute a string of koffee, correctly setting `__filename`, `__dirname`, and relative `require()`.
 
 exports.run = (code, options = {}) ->
     
@@ -192,6 +223,12 @@ exports.run = (code, options = {}) ->
         code = answer.js ? answer
 
     mainModule._compile code, mainModule.filename
+
+# 00000000  000   000   0000000   000      
+# 000       000   000  000   000  000      
+# 0000000    000 000   000000000  000      
+# 000          000     000   000  000      
+# 00000000      0      000   000  0000000  
 
 # Compile and evaluate a string in a Node.js-like environment. The REPL uses this to run the input.
 
@@ -235,6 +272,12 @@ exports.eval = (code, options = {}) ->
     else
         vm.runInContext js, sandbox
 
+# 00000000   00000000   0000000   000   0000000  000000000  00000000  00000000   
+# 000   000  000       000        000  000          000     000       000   000  
+# 0000000    0000000   000  0000  000  0000000      000     0000000   0000000    
+# 000   000  000       000   000  000       000     000     000       000   000  
+# 000   000  00000000   0000000   000  0000000      000     00000000  000   000  
+
 exports.register = -> require './register'
 
 exports._compileFile = (filename, sourceMap = no, inlineMap = no) ->
@@ -256,6 +299,12 @@ exports._compileFile = (filename, sourceMap = no, inlineMap = no) ->
 
     answer
 
+# 000      00000000  000   000  00000000  00000000   
+# 000      000        000 000   000       000   000  
+# 000      0000000     00000    0000000   0000000    
+# 000      000        000 000   000       000   000  
+# 0000000  00000000  000   000  00000000  000   000  
+
 lexer = new Lexer # Instantiate a Lexer for our use here.
 
 # The real Lexer produces a generic stream of tokens. This object provides a
@@ -263,6 +312,7 @@ lexer = new Lexer # Instantiate a Lexer for our use here.
 # directly as a "Jison lexer".
 
 parser.lexer =
+    
     lex: ->
         token = parser.tokens[@pos++]
         if token
@@ -307,6 +357,52 @@ parser.yy.parseError = (message, {token}) ->
     
     helpers.throwSyntaxError "unexpected #{errorText}", errorLoc
 
+#  0000000   0000000   000   000  00000000    0000000  00000000  00     00   0000000   00000000   
+# 000       000   000  000   000  000   000  000       000       000   000  000   000  000   000  
+# 0000000   000   000  000   000  0000000    000       0000000   000000000  000000000  00000000   
+#      000  000   000  000   000  000   000  000       000       000 0 000  000   000  000        
+# 0000000    0000000    0000000   000   000   0000000  00000000  000   000  000   000  000        
+
+getSourceMap = (filename) ->
+     
+    # Koffee compiled in a browser may get compiled with `options.filename` of `<anonymous>`, 
+    # but the browser may request the stack trace with the filename of the script file.
+    
+    if sourceMaps[filename]?
+        sourceMaps[filename]
+    else if sourceMaps['<anonymous>']?
+        sourceMaps['<anonymous>']
+    else if sources[filename]?
+        answer = compile sources[filename],
+            filename: filename
+            sourceMap: yes
+        answer.sourceMap
+    else
+        null
+
+#  0000000  000000000   0000000    0000000  000   000  000000000  00000000    0000000    0000000  00000000  
+# 000          000     000   000  000       000  000      000     000   000  000   000  000       000       
+# 0000000      000     000000000  000       0000000       000     0000000    000000000  000       0000000   
+#      000     000     000   000  000       000  000      000     000   000  000   000  000       000       
+# 0000000      000     000   000   0000000  000   000     000     000   000  000   000   0000000  00000000  
+
+# Based on [michaelficarra/KoffeeRedux](http://goo.gl/ZTx1p)
+# NodeJS / V8 have no support for transforming positions in stack traces using
+# sourceMap, so we must monkey-patch Error to display Koffee source positions.
+
+Error.prepareStackTrace = (err, stack) ->
+    
+    getSourceMapping = (filename, line, column) ->
+        sourceMap = getSourceMap filename
+        answer = sourceMap.sourceLocation [line - 1, column - 1] if sourceMap?
+        if answer? then [answer[0] + 1, answer[1] + 1] else null
+
+    frames = for frame in stack
+        break if frame.getFunction() is exports.run
+        "        at #{formatSourcePosition frame, getSourceMapping}"
+
+    "#{err.toString()}\n#{frames.join '\n'}\n"
+    
 # Based on http://v8.googlecode.com/svn/branches/bleeding_edge/src/messages.js
 # Modified to handle sourceMap
 
@@ -361,39 +457,5 @@ formatSourcePosition = (frame, getSourceMapping) ->
         "#{functionName} (#{fileLocation})"
     else
         fileLocation
-
-getSourceMap = (filename) ->
-     
-    # Koffee compiled in a browser may get compiled with `options.filename` of `<anonymous>`, 
-    # but the browser may request the stack trace with the filename of the script file.
-    
-    if sourceMaps[filename]?
-        sourceMaps[filename]
-    else if sourceMaps['<anonymous>']?
-        sourceMaps['<anonymous>']
-    else if sources[filename]?
-        answer = compile sources[filename],
-            filename: filename
-            sourceMap: yes
-        answer.sourceMap
-    else
-        null
-
-# Based on [michaelficarra/KoffeeRedux](http://goo.gl/ZTx1p)
-# NodeJS / V8 have no support for transforming positions in stack traces using
-# sourceMap, so we must monkey-patch Error to display Koffee source positions.
-
-Error.prepareStackTrace = (err, stack) ->
-    
-    getSourceMapping = (filename, line, column) ->
-        sourceMap = getSourceMap filename
-        answer = sourceMap.sourceLocation [line - 1, column - 1] if sourceMap?
-        if answer? then [answer[0] + 1, answer[1] + 1] else null
-
-    frames = for frame in stack
-        break if frame.getFunction() is exports.run
-        "        at #{formatSourcePosition frame, getSourceMapping}"
-
-    "#{err.toString()}\n#{frames.join '\n'}\n"
     
     

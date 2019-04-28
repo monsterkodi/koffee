@@ -1,17 +1,27 @@
-# This file contains the common helper functions that we'd like to share among
-# the **Lexer**, **Rewriter**, and the **Nodes**. Merge objects, flatten
-# arrays, count characters, that sort of thing.
+###
+000   000  00000000  000      00000000   00000000  00000000    0000000  
+000   000  000       000      000   000  000       000   000  000       
+000000000  0000000   000      00000000   0000000   0000000    0000000   
+000   000  000       000      000        000       000   000       000  
+000   000  00000000  0000000  000        00000000  000   000  0000000   
+###
+
+# Functions that we'd like to share among the Lexer, Rewriter, and Nodes. 
+# Merge objects, flatten arrays, count characters, that sort of thing.
 
 # Peek at the beginning of a given string to see if it matches a sequence.
+
 exports.starts = (string, literal, start) ->
     literal is string.substr start, literal.length
 
 # Peek at the end of a given string to see if it matches a sequence.
+
 exports.ends = (string, literal, back) ->
     len = literal.length
     literal is string.substr string.length - len - (back or 0), len
 
 # Repeat a string `n` times.
+
 exports.repeat = repeat = (str, n) ->
     # Use clever algorithm to have O(log(n)) string concatenation operations.
     res = ''
@@ -35,6 +45,7 @@ exports.count = (string, substr) ->
 # Merge objects, returning a fresh copy with attributes from both sides.
 # Used every time `Base#compile` is called, to allow properties in the
 # options hash to propagate down the tree without polluting other branches.
+
 exports.merge = (options, overrides) ->
     extend (extend {}, options), overrides
 
@@ -124,6 +135,12 @@ exports.baseFileName = (file, stripExt = no, useWinPathSep = no) ->
 
 # Determine if a filename represents a koffee file.
 
+# 000   0000000   0000000   0000000   00000000  00000000  00000000  00000000  
+# 000  000       000       000   000  000       000       000       000       
+# 000  0000000   000       000   000  000000    000000    0000000   0000000   
+# 000       000  000       000   000  000       000       000       000       
+# 000  0000000    0000000   0000000   000       000       00000000  00000000  
+
 exports.isCoffee = (file) -> /\.[ck]offee$/.test file
 
 # Throws a SyntaxError from a given location.
@@ -190,8 +207,12 @@ exports.nameWhitespaceCharacter = (string) ->
         when '\t' then 'tab'
         else string
 
-# Test support      
-      
+# 000000000  00000000   0000000  000000000  
+#    000     000       000          000     
+#    000     0000000   0000000      000     
+#    000     000            000     000     
+#    000     00000000  0000000      000     
+
 egal = (a, b) ->
   if a is b
     a != 0 or 1/a is 1/b

@@ -1,4 +1,12 @@
-# The Koffee language has a good deal of optional syntax, implicit syntax,
+###
+00000000   00000000  000   000  00000000   000  000000000  00000000  00000000   
+000   000  000       000 0 000  000   000  000     000     000       000   000  
+0000000    0000000   000000000  0000000    000     000     0000000   0000000    
+000   000  000       000   000  000   000  000     000     000       000   000  
+000   000  00000000  00     00  000   000  000     000     00000000  000   000  
+###
+
+# The language has a good deal of optional syntax, implicit syntax,
 # and shorthand syntax. This can greatly complicate a grammar and bloat
 # the resulting parse table. Instead of making the parser handle it all, we take
 # a series of passes over the token stream, using this **Rewriter** to convert
@@ -19,7 +27,7 @@ class Rewriter
         # console.log (t[0] + '/' + t[1] for t in @tokens).join ' '
         @removeLeadingNewlines()
         @constructorShortcut()
-        # @optionArguments()
+        # @configParameters()
         @closeOpenCalls()
         @closeOpenIndexes()
         @normalizeLines()
@@ -60,6 +68,12 @@ class Rewriter
         break for [tag], i in @tokens when tag != 'TERMINATOR'
         @tokens.splice 0, i if i
 
+    #  0000000  000   000   0000000   00000000   000000000   0000000  000   000  000000000  
+    # 000       000   000  000   000  000   000     000     000       000   000     000     
+    # 0000000   000000000  000   000  0000000       000     000       000   000     000     
+    #      000  000   000  000   000  000   000     000     000       000   000     000     
+    # 0000000   000   000   0000000   000   000     000      0000000   0000000      000     
+    
     # replace `@:` with `constructor:`
         
     constructorShortcut: ->
@@ -70,18 +84,25 @@ class Rewriter
                 @tokens[i-1][1] = 'constructor'
             1
         
-    # insert `option_arguments=` if parameter list starts with { followed by @ or PROPERTY
             
-    optionArguments: ->
-        
-        @scanTokens (token, i) ->
-            if i > 0 and @tokens[i-1][0] is 'PARAM_START' and @tokens[i][0] is '{' and @tokens[i+1][0] in ['@', 'PROPERTY']
-                console.log 'before------------------------', @tokens
-                @tokens.splice i, 0, Rewriter.generate '=', '=', @tokens[i]
-                @tokens.splice i, 0, Rewriter.generate 'IDENTIFIER', 'option_arguments', @tokens[i+1]
-                console.log 'after-------------------------', @tokens
-                return -1
-            1
+    #  0000000   0000000   000   000  00000000  000   0000000   00000000    0000000   00000000    0000000   00     00   0000000  
+    # 000       000   000  0000  000  000       000  000        000   000  000   000  000   000  000   000  000   000  000       
+    # 000       000   000  000 0 000  000000    000  000  0000  00000000   000000000  0000000    000000000  000000000  0000000   
+    # 000       000   000  000  0000  000       000  000   000  000        000   000  000   000  000   000  000 0 000       000  
+    #  0000000   0000000   000   000  000       000   0000000   000        000   000  000   000  000   000  000   000  0000000   
+    
+    # insert `option_arguments=` if parameter list starts with { followed by @ or PROPERTY
+    
+    # configParameters: ->
+#         
+        # @scanTokens (token, i) ->
+            # if i > 0 and @tokens[i-1][0] is 'PARAM_START' and @tokens[i][0] is '{' and @tokens[i+1][0] in ['@', 'PROPERTY']
+                # console.log 'before------------------------', @tokens
+                # @tokens.splice i, 0, Rewriter.generate '=', '=', @tokens[i]
+                # @tokens.splice i, 0, Rewriter.generate 'IDENTIFIER', 'option_arguments', @tokens[i+1]
+                # console.log 'after-------------------------', @tokens
+                # return -1
+            # 1
         
     # The lexer has tagged the opening parenthesis of a method call. Match it with
     # its paired close. We have the mis-nested outdent case included here for
@@ -153,6 +174,12 @@ class Rewriter
             i -= 1
         @tag(i) in tags
 
+    # 000  00     00  00000000   000      000   0000000  000  000000000  
+    # 000  000   000  000   000  000      000  000       000     000     
+    # 000  000000000  00000000   000      000  000       000     000     
+    # 000  000 0 000  000        000      000  000       000     000     
+    # 000  000   000  000        0000000  000   0000000  000     000     
+    
     # Look for signs of implicit calls and objects in the token stream and add them.
         
     addImplicitBracesAndParens: ->
@@ -380,6 +407,12 @@ class Rewriter
                     endImplicitObject i + offset
             return forward(1)
 
+    # 000       0000000    0000000   0000000   000000000  000   0000000   000   000  
+    # 000      000   000  000       000   000     000     000  000   000  0000  000  
+    # 000      000   000  000       000000000     000     000  000   000  000 0 000  
+    # 000      000   000  000       000   000     000     000  000   000  000  0000  
+    # 0000000   0000000    0000000  000   000     000     000   0000000   000   000  
+    
     # Add location data to all tokens generated by the rewriter.
     
     addLocationDataToGeneratedTokens: ->
@@ -415,11 +448,18 @@ class Rewriter
                 last_column:  prevLocationData.last_column
             return 1
 
+    # 000   000   0000000   00000000   00     00   0000000   000      000  0000000  00000000  
+    # 0000  000  000   000  000   000  000   000  000   000  000      000     000   000       
+    # 000 0 000  000   000  0000000    000000000  000000000  000      000    000    0000000   
+    # 000  0000  000   000  000   000  000 0 000  000   000  000      000   000     000       
+    # 000   000   0000000   000   000  000   000  000   000  0000000  000  0000000  00000000  
+    
     # Because our grammar is LALR(1), it can't handle some single-line
     # expressions that lack ending delimiters. The **Rewriter** adds the implicit
     # blocks, so it doesn't need to. To keep the grammar clean and tidy, trailing
     # newlines within expressions are removed and the indentation tokens of empty
     # blocks are added.
+    
     normalizeLines: ->
         starter = indent = outdent = null
 
@@ -458,8 +498,15 @@ class Rewriter
                 return 1
             return 1
 
+    # 00000000    0000000    0000000  000000000  00000000  000  000   000  
+    # 000   000  000   000  000          000     000       000   000 000   
+    # 00000000   000   000  0000000      000     000000    000    00000    
+    # 000        000   000       000     000     000       000   000 000   
+    # 000         0000000   0000000      000     000       000  000   000  
+    
     # Tag postfix conditionals as such, so that we can parse them with a
     # different precedence.
+    
     tagPostfixConditionals: ->
 
         original = null
@@ -502,10 +549,14 @@ class Rewriter
 
     tag: (i) -> @tokens[i]?[0] # Look up a tag by token index.
 
-# Constants
-# ---------
+#  0000000   0000000   000   000   0000000  000000000   0000000   000   000  000000000   0000000  
+# 000       000   000  0000  000  000          000     000   000  0000  000     000     000       
+# 000       000   000  000 0 000  0000000      000     000000000  000 0 000     000     0000000   
+# 000       000   000  000  0000       000     000     000   000  000  0000     000          000  
+#  0000000   0000000   000   000  0000000      000     000   000  000   000     000     0000000   
 
 # List of the token pairs that must be balanced.
+
 BALANCED_PAIRS = [
     ['(', ')']
     ['[', ']']

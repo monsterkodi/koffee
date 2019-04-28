@@ -1,3 +1,11 @@
+###
+ 0000000   0000000   0000000   00000000   00000000  
+000       000       000   000  000   000  000       
+0000000   000       000   000  00000000   0000000   
+     000  000       000   000  000        000       
+0000000    0000000   0000000   000        00000000  
+###
+
 # The **Scope** class regulates lexical scoping within Koffee. As you
 # generate code, you create a tree of scopes in the same shape as the nested
 # function bodies. Each scope knows about the variables declared within it,

@@ -1,3 +1,11 @@
+###
+ 0000000   0000000   00     00  00     00   0000000   000   000  0000000    
+000       000   000  000   000  000   000  000   000  0000  000  000   000  
+000       000   000  000000000  000000000  000000000  000 0 000  000   000  
+000       000   000  000 0 000  000 0 000  000   000  000  0000  000   000  
+ 0000000   0000000   000   000  000   000  000   000  000   000  0000000    
+###
+
 # The `koffee` utility. Handles various tasks: 
 #   - compile and save into `.js` files 
 #   - compile and print to stdout 
@@ -55,6 +63,12 @@ notSources   = {}
 watchedDirs  = {}
 optionParser = null
 
+# 00000000   000   000  000   000  
+# 000   000  000   000  0000  000  
+# 0000000    000   000  000 0 000  
+# 000   000  000   000  000  0000  
+# 000   000   0000000   000   000  
+
 # Run `coffee` by parsing passed options and determining what action to take.
 # Many flags cause us to divert before compiling anything. 
 # Flags passed after `--` will be passed verbatim in `process.argv`
@@ -92,10 +106,16 @@ makePrelude = (requires) ->
         "#{name} = require('#{module}')"
     .join ';'
 
-# Compile a script or a directory. 
-# If a directory is passed, recursively compile all '.coffee' and '.koffee' files.
+#  0000000   0000000   00     00  00000000   000  000      00000000  
+# 000       000   000  000   000  000   000  000  000      000       
+# 000       000   000  000000000  00000000   000  000      0000000   
+# 000       000   000  000 0 000  000        000  000      000       
+#  0000000   0000000   000   000  000        000  0000000  00000000  
+
+# Compile a script or a directory. If a directory is passed, recursively compile all '.coffee' and '.koffee' files.
 
 compilePath = (source, topLevel, base) ->
+    
     return if source in sources or
                         watchedDirs[source] or
                         not topLevel and (notSources[source] or hidden source)
@@ -106,7 +126,9 @@ compilePath = (source, topLevel, base) ->
             console.error "File not found: #{source}"
             process.exit 1
         throw err
+        
     if stats.isDirectory()
+        
         if path.basename(source) is 'node_modules'
             notSources[source] = yes
             return
@@ -120,7 +142,9 @@ compilePath = (source, topLevel, base) ->
             if err.code is 'ENOENT' then return else throw err
         for file in files
             compilePath (path.join source, file), no, base
+            
     else if topLevel or helpers.isCoffee source
+        
         sources.push source
         sourceCode.push null
         delete notSources[source]
@@ -134,6 +158,7 @@ compilePath = (source, topLevel, base) ->
         notSources[source] = yes
 
 findDirectoryIndex = (source) ->
+    
     for ext in Koffee.FILE_EXTENSIONS
         index = path.join source, "index#{ext}"
         try
@@ -187,12 +212,19 @@ compileScript = (file, input, base = null) ->
 # Attach the appropriate listeners to compile scripts incoming over **stdin**, and write them back to **stdout**.
 
 compileStdio = ->
+    
     buffers = []
     stdin = process.openStdin()
     stdin.on 'data', (buffer) ->
         buffers.push buffer if buffer
     stdin.on 'end', ->
         compileScript null, Buffer.concat(buffers).toString()
+
+# 000   000   0000000   000000000   0000000  000   000  
+# 000 0 000  000   000     000     000       000   000  
+# 000000000  000000000     000     000       000000000  
+# 000   000  000   000     000     000       000   000  
+# 00     00  000   000     000      0000000  000   000  
 
 # Watch a source Koffee file using `fs.watch`, recompiling it every time the file is updated.
 # May be used in combination with other options, such as `--print`.
@@ -326,11 +358,18 @@ mkdirp = (dir, fn) ->
                         return fn err if err
                         fn()
 
+# 000   000  00000000   000  000000000  00000000        000   0000000  
+# 000 0 000  000   000  000     000     000             000  000       
+# 000000000  0000000    000     000     0000000         000  0000000   
+# 000   000  000   000  000     000     000       000   000       000  
+# 00     00  000   000  000     000     00000000   0000000   0000000   
+
 # Write out a JavaScript source file with the compiled code. 
 # By default, files are written out in `cwd` as `.js` files with the same name, but the output directory can be customized with `--output`.
 # If `generatedSourceMap` is provided, this will write a `.js.map` file into the same directory as the `.js` file.
 
 writeJs = (base, sourcePath, js, jsPath, generatedSourceMap = null) ->
+    
     sourceMapPath = outputPath sourcePath, base, ".js.map"
     jsDir    = path.dirname jsPath
     compile = ->
@@ -381,6 +420,12 @@ printTokens = (tokens) ->
             print "#{tag} "
         else
             print "#{tag}=#{value} "
+
+#  0000000   00000000   000000000  000   0000000   000   000   0000000  
+# 000   000  000   000     000     000  000   000  0000  000  000       
+# 000   000  00000000      000     000  000   000  000 0 000  0000000   
+# 000   000  000           000     000  000   000  000  0000       000  
+#  0000000   000           000     000   0000000   000   000  0000000   
 
 parseOptions = ->
     optionParser = new optparse.OptionParser SWITCHES, BANNER

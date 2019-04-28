@@ -1,7 +1,15 @@
-# `nodes.coffee` contains all of the node classes for the syntax tree. Most
-# nodes are created as the result of actions in the [grammar](grammar.html),
-# but some are created by other nodes as a method of code generation. To convert
-# the syntax tree into a string of JavaScript code, call `compile()` on the root.
+###
+000   000   0000000   0000000    00000000   0000000  
+0000  000  000   000  000   000  000       000       
+000 0 000  000   000  000   000  0000000   0000000   
+000  0000  000   000  000   000  000            000  
+000   000   0000000   0000000    00000000  0000000   
+###
+
+# Contains all of the node classes for the syntax tree. 
+# Most nodes are created as the result of actions in the grammar,
+# but some are created by other nodes as a method of code generation. 
+# To convert the syntax tree into a string of JavaScript code, call `compile()` on the root.
 
 Error.stackTraceLimit = Infinity
 
@@ -22,13 +30,19 @@ NO      = -> no
 THIS    = -> this
 NEGATE  = -> @negated = not @negated; this
 
-#### CodeFragment
+# 00000000  00000000    0000000    0000000   00     00  00000000  000   000  000000000  
+# 000       000   000  000   000  000        000   000  000       0000  000     000     
+# 000000    0000000    000000000  000  0000  000000000  0000000   000 0 000     000     
+# 000       000   000  000   000  000   000  000 0 000  000       000  0000     000     
+# 000       000   000  000   000   0000000   000   000  00000000  000   000     000     
 
 # The various nodes defined below all compile to a collection of **CodeFragment** objects.
 # A CodeFragments is a block of generated code, and the location in the source file where the code
 # came from. CodeFragments can be assembled together into working code just by catting together
 # all the CodeFragments' `code` snippets, in order.
+
 exports.CodeFragment = class CodeFragment
+    
     constructor: (parent, code) ->
         @code = "#{code}"
         @locationData = parent?.locationData
@@ -37,11 +51,15 @@ exports.CodeFragment = class CodeFragment
     toString:       ->
         "#{@code}#{if @locationData then ": " + locationDataToString(@locationData) else ''}"
 
-# Convert an array of CodeFragments into a string.
-fragmentsToText = (fragments) ->
+fragmentsToText = (fragments) -> # Convert an array of CodeFragments into a string.
+    
     (fragment.code for fragment in fragments).join('')
 
-#### Base
+# 0000000     0000000    0000000  00000000  
+# 000   000  000   000  000       000       
+# 0000000    000000000  0000000   0000000   
+# 000   000  000   000       000  000       
+# 0000000    000   000  0000000   00000000  
 
 # The **Base** is the abstract base class for all nodes in the syntax tree.
 # Each subclass implements the `compileNode` method, which performs the
@@ -52,6 +70,7 @@ fragmentsToText = (fragments) ->
 # the environment from higher in the tree (such as if a returned value is
 # being requested by the surrounding function), information about the current
 # scope, and indentation level.
+
 exports.Base = class Base
 
     compile: (o, lvl) ->
@@ -63,7 +82,9 @@ exports.Base = class Base
     # the top level of a block (which would be unnecessary), and we haven't
     # already been asked to return the result (because statements know how to
     # return results).
+    
     compileToFragments: (o, lvl) ->
+        
         o        = extend {}, o
         o.level  = lvl if lvl
         node     = @unfoldSoak(o) or this
@@ -75,7 +96,9 @@ exports.Base = class Base
 
     # Statements converted into expressions via closure-wrapping share a scope
     # object with their parent closure, to preserve the expected lexical scope.
+    
     compileClosure: (o) ->
+        
         if jumpNode = @jumps()
             jumpNode.error 'cannot use a pure statement in an expression'
         o.sharedScope = yes
@@ -102,6 +125,7 @@ exports.Base = class Base
     # If `level` is passed, then returns `[val, ref]`, where `val` is the compiled value, and `ref`
     # is the compiled reference. If `level` is not passed, this returns `[val, ref]` where
     # the two values are raw nodes which have not been compiled.
+    
     cache: (o, level, isComplex) ->
         complex = if isComplex? then isComplex this else @isComplex()
         if complex
@@ -118,6 +142,7 @@ exports.Base = class Base
     # Construct a node that returns the current node's result.
     # Note that this is overridden for smarter behavior for
     # many statement nodes (e.g. If, For)...
+    
     makeReturn: (res) ->
         me = @unwrapAll()
         if res
@@ -129,6 +154,7 @@ exports.Base = class Base
     # Recursively traverses down the *children* nodes and returns the first one
     # that verifies `pred`. Otherwise return undefined. `contains` does not cross
     # scope boundaries.
+    
     contains: (pred) ->
         node = undefined
         @traverseChildren no, (n) ->
@@ -137,14 +163,14 @@ exports.Base = class Base
                 return no
         node
 
-    # Pull out the last non-comment node of a node list.
-    lastNonComment: (list) ->
+    lastNonComment: (list) -> # Pull out the last non-comment node of a node list.
         i = list.length
         return list[i] while i-- when list[i] not instanceof Comment
         null
 
     # `toString` representation of the node, for inspecting the parse tree.
     # This is what `coffee --nodes` prints out.
+    
     toString: (idt = '', name = @constructor.name) ->
         tree = '\n' + idt + name
         tree += '?' if @soak
@@ -152,6 +178,7 @@ exports.Base = class Base
         tree
 
     # Passes each child to a function, breaking when the function returns `false`.
+    
     eachChild: (func) ->
         return this unless @children
         for attr in @children when @[attr]
@@ -174,6 +201,7 @@ exports.Base = class Base
 
     # Default implementations of the common node properties and methods. Nodes
     # will override these with custom logic, if needed.
+    
     children:     []
     isStatement:  NO
     jumps:        NO
@@ -184,11 +212,11 @@ exports.Base = class Base
     unwrap:       THIS
     unfoldSoak:   NO
 
-    # Is this node used to assign a certain variable?
-    assigns:      NO
+    assigns:      NO # Is this node used to assign a certain variable?
 
     # For this node and all descendents, set the location data to `locationData`
     # if the location data is not already set.
+    
     updateLocationDataIfMissing: (locationData) ->
         return this if @locationData
         @locationData = locationData
@@ -196,8 +224,9 @@ exports.Base = class Base
         @eachChild (child) ->
             child.updateLocationDataIfMissing locationData
 
-    # Throw a SyntaxError associated with this node's location.
-    error: (message) ->
+    
+    error: (message) -> # Throw a SyntaxError associated with this node's location.
+        
         throwSyntaxError message, @locationData
 
     makeCode: (code) ->
@@ -209,6 +238,7 @@ exports.Base = class Base
     # `fragmentsList` is an array of arrays of fragments. Each array in fragmentsList will be
     # concatonated together, with `joinStr` added in between each, to produce a final flat array
     # of fragments.
+    
     joinFragmentArrays: (fragmentsList, joinStr) ->
         answer = []
         for fragments,i in fragmentsList
@@ -216,38 +246,44 @@ exports.Base = class Base
             answer = answer.concat fragments
         answer
 
-#### Block
+# 0000000    000       0000000    0000000  000   000  
+# 000   000  000      000   000  000       000  000   
+# 0000000    000      000   000  000       0000000    
+# 000   000  000      000   000  000       000  000   
+# 0000000    0000000   0000000    0000000  000   000  
 
 # The block is the list of expressions that forms the body of an
 # indented block of code -- the implementation of a function, a clause in an
 # `if`, `switch`, or `try`, and so on...
+
 exports.Block = class Block extends Base
+    
     constructor: (nodes) ->
+        
         @expressions = compact flatten nodes or []
 
     children: ['expressions']
 
-    # Tack an expression on to the end of this expression list.
-    push: (node) ->
+    push: (node) -> # Tack an expression on to the end of this expression list.
+        
         @expressions.push node
         this
 
-    # Remove and return the last expression of this expression list.
-    pop: ->
+    pop: -> # Remove and return the last expression of this expression list.
+        
         @expressions.pop()
 
-    # Add an expression at the beginning of this expression list.
-    unshift: (node) ->
+    unshift: (node) -> # Add an expression at the beginning of this expression list.
+        
         @expressions.unshift node
         this
 
-    # If this Block consists of just a single node, unwrap it by pulling
-    # it back out.
+    # If this Block consists of just a single node, unwrap it by pulling it back out.
+    
     unwrap: ->
         if @expressions.length is 1 then @expressions[0] else this
 
-    # Is this an empty block of code?
-    isEmpty: ->
+    isEmpty: -> # Is this an empty block of code?
         not @expressions.length
 
     isStatement: (o) ->
@@ -261,7 +297,9 @@ exports.Block = class Block extends Base
 
     # A Block node does not return its entire body, rather it
     # ensures that the final expression is returned.
+    
     makeReturn: (res) ->
+        
         len = @expressions.length
         while len--
             expr = @expressions[len]
@@ -272,13 +310,16 @@ exports.Block = class Block extends Base
         this
 
     # A **Block** is the only node that can serve as the root.
+    
     compileToFragments: (o = {}, level) ->
         if o.scope then super o, level else @compileRoot o
 
     # Compile all expressions within the **Block** body. If we need to
     # return the result, and it's an expression, simply return it. If it's a
     # statement, ask the statement to do so.
+    
     compileNode: (o) ->
+        
         @tab    = o.indent
         top     = o.level is LEVEL_TOP
         compiledNodes = []
@@ -316,7 +357,9 @@ exports.Block = class Block extends Base
     # a safety closure, unless requested not to.
     # It would be better not to generate them in the first place, but for now,
     # clean up obvious double-parentheses.
+    
     compileRoot: (o) ->
+        
         o.indent = if o.bare then '' else TAB
         o.level  = LEVEL_TOP
         @spaced  = yes
@@ -341,7 +384,9 @@ exports.Block = class Block extends Base
 
     # Compile the expressions body for the contents of a function, with
     # declarations of all inner variables pushed up to the top.
+    
     compileWithDeclarations: (o) ->
+        
         fragments = []
         post = []
         for exp, i in @expressions
@@ -373,16 +418,24 @@ exports.Block = class Block extends Base
 
     # Wrap up the given nodes as a **Block**, unless it already happens
     # to be one.
+    
     @wrap: (nodes) ->
+        
         return nodes[0] if nodes.length is 1 and nodes[0] instanceof Block
         new Block nodes
 
-#### Literal
+# 000      000  000000000  00000000  00000000    0000000   000      
+# 000      000     000     000       000   000  000   000  000      
+# 000      000     000     0000000   0000000    000000000  000      
+# 000      000     000     000       000   000  000   000  000      
+# 0000000  000     000     00000000  000   000  000   000  0000000  
 
 # `Literal` is a base class for static values that can be passed through
 # directly into JavaScript without translation, such as: strings, numbers,
 # `true`, `false`, `null`...
+
 exports.Literal = class Literal extends Base
+    
     constructor: (@value) ->
 
     isComplex: NO
@@ -455,10 +508,14 @@ exports.NullLiteral = class NullLiteral extends Literal
 
 exports.BooleanLiteral = class BooleanLiteral extends Literal
 
-#### Return
+# 00000000   00000000  000000000  000   000  00000000   000   000  
+# 000   000  000          000     000   000  000   000  0000  000  
+# 0000000    0000000      000     000   000  0000000    000 0 000  
+# 000   000  000          000     000   000  000   000  000  0000  
+# 000   000  00000000     000      0000000   000   000  000   000  
 
-# A `return` is a *pureStatement* -- wrapping it in a closure wouldn't
-# make sense.
+# A `return` is a *pureStatement* -- wrapping it in a closure wouldn't make sense.
+
 exports.Return = class Return extends Base
     constructor: (@expression) ->
 
@@ -489,11 +546,16 @@ exports.YieldReturn = class YieldReturn extends Return
             @error 'yield can only occur inside functions'
         super
 
-#### Value
+# 000   000   0000000   000      000   000  00000000  
+# 000   000  000   000  000      000   000  000       
+#  000 000   000000000  000      000   000  0000000   
+#    000     000   000  000      000   000  000       
+#     0      000   000  0000000   0000000   00000000  
 
-# A value, variable or literal or parenthesized, indexed or dotted into,
-# or vanilla.
+# A value, variable or literal or parenthesized, indexed or dotted into, or vanilla.
+
 exports.Value = class Value extends Base
+    
     constructor: (base, props, tag) ->
         return base if not props and base instanceof Value
         @base       = base
@@ -604,24 +666,34 @@ exports.Value = class Value extends Base
                 return new If new Existence(fst), snd, soak: on
             no
 
-#### Comment
+#  0000000   0000000   00     00  00     00  00000000  000   000  000000000  
+# 000       000   000  000   000  000   000  000       0000  000     000     
+# 000       000   000  000000000  000000000  0000000   000 0 000     000     
+# 000       000   000  000 0 000  000 0 000  000       000  0000     000     
+#  0000000   0000000   000   000  000   000  00000000  000   000     000     
 
-# Koffee passes through block comments as JavaScript block comments at the same position.
 exports.Comment = class Comment extends Base
+    
     constructor: (@comment) ->
 
-    isStatement:         YES
-    makeReturn:          THIS
+    isStatement: YES
+    makeReturn:  THIS
 
     compileNode: (o, level) ->
+        
         comment = @comment.replace /^(\s*)#(?=\s)/gm, "$1 *"
         code = "/*#{multident comment, @tab}#{if '\n' in comment then "\n#{@tab}" else ''} */"
         code = o.indent + code if (level or o.level) is LEVEL_TOP
         [@makeCode("\n"), @makeCode(code)]
 
-#### Call
+#  0000000   0000000   000      000      
+# 000       000   000  000      000      
+# 000       000000000  000      000      
+# 000       000   000  000      000      
+#  0000000  000   000  0000000  0000000  
 
 # Node for a function invocation.
+    
 exports.Call = class Call extends Base
     constructor: (@variable, @args = [], @soak) ->
         @isNew      = false
@@ -633,7 +705,9 @@ exports.Call = class Call extends Base
     # When setting the location, we sometimes need to update the start location to
     # account for a newly-discovered `new` operator to the left of us. This
     # expands the range on the left, but not the right.
+    
     updateLocationDataIfMissing: (locationData) ->
+        
         if @locationData and @needsUpdatedStartLocation
             @locationData.first_line = locationData.first_line
             @locationData.first_column = locationData.first_column
@@ -717,7 +791,9 @@ exports.Call = class Call extends Base
     # inner constructor in order to be able to pass the varargs.
     #
     # splatArgs is an array of CodeFragments to put into the 'apply'.
+    
     compileSplat: (o, splatArgs) ->
+        
         if this instanceof SuperCall
             return [].concat @makeCode("#{ @superReference o }.apply(#{@superThis(o)}, "),
                 splatArgs, @makeCode(")")
@@ -752,11 +828,17 @@ exports.Call = class Call extends Base
             answer = answer.concat fun
         answer = answer.concat @makeCode(".apply(#{ref}, "), splatArgs, @makeCode(")")
 
-#### Super
+#  0000000  000   000  00000000   00000000  00000000   
+# 000       000   000  000   000  000       000   000  
+# 0000000   000   000  00000000   0000000   0000000    
+#      000  000   000  000        000       000   000  
+# 0000000    0000000   000        00000000  000   000  
 
 # Takes care of converting `super()` calls into calls against the prototype's
 # function of the same name.
+
 exports.SuperCall = class SuperCall extends Call
+    
     constructor: (args) ->
         super null, args ? [new Splat new IdentifierLiteral 'arguments']
         # Allow to recognize a bare `super` call without parentheses and arguments.
@@ -792,15 +874,20 @@ exports.SuperCall = class SuperCall extends Call
         method = o.scope.method
         (method and not method.klass and method.context) or "this"
 
-#### RegexWithInterpolations
+# 00000000   00000000   0000000   00000000  000   000  
+# 000   000  000       000        000        000 000   
+# 0000000    0000000   000  0000  0000000     00000    
+# 000   000  000       000   000  000        000 000   
+# 000   000  00000000   0000000   00000000  000   000  
 
 # Regexes with interpolations are in fact just a variation of a `Call` (a
 # `RegExp()` call to be precise) with a `StringWithInterpolations` inside.
+
 exports.RegexWithInterpolations = class RegexWithInterpolations extends Call
     constructor: (args = []) ->
         super (new Value new IdentifierLiteral 'RegExp'), args, false
 
-#### TaggedTemplateCall
+# TaggedTemplateCall
 
 exports.TaggedTemplateCall = class TaggedTemplateCall extends Call
     constructor: (variable, arg, soak) ->
@@ -812,12 +899,18 @@ exports.TaggedTemplateCall = class TaggedTemplateCall extends Call
         o.inTaggedTemplateCall = yes
         @variable.compileToFragments(o, LEVEL_ACCESS).concat @args[0].compileToFragments(o, LEVEL_LIST)
 
-#### Extends
+# 00000000  000   000  000000000  00000000  000   000  0000000     0000000  
+# 000        000 000      000     000       0000  000  000   000  000       
+# 0000000     00000       000     0000000   000 0 000  000   000  0000000   
+# 000        000 000      000     000       000  0000  000   000       000  
+# 00000000  000   000     000     00000000  000   000  0000000    0000000   
 
 # Node to extend an object's prototype with an ancestor object.
 # After `goog.inherits` from the
 # [Closure Library](https://github.com/google/closure-library/blob/master/closure/goog/base.js).
+
 exports.Extends = class Extends extends Base
+    
     constructor: (@child, @parent) ->
 
     children: ['child', 'parent']
@@ -826,10 +919,15 @@ exports.Extends = class Extends extends Base
     compileToFragments: (o) ->
         new Call(new Value(new Literal utility 'extend', o), [@child, @parent]).compileToFragments o
 
-#### Access
+#  0000000    0000000   0000000  00000000   0000000   0000000  
+# 000   000  000       000       000       000       000       
+# 000000000  000       000       0000000   0000000   0000000   
+# 000   000  000       000       000            000       000  
+# 000   000   0000000   0000000  00000000  0000000   0000000   
 
 # A `.` access into a property of a value, or the `::` shorthand for
 # an access into the object's prototype.
+
 exports.Access = class Access extends Base
     constructor: (@name, tag) ->
         @soak = tag is 'soak'
@@ -849,9 +947,14 @@ exports.Access = class Access extends Base
 
     isComplex: NO
 
-#### Index
+# 000  000   000  0000000    00000000  000   000  
+# 000  0000  000  000   000  000        000 000   
+# 000  000 0 000  000   000  0000000     00000    
+# 000  000  0000  000   000  000        000 000   
+# 000  000   000  0000000    00000000  000   000  
 
 # A `[ ... ]` indexed access into an array or object.
+
 exports.Index = class Index extends Base
     constructor: (@index) ->
 
@@ -863,11 +966,16 @@ exports.Index = class Index extends Base
     isComplex: ->
         @index.isComplex()
 
-#### Range
+# 00000000    0000000   000   000   0000000   00000000  
+# 000   000  000   000  0000  000  000        000       
+# 0000000    000000000  000 0 000  000  0000  0000000   
+# 000   000  000   000  000  0000  000   000  000       
+# 000   000  000   000  000   000   0000000   00000000  
 
-# A range literal. Ranges can be used to extract portions (slices) of arrays,
+# Ranges can be used to extract portions (slices) of arrays,
 # to specify a range for comprehensions, or as a value, to be expanded into the
 # corresponding array of integers at runtime.
+
 exports.Range = class Range extends Base
 
     children: ['from', 'to']
@@ -958,11 +1066,16 @@ exports.Range = class Range extends Base
         args    = ', arguments' if hasArgs(@from) or hasArgs(@to)
         [@makeCode "(function() {#{pre}\n#{idt}for (#{body})#{post}}).apply(this#{args ? ''})"]
 
-#### Slice
+#  0000000  000      000   0000000  00000000  
+# 000       000      000  000       000       
+# 0000000   000      000  000       0000000   
+#      000  000      000  000       000       
+# 0000000   0000000  000   0000000  00000000  
 
 # An array slice literal. Unlike JavaScript's `Array#slice`, the second parameter
 # specifies the index of the end of the slice, just as the first parameter
 # is the index of the beginning.
+
 exports.Slice = class Slice extends Base
 
     children: ['range']
@@ -990,10 +1103,14 @@ exports.Slice = class Slice extends Base
                     "+#{fragmentsToText compiled} + 1 || 9e9"
         [@makeCode ".slice(#{ fragmentsToText fromCompiled }#{ toStr or '' })"]
 
-#### Obj
+#  0000000   0000000          000  00000000   0000000  000000000  
+# 000   000  000   000        000  000       000          000     
+# 000   000  0000000          000  0000000   000          000     
+# 000   000  000   000  000   000  000       000          000     
+#  0000000   0000000     0000000   00000000   0000000     000     
 
-# An object literal, nothing fancy.
 exports.Obj = class Obj extends Base
+    
     constructor: (props, @generated = false) ->
         @objects = @properties = props or []
 
@@ -1057,10 +1174,14 @@ exports.Obj = class Obj extends Base
         for prop in @properties when prop.assigns name then return yes
         no
 
-#### Arr
+#  0000000   00000000   00000000    0000000   000   000  
+# 000   000  000   000  000   000  000   000   000 000   
+# 000000000  0000000    0000000    000000000    00000    
+# 000   000  000   000  000   000  000   000     000     
+# 000   000  000   000  000   000  000   000     000     
 
-# An array literal.
 exports.Arr = class Arr extends Base
+    
     constructor: (objs) ->
         @objects = objs or []
 
@@ -1090,12 +1211,16 @@ exports.Arr = class Arr extends Base
         for obj in @objects when obj.assigns name then return yes
         no
 
-#### Class
+#  0000000  000       0000000    0000000   0000000  
+# 000       000      000   000  000       000       
+# 000       000      000000000  0000000   0000000   
+# 000       000      000   000       000       000  
+#  0000000  0000000  000   000  0000000   0000000   
 
-# The Koffee class definition.
-# Initialize a **Class** with its name, an optional superclass, and a list of prototype property assignments.
+# The class definition. Initialize a Class with its name, an optional superclass, and a list of prototype property assignments.
 
 exports.Class = class Class extends Base
+    
     constructor: (@variable, @parent, @body = new Block) ->
         @boundFuncs = []
         @body.classBody = yes
@@ -1246,9 +1371,14 @@ exports.Class = class Class extends Base
         klass = new Assign @variable, klass, null, { @moduleDeclaration } if @variable
         klass.compileToFragments o
 
-#### Import and Export
+# 00     00   0000000   0000000    000   000  000      00000000  
+# 000   000  000   000  000   000  000   000  000      000       
+# 000000000  000   000  000   000  000   000  000      0000000   
+# 000 0 000  000   000  000   000  000   000  000      000       
+# 000   000   0000000   0000000     0000000   0000000  00000000  
 
 exports.ModuleDeclaration = class ModuleDeclaration extends Base
+    
     constructor: (@clause, @source) ->
         @checkSource()
 
@@ -1266,7 +1396,14 @@ exports.ModuleDeclaration = class ModuleDeclaration extends Base
         if o.indent.length != 0
             @error "#{moduleDeclarationType} statements must be at top-level scope"
 
+# 000  00     00  00000000    0000000   00000000   000000000  
+# 000  000   000  000   000  000   000  000   000     000     
+# 000  000000000  00000000   000   000  0000000       000     
+# 000  000 0 000  000        000   000  000   000     000     
+# 000  000   000  000         0000000   000   000     000     
+
 exports.ImportDeclaration = class ImportDeclaration extends ModuleDeclaration
+    
     compileNode: (o) ->
         @checkScope o, 'import'
         o.importedSymbols = []
@@ -1283,6 +1420,7 @@ exports.ImportDeclaration = class ImportDeclaration extends ModuleDeclaration
         code
 
 exports.ImportClause = class ImportClause extends Base
+    
     constructor: (@defaultBinding, @namedImports) ->
 
     children: ['defaultBinding', 'namedImports']
@@ -1299,7 +1437,14 @@ exports.ImportClause = class ImportClause extends Base
 
         code
 
+# 00000000  000   000  00000000    0000000   00000000   000000000  
+# 000        000 000   000   000  000   000  000   000     000     
+# 0000000     00000    00000000   000   000  0000000       000     
+# 000        000 000   000        000   000  000   000     000     
+# 00000000  000   000  000         0000000   000   000     000     
+
 exports.ExportDeclaration = class ExportDeclaration extends ModuleDeclaration
+    
     compileNode: (o) ->
         @checkScope o, 'export'
 
@@ -1333,6 +1478,7 @@ exports.ExportDefaultDeclaration = class ExportDefaultDeclaration extends Export
 exports.ExportAllDeclaration = class ExportAllDeclaration extends ExportDeclaration
 
 exports.ModuleSpecifierList = class ModuleSpecifierList extends Base
+    
     constructor: (@specifiers) ->
 
     children: ['specifiers']
@@ -1391,11 +1537,17 @@ exports.ExportSpecifier = class ExportSpecifier extends ModuleSpecifier
     constructor: (local, exported) ->
         super local, exported, 'export'
 
-#### Assign
+#  0000000    0000000   0000000  000   0000000   000   000  
+# 000   000  000       000       000  000        0000  000  
+# 000000000  0000000   0000000   000  000  0000  000 0 000  
+# 000   000       000       000  000  000   000  000  0000  
+# 000   000  0000000   0000000   000   0000000   000   000  
 
 # The **Assign** is used to assign a local variable to value, or to set the
 # property of an object -- including within object literals.
+
 exports.Assign = class Assign extends Base
+    
     constructor: (@variable, @value, @context, options = {}) ->
         {@param, @subpattern, @operatorToken, @moduleDeclaration} = options
 
@@ -1618,11 +1770,16 @@ exports.Assign = class Assign extends Base
         answer = [].concat @makeCode("[].splice.apply(#{name}, [#{fromDecl}, #{to}].concat("), valDef, @makeCode(")), "), valRef
         if o.level > LEVEL_TOP then @wrapInBraces answer else answer
 
-#### Code
+#  0000000   0000000   0000000    00000000  
+# 000       000   000  000   000  000       
+# 000       000   000  000   000  0000000   
+# 000       000   000  000   000  000       
+#  0000000   0000000   0000000    00000000  
 
 # A function definition. This is the only node that creates a new Scope.
 # When for the purposes of walking the contents of a function body, the Code
 # has no *children* -- they're within the inner scope.
+
 exports.Code = class Code extends Base
     constructor: (params, body, tag) ->
         @params = params or []
@@ -1644,6 +1801,7 @@ exports.Code = class Code extends Base
     # the JavaScript `arguments` object. If the function is bound with the `=>`
     # arrow, generates a wrapper that saves the current value of `this` through
     # a closure.
+    
     compileNode: (o) ->
 
         if @bound and o.scope.method?.bound
@@ -1718,12 +1876,18 @@ exports.Code = class Code extends Base
     traverseChildren: (crossScope, func) ->
         super(crossScope, func) if crossScope
 
-#### Param
+# 00000000    0000000   00000000    0000000   00     00  
+# 000   000  000   000  000   000  000   000  000   000  
+# 00000000   000000000  0000000    000000000  000000000  
+# 000        000   000  000   000  000   000  000 0 000  
+# 000        000   000  000   000  000   000  000   000  
 
 # A parameter in a function definition. Beyond a typical JavaScript parameter,
 # these parameters can also attach themselves to the context of the function,
 # as well as be a splat, gathering up a group of parameters into an array.
+
 exports.Param = class Param extends Base
+    
     constructor: (@name, @value, @splat) ->
         message = isUnassignable @name.unwrapAll().value
         @name.error message if message
@@ -1757,8 +1921,8 @@ exports.Param = class Param extends Base
     # In a sense, a destructured parameter represents multiple JS parameters. This
     # method allows to iterate them all.
     # The `iterator` function will be called as `iterator(name, node)` where
-    # `name` is the name of the parameter and `node` is the AST node corresponding
-    # to that name.
+    # `name` is the name of the parameter and `node` is the AST node corresponding to that name.
+    
     eachName: (iterator, name = @name)->
         atParam = (obj) -> iterator "@#{obj.properties[0].name.value}", obj
         # * simple literals `foo`
@@ -1792,10 +1956,14 @@ exports.Param = class Param extends Base
                 obj.error "illegal parameter #{obj.compile()}"
         return
 
-#### Splat
+#  0000000  00000000   000       0000000   000000000  
+# 000       000   000  000      000   000     000     
+# 0000000   00000000   000      000000000     000     
+#      000  000        000      000   000     000     
+# 0000000   000        0000000  000   000     000     
 
-# A splat, either as a parameter to a function, an argument to a call,
-# or as part of a destructuring assignment.
+# A splat, either as a parameter to a function, an argument to a call, or as part of a destructuring assignment.
+
 exports.Splat = class Splat extends Base
 
     children: ['name']
@@ -1840,10 +2008,14 @@ exports.Splat = class Splat extends Base
         [..., last] = list
         [].concat list[0].makeCode("["), base, list[index].makeCode("].concat("), concatPart, last.makeCode(")")
 
-#### Expansion
+# 00000000  000   000  00000000    0000000   000   000   0000000  000   0000000   000   000  
+# 000        000 000   000   000  000   000  0000  000  000       000  000   000  0000  000  
+# 0000000     00000    00000000   000000000  000 0 000  0000000   000  000   000  000 0 000  
+# 000        000 000   000        000   000  000  0000       000  000  000   000  000  0000  
+# 00000000  000   000  000        000   000  000   000  0000000   000   0000000   000   000  
 
-# Used to skip values inside an array destructuring (pattern matching) or
-# parameter list.
+# Used to skip values inside an array destructuring (pattern matching) or parameter list.
+
 exports.Expansion = class Expansion extends Base
 
     isComplex: NO
@@ -1856,12 +2028,18 @@ exports.Expansion = class Expansion extends Base
 
     eachName: (iterator) ->
 
-#### While
+# 000   000  000   000  000  000      00000000  
+# 000 0 000  000   000  000  000      000       
+# 000000000  000000000  000  000      0000000   
+# 000   000  000   000  000  000      000       
+# 00     00  000   000  000  0000000  00000000  
 
 # A while loop, the only sort of low-level loop exposed by Koffee. From
 # it, all other loops can be manufactured. Useful in cases where you need more
 # flexibility or more speed than a comprehension can provide.
+
 exports.While = class While extends Base
+    
     constructor: (condition, options) ->
         @condition = if options?.invert then condition.invert() else condition
         @guard       = options?.guard
@@ -1890,6 +2068,7 @@ exports.While = class While extends Base
     # The main difference from a JavaScript *while* is that the Koffee
     # *while* can be used as a part of a larger expression -- while loops may
     # return an array containing the computed result of each iteration.
+    
     compileNode: (o) ->
         o.indent += TAB
         set          = ''
@@ -1912,10 +2091,14 @@ exports.While = class While extends Base
             answer.push @makeCode "\n#{@tab}return #{rvar};"
         answer
 
-#### Op
+#  0000000   00000000   
+# 000   000  000   000  
+# 000   000  00000000   
+# 000   000  000        
+#  0000000   000        
 
-# Simple Arithmetic and logical operations. Performs some conversion from
-# Koffee operations into their JavaScript equivalents.
+# Simple Arithmetic and logical operations. Performs some conversion from into their JavaScript equivalents.
+
 exports.Op = class Op extends Base
     constructor: (op, first, second, flip ) ->
         return new In first, second if op is 'in'
@@ -1930,15 +2113,13 @@ exports.Op = class Op extends Base
         @flip     = !!flip
         return this
 
-    # The map of conversions from Koffee to JavaScript symbols.
-    CONVERSIONS =
+    CONVERSIONS = # The map of conversions to JavaScript symbols.
         '==':        '==='
         '!=':        '!=='
         'of':        'in'
         'yieldfrom': 'yield*'
 
-    # The map of invertible operators.
-    INVERSIONS =
+    INVERSIONS = # The map of invertible operators.
         '!==': '==='
         '===': '!=='
 
@@ -1957,8 +2138,8 @@ exports.Op = class Op extends Base
     isComplex: ->
         not @isNumber()
 
-    # Am I capable of
-    # [Python-style comparison chaining](https://docs.python.org/3/reference/expressions.html#not-in)?
+    # Am I capable of [Python-style comparison chaining](https://docs.python.org/3/reference/expressions.html#not-in)?
+    
     isChainable: ->
         @operator in ['<', '>', '>=', '<=', '===', '!==']
 
@@ -2037,6 +2218,7 @@ exports.Op = class Op extends Base
     #
     #           bin/koffee -e 'console.log 50 < 65 > 10'
     #           true
+    
     compileChain: (o) ->
         [@first.second, shared] = @first.second.cache o
         fst = @first.compileToFragments o, LEVEL_OP
@@ -2106,8 +2288,14 @@ exports.Op = class Op extends Base
     toString: (idt) ->
         super idt, @constructor.name + ' ' + @operator
 
-#### In
+# 000  000   000  
+# 000  0000  000  
+# 000  000 0 000  
+# 000  000  0000  
+# 000  000   000  
+
 exports.In = class In extends Base
+    
     constructor: (@object, @array) ->
 
     children: ['object', 'array']
@@ -2143,10 +2331,16 @@ exports.In = class In extends Base
     toString: (idt) ->
         super idt, @constructor.name + if @negated then '!' else ''
 
-#### Try
+# 000000000  00000000   000   000  
+#    000     000   000   000 000   
+#    000     0000000      00000    
+#    000     000   000     000     
+#    000     000   000     000     
 
 # A classic *try/catch/finally* block.
+
 exports.Try = class Try extends Base
+    
     constructor: (@attempt, @errorVariable, @recovery, @ensure) ->
 
     children: ['attempt', 'recovery', 'ensure']
@@ -2188,10 +2382,16 @@ exports.Try = class Try extends Base
             tryPart,
             @makeCode("\n#{@tab}}"), catchPart, ensurePart
 
-#### Throw
+# 000000000  000   000  00000000    0000000   000   000  
+#    000     000   000  000   000  000   000  000 0 000  
+#    000     000000000  0000000    000   000  000000000  
+#    000     000   000  000   000  000   000  000   000  
+#    000     000   000  000   000   0000000   00     00  
 
 # Simple node to throw an exception.
+
 exports.Throw = class Throw extends Base
+    
     constructor: (@expression) ->
 
     children: ['expression']
@@ -2205,12 +2405,18 @@ exports.Throw = class Throw extends Base
     compileNode: (o) ->
         [].concat @makeCode(@tab + "throw "), @expression.compileToFragments(o), @makeCode(";")
 
-#### Existence
+# 00000000  000   000  000   0000000  000000000  00000000  000   000   0000000  00000000  
+# 000        000 000   000  000          000     000       0000  000  000       000       
+# 0000000     00000    000  0000000      000     0000000   000 0 000  000       0000000   
+# 000        000 000   000       000     000     000       000  0000  000       000       
+# 00000000  000   000  000  0000000      000     00000000  000   000   0000000  00000000  
 
 # Checks a variable for existence -- not *null* and not *undefined*. This is
 # similar to `.nil?` in Ruby, and avoids having to consult a JavaScript truth
 # table.
+
 exports.Existence = class Existence extends Base
+    
     constructor: (@expression) ->
 
     children: ['expression']
@@ -2228,14 +2434,20 @@ exports.Existence = class Existence extends Base
             code = "#{code} #{if @negated then '==' else '!='} null"
         [@makeCode(if o.level <= LEVEL_COND then code else "(#{code})")]
 
-#### Parens
+# 00000000    0000000   00000000   00000000  000   000   0000000  
+# 000   000  000   000  000   000  000       0000  000  000       
+# 00000000   000000000  0000000    0000000   000 0 000  0000000   
+# 000        000   000  000   000  000       000  0000       000  
+# 000        000   000  000   000  00000000  000   000  0000000   
 
 # An extra set of parentheses, specified explicitly in the source. At one time
 # we tried to clean up the results by detecting and removing redundant
 # parentheses, but no longer -- you can put in as many as you please.
 #
 # Parentheses are a good way to force any statement to become an expression.
+
 exports.Parens = class Parens extends Base
+    
     constructor: (@body) ->
 
     children: ['body']
@@ -2254,27 +2466,26 @@ exports.Parens = class Parens extends Base
                 fragments.length <= 3)
         if bare then fragments else @wrapInBraces fragments
 
-#### StringWithInterpolations
+# 000  000   000  000000000  00000000  00000000   00000000    0000000   000       0000000   000000000  000   0000000   000   000   0000000  
+# 000  0000  000     000     000       000   000  000   000  000   000  000      000   000     000     000  000   000  0000  000  000       
+# 000  000 0 000     000     0000000   0000000    00000000   000   000  000      000000000     000     000  000   000  000 0 000  0000000   
+# 000  000  0000     000     000       000   000  000        000   000  000      000   000     000     000  000   000  000  0000       000  
+# 000  000   000     000     00000000  000   000  000         0000000   0000000  000   000     000     000   0000000   000   000  0000000   
 
-# Strings with interpolations are in fact just a variation of `Parens` with
-# string concatenation inside.
+# Strings with interpolations are in fact just a variation of `Parens` with string concatenation inside.
 
 exports.StringWithInterpolations = class StringWithInterpolations extends Parens
-    # Uncomment the following line in Koffee 2, to allow all interpolated
-    # strings to be output using the ES2015 syntax:
-    # unwrap: -> this
-
+    
     compileNode: (o) ->
+        
         # This method produces an interpolated string using the new ES2015 syntax,
-        # which is opt-in by using tagged template literals. If this
-        # StringWithInterpolations isn’t inside a tagged template literal,
-        # fall back to the Koffee 1.x output.
-        # (Remove this check in Koffee 2.)
+        # which is opt-in by using tagged template literals. 
+        # If this StringWithInterpolations isn’t inside a tagged template literal, fall back to the Koffee 1.x output.
+        
         unless o.inTaggedTemplateCall
             return super
 
-        # Assumption: expr is Value>StringLiteral or Op
-        expr = @body.unwrap()
+        expr = @body.unwrap() # Assumption: expr is Value>StringLiteral or Op
 
         elements = []
         expr.traverseChildren no, (node) ->
@@ -2306,15 +2517,20 @@ exports.StringWithInterpolations = class StringWithInterpolations extends Parens
 
         fragments
 
-#### For
+# 00000000   0000000   00000000   
+# 000       000   000  000   000  
+# 000000    000   000  0000000    
+# 000       000   000  000   000  
+# 000        0000000   000   000  
 
-# Koffee's replacement for the *for* loop is our array and object
+# Replacement for the *for* loop is our array and object
 # comprehensions, that compile into *for* loops here. They also act as an
 # expression, able to return the result of each filtered iteration.
 #
 # Unlike Python array comprehensions, they can be multi-line, and you can pass
 # the current index of the loop as a second parameter. Unlike Ruby blocks,
 # you can map and filter in a single pass.
+
 exports.For = class For extends While
     constructor: (body, source) ->
         {@source, @guard, @step, @name, @index} = source
@@ -2438,9 +2654,14 @@ exports.For = class For extends While
             defs = defs.concat @makeCode(@tab), (new Assign(ref, fn).compileToFragments(o, LEVEL_TOP)), @makeCode(';\n')
         defs
 
-#### Switch
+#  0000000  000   000  000  000000000   0000000  000   000  
+# 000       000 0 000  000     000     000       000   000  
+# 0000000   000000000  000     000     000       000000000  
+#      000  000   000  000     000     000       000   000  
+# 0000000   00     00  000     000      0000000  000   000  
 
 # A JavaScript *switch* statement. Converts into a returnable expression on-demand.
+
 exports.Switch = class Switch extends Base
     constructor: (@subject, @cases, @otherwise) ->
 
@@ -2479,14 +2700,19 @@ exports.Switch = class Switch extends Base
         fragments.push @makeCode @tab + '}'
         fragments
 
-#### If
+# 000  00000000  
+# 000  000       
+# 000  000000    
+# 000  000       
+# 000  000       
 
-# *If/else* statements. Acts as an expression by pushing down requested returns
-# to the last line of each clause.
+# *If/else* statements. Acts as an expression by pushing down requested returns to the last line of each clause.
 #
 # Single-expression **Ifs** are compiled into conditional operators if possible,
 # because ternaries are already proper expressions, and don't need conversion.
+
 exports.If = class If extends Base
+    
     constructor: (condition, @body, options = {}) ->
         @condition = if options.type is 'unless' then condition.invert() else condition
         @elseBody    = null
@@ -2562,8 +2788,11 @@ exports.If = class If extends Base
     unfoldSoak: ->
         @soak and this
 
-# Constants
-# ---------
+#  0000000   0000000   000   000   0000000  000000000   0000000   000   000  000000000   0000000  
+# 000       000   000  0000  000  000          000     000   000  0000  000     000     000       
+# 000       000   000  000 0 000  0000000      000     000000000  000 0 000     000     0000000   
+# 000       000   000  000  0000       000     000     000   000  000  0000     000          000  
+#  0000000   0000000   000   000  0000000      000     000   000  000   000     000     0000000   
 
 UTILITIES =
 
@@ -2625,10 +2854,14 @@ TAB = '    '
 
 SIMPLENUM = /^[+-]?\d+$/
 
-# Helper Functions
-# ----------------
+# 000   000  00000000  000      00000000   00000000  00000000   
+# 000   000  000       000      000   000  000       000   000  
+# 000000000  0000000   000      00000000   0000000   0000000    
+# 000   000  000       000      000        000       000   000  
+# 000   000  00000000  0000000  000        00000000  000   000  
 
 # Helper for ensuring that utility functions are assigned at the top level.
+    
 utility = (name, o) ->
     {root} = o.scope
     if name of root.utilities

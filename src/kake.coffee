@@ -1,52 +1,66 @@
-# `kake` is a simplified version of [Make](http://www.gnu.org/software/make/)
-# ([Rake](http://rake.rubyforge.org/), [Jake](https://github.com/280north/jake))
-# for Koffee. You define tasks with names and descriptions in a kakefile (kake.coffee),
-# and can call them from the command line, or invoke them from other tasks.
-#
-# Running `kake` with no arguments will print out a list of all the tasks in the
-# current directory's kakefile.
+###
+000   000   0000000   000   000  00000000  
+000  000   000   000  000  000   000       
+0000000    000000000  0000000    0000000   
+000  000   000   000  000  000   000       
+000   000  000   000  000   000  00000000  
+###
 
-fs        = require 'fs'
-path      = require 'path'
-helpers   = require './helpers'
-optparse  = require './optparse'
-Koffee    = require './koffee'
+# `kake` is a koffee's build tool. It executes tasks defined in a kakefile (kake.coffee).
+# Called with no arguments, it prints a list of all available tasks.
 
-Koffee.register() # Register .coffee extension
+fs       = require 'fs'
+path     = require 'path'
+helpers  = require './helpers'
+optparse = require './optparse'
+Koffee   = require './koffee'
 
-# Keep track of the list of defined tasks, the accepted options, and so on.
-tasks       = {}
-options     = {}
-switches    = []
-oparse      = null
+tasks    = {}
+options  = {}
+switches = []
+oparse   = null
+
+Koffee.register() 
 
 # Mixin the top-level kake functions for kakefiles to use directly.
+    
 helpers.extend global,
 
-    # Define a task with a short name, an optional sentence description,
-    # and the function to run as the action itself.
+    # Define a task with a short name, an optional description, and the function to run.
+    
     task: (name, description, action) ->
-        [action, description] = [description, action] unless action
+        
+        [action, description] = [description, action] if not action
         tasks[name] = {name, description, action}
 
-    # Define an option that kake accepts. The parsed options hash,
-    # containing all of the command-line options passed, will be made available
-    # as the first argument to the action.
+    # Define an option.
+    # The parsed options hash, containing all of the command-line options passed, 
+    # will be made available as the first argument to the action.
+    
     option: (letter, flag, description) ->
+        
         switches.push [letter, flag, description]
-
-    # Invoke another task in the current file.
-    invoke: (name) ->
+    
+    invoke: (name) -> # Invoke another task in the current file.
+        
         missingTask name unless tasks[name]
         tasks[name].action options
+
+# 00000000   000   000  000   000  
+# 000   000  000   000  0000  000  
+# 0000000    000   000  000 0 000  
+# 000   000  000   000  000  0000  
+# 000   000   0000000   000   000  
 
 # Run `kake`. Executes all of the tasks you pass, in order. Note that Node's
 # asynchrony may cause tasks to execute in a different order than you'd expect.
 # If no tasks are passed, print the help screen. Keep a reference to the
 # original directory name, when running kake tasks from subdirectories.
+
 exports.run = ->
+    
     global.__originalDirname = fs.realpathSync '.'
-    process.chdir cakefileDirectory __originalDirname
+    process.chdir kakefileDirectory __originalDirname
     args = process.argv[2..]
     Koffee.run fs.readFileSync('kake.coffee').toString(), filename: 'kake.coffee'
     oparse = new optparse.OptionParser switches
@@ -57,8 +71,8 @@ exports.run = ->
         return fatalError "#{e}"
     invoke arg for arg in options.arguments
 
-# Display the list of kake tasks
 printTasks = ->
+    
     relative = path.relative or path.resolve
     cakefilePath = path.join relative(__originalDirname, process.cwd()), 'kake.coffee'
     console.log "#{cakefilePath} tasks:\n"
@@ -69,17 +83,17 @@ printTasks = ->
         console.log "kake #{name}#{spaces} #{desc}"
     console.log oparse.help() if switches.length
 
-# Print an error and exit when attempting to use an invalid task/option.
-fatalError = (message) ->
+fatalError = (message) -> # Print an error and exit when attempting to use an invalid task/option.
+    
     console.error message + '\n'
     console.log 'To see a list of all tasks/options, run "kake"'
     process.exit 1
 
 missingTask = (task) -> fatalError "No such task: #{task}"
 
-# When `kake` is invoked, search in the current and all parent directories to find the relevant kakefile.
-cakefileDirectory = (dir) ->
+kakefileDirectory = (dir) -> # Search in the current and all parent directories to find the relevant kakefile.
+    
     return dir if fs.existsSync path.join dir, 'kake.coffee'
     parent = path.normalize path.join dir, '..'
-    return cakefileDirectory parent unless parent is dir
+    return kakefileDirectory parent unless parent is dir
     throw new Error "kake.coffee not found in #{process.cwd()}"

@@ -1,4 +1,12 @@
-# The Koffee Lexer. Uses a series of token-matching regexes to attempt matches against the beginning of the source code. 
+###
+000      00000000  000   000  00000000  00000000   
+000      000        000 000   000       000   000  
+000      0000000     00000    0000000   0000000    
+000      000        000 000   000       000   000  
+0000000  00000000  000   000  00000000  000   000  
+###
+
+# The Lexer uses a series of token-matching regexes to attempt matches against the beginning of the source code. 
 # When a match is found, a token is produced, we consume the match, and start again. 
 # Tokens are in the form:
 #
@@ -16,7 +24,7 @@
 # The Lexer class reads a stream of koffee and divvies it up into tagged tokens. 
 # Some potential ambiguity in the grammar has been avoided by pushing some extra smarts into the Lexer.
 
-exports.Lexer = class Lexer
+class Lexer
 
     # tokenize is the Lexer's main method. Scan by attempting to match tokens
     # one at a time, using a regular expression anchored at the start of the
@@ -86,8 +94,11 @@ exports.Lexer = class Lexer
             @chunkLine--
         code
 
-    # Tokenizers
-    # ----------
+    # 000  0000000    00000000  000   000  000000000  000  00000000  000  00000000  00000000 
+    # 000  000   000  000       0000  000     000     000  000       000  000       000   000
+    # 000  000   000  0000000   000 0 000     000     000  000000    000  0000000   0000000  
+    # 000  000   000  000       000  0000     000     000  000       000  000       000   000
+    # 000  0000000    00000000  000   000     000     000  000       000  00000000  000   000
 
     # Matches identifying literals: variables, keywords, method names, etc.
     # Check to ensure that JavaScript reserved words aren't being used as
@@ -95,6 +106,7 @@ exports.Lexer = class Lexer
     # allowed in JavaScript, we're careful not to tag them as keywords when
     # referenced as property names here, so you can still do `jQuery.is()` even
     # though `is` means `===` otherwise.
+    
     identifierToken: ->
         return 0 unless match = IDENTIFIER.exec @chunk
         [input, id, colon] = match
@@ -190,6 +202,12 @@ exports.Lexer = class Lexer
 
         input.length
 
+    # 000   000  000   000  00     00  0000000    00000000  00000000   
+    # 0000  000  000   000  000   000  000   000  000       000   000  
+    # 000 0 000  000   000  000000000  0000000    0000000   0000000    
+    # 000  0000  000   000  000 0 000  000   000  000       000   000  
+    # 000   000   0000000   000   000  0000000    00000000  000   000  
+
     # Matches numbers, including decimals, hex, and exponential notation.
     # Be careful not to interfere with ranges-in-progress.
     
@@ -223,6 +241,12 @@ exports.Lexer = class Lexer
         @token tag, number, 0, lexedLength
         lexedLength
 
+    #  0000000  000000000  00000000   000  000   000   0000000   
+    # 000          000     000   000  000  0000  000  000        
+    # 0000000      000     0000000    000  000 0 000  000  0000  
+    #      000     000     000   000  000  000  0000  000   000  
+    # 0000000      000     000   000  000  000   000   0000000   
+    
     # Matches strings, including multi-line strings, as well as heredocs, with or without interpolation.
     
     stringToken: ->
@@ -272,6 +296,12 @@ exports.Lexer = class Lexer
 
         end
 
+    #  0000000   0000000   00     00  00     00  00000000  000   000  000000000  
+    # 000       000   000  000   000  000   000  000       0000  000     000     
+    # 000       000   000  000000000  000000000  0000000   000 0 000     000     
+    # 000       000   000  000 0 000  000 0 000  000       000  0000     000     
+    #  0000000   0000000   000   000  000   000  00000000  000   000     000     
+    
     commentToken: ->
         return 0 unless match = @chunk.match COMMENT
         [comment, here] = match
@@ -284,6 +314,12 @@ exports.Lexer = class Lexer
             @token 'HERECOMMENT', here, 0, comment.length
         comment.length
 
+    #       000   0000000  
+    #       000  000       
+    #       000  0000000   
+    # 000   000       000  
+    #  0000000   0000000   
+    
     # Matches JavaScript interpolated directly into the source via backticks.
     
     jsToken: ->
@@ -298,6 +334,12 @@ exports.Lexer = class Lexer
         @token 'JS', script, 0, match[0].length
         match[0].length
 
+    # 00000000   00000000   0000000   00000000  000   000  
+    # 000   000  000       000        000        000 000   
+    # 0000000    0000000   000  0000  0000000     00000    
+    # 000   000  000       000   000  000        000 000   
+    # 000   000  00000000   0000000   00000000  000   000  
+    
     # Matches regular expression literals, as well as multiline extended ones.
     # Lexing regular expressions is difficult to distinguish from division, 
     # so we borrow some basic heuristics from JavaScript and Ruby.
@@ -346,6 +388,12 @@ exports.Lexer = class Lexer
 
         end
 
+    # 000      000  000   000  00000000  
+    # 000      000  0000  000  000       
+    # 000      000  000 0 000  0000000   
+    # 000      000  000  0000  000       
+    # 0000000  000  000   000  00000000  
+    
     # Matches newlines, indents, and outdents, and determines which is which.
     # If we can detect that the current line is continued onto the next line,
     # then the newline is suppressed:
@@ -356,6 +404,7 @@ exports.Lexer = class Lexer
     #
     # Keeps track of the level of indentation, because a single outdent token
     # can close multiple indents, so we need to know how far in we happen to be.
+    
     lineToken: ->
         return 0 unless match = MULTI_DENT.exec @chunk
         indent = match[0]
@@ -392,6 +441,12 @@ exports.Lexer = class Lexer
             @outdentToken @indent - size, noNewlines, indent.length
         indent.length
 
+    #  0000000   000   000  000000000  0000000    00000000  000   000  000000000  
+    # 000   000  000   000     000     000   000  000       0000  000     000     
+    # 000   000  000   000     000     000   000  0000000   000 0 000     000     
+    # 000   000  000   000     000     000   000  000       000  0000     000     
+    #  0000000    0000000      000     0000000    00000000  000   000     000     
+    
     # Record an outdent token or multiple tokens, if we happen to be moving back
     # inwards past several recorded indents. Sets new @indent value.
     
@@ -424,6 +479,12 @@ exports.Lexer = class Lexer
         @indent = decreasedIndent
         this
 
+    # 000   000  000   000  000  000000000  00000000   0000000  00000000    0000000    0000000  00000000  
+    # 000 0 000  000   000  000     000     000       000       000   000  000   000  000       000       
+    # 000000000  000000000  000     000     0000000   0000000   00000000   000000000  000       0000000   
+    # 000   000  000   000  000     000     000            000  000        000   000  000       000       
+    # 00     00  000   000  000     000     00000000  0000000   000        000   000   0000000  00000000  
+    
     # Matches and consumes non-meaningful whitespace. Tag the previous token
     # as being “spaced”, because there are some cases where it makes a difference.
     
@@ -448,6 +509,12 @@ exports.Lexer = class Lexer
         @tokens.pop() if @value() is '\\'
         this
 
+    # 000      000  000000000  00000000  00000000    0000000   000      
+    # 000      000     000     000       000   000  000   000  000      
+    # 000      000     000     0000000   0000000    000000000  000      
+    # 000      000     000     000       000   000  000   000  000      
+    # 0000000  000     000     00000000  000   000  000   000  0000000  
+    
     # We treat all other single characters as a token. E.g.: `( ) , . !`
     # Multi-character operators are also literal tokens, so that Jison can assign
     # the proper order of operations. There are some symbols that we tag specially
@@ -512,8 +579,20 @@ exports.Lexer = class Lexer
         @tokens.push token
         value.length
 
-    # Token Manipulators
-    # ------------------
+    ###
+    00     00   0000000   000   000  000  00000000   000   000  000       0000000   000000000   0000000   00000000    0000000  
+    000   000  000   000  0000  000  000  000   000  000   000  000      000   000     000     000   000  000   000  000       
+    000000000  000000000  000 0 000  000  00000000   000   000  000      000000000     000     000   000  0000000    0000000   
+    000 0 000  000   000  000  0000  000  000        000   000  000      000   000     000     000   000  000   000       000  
+    000   000  000   000  000   000  000  000         0000000   0000000  000   000     000      0000000   000   000  0000000   
+    ###
+    
+    # 00000000    0000000   00000000    0000000   00     00  00000000  000000000  00000000  00000000    0000000  
+    # 000   000  000   000  000   000  000   000  000   000  000          000     000       000   000  000       
+    # 00000000   000000000  0000000    000000000  000000000  0000000      000     0000000   0000000    0000000   
+    # 000        000   000  000   000  000   000  000 0 000  000          000     000       000   000       000  
+    # 000        000   000  000   000  000   000  000   000  00000000     000     00000000  000   000  0000000   
+    
     # A source of ambiguity in our grammar used to be parameter lists in function
     # definitions versus argument lists in function calls. Walk backwards, tagging
     # parameters specially in order to make things easier for the parser.
@@ -541,6 +620,12 @@ exports.Lexer = class Lexer
     closeIndentation: ->
         @outdentToken @indent
 
+    # 00     00   0000000   000000000   0000000  000   000  
+    # 000   000  000   000     000     000       000   000  
+    # 000000000  000000000     000     000       000000000  
+    # 000 0 000  000   000     000     000       000   000  
+    # 000   000  000   000     000      0000000  000   000  
+    
     # Match the contents of a delimited token and expand variables and expressions
     # inside it using Ruby-like notation for substitution of arbitrary expressions.
     #
@@ -611,6 +696,12 @@ exports.Lexer = class Lexer
 
         {tokens, index: offsetInChunk + delimiter.length}
 
+    # 00     00  00000000  00000000    0000000   00000000  
+    # 000   000  000       000   000  000        000       
+    # 000000000  0000000   0000000    000  0000  0000000   
+    # 000 0 000  000       000   000  000   000  000       
+    # 000   000  00000000  000   000   0000000   00000000  
+    
     # Merge the array `tokens` of the fake token types 'TOKENS' and 'NEOSTRING'  (as returned by `matchWithInterpolations`) into the token stream. 
     # The value of 'NEOSTRING's are converted using `fn` and turned into strings using `options` first.
     
@@ -672,8 +763,15 @@ exports.Lexer = class Lexer
                 last_line:    lastToken[2].last_line
                 last_column:  lastToken[2].last_column
 
+    # 00000000    0000000   000  00000000   
+    # 000   000  000   000  000  000   000  
+    # 00000000   000000000  000  0000000    
+    # 000        000   000  000  000   000  
+    # 000        000   000  000  000   000  
+    
     # Pairs up a closing token, ensuring that all listed pairs of tokens are
     # correctly balanced throughout the course of the token stream.
+    
     pair: (tag) ->
         [..., prev] = @ends
         unless tag is wanted = prev?.tag
@@ -687,8 +785,12 @@ exports.Lexer = class Lexer
             return @pair tag
         @ends.pop()
 
-    # Helpers
-    # -------
+    # 000   000  00000000  000      00000000   00000000  00000000    0000000  
+    # 000   000  000       000      000   000  000       000   000  000       
+    # 000000000  0000000   000      00000000   0000000   0000000    0000000   
+    # 000   000  000       000      000        000       000   000       000  
+    # 000   000  00000000  0000000  000        00000000  000   000  0000000   
+
     # Returns the line and column number from an offset into the current chunk.
     #
     # `offset` is a number of characters into @chunk.
@@ -713,6 +815,12 @@ exports.Lexer = class Lexer
 
         [@chunkLine + lineCount, column]
 
+    # 000000000   0000000   000   000  00000000  000   000  
+    #    000     000   000  000  000   000       0000  000  
+    #    000     000   000  0000000    0000000   000 0 000  
+    #    000     000   000  000  000   000       000  0000  
+    #    000      0000000   000   000  00000000  000   000  
+    
     # Same as "token", exception this just returns the token without adding it to the results.
     
     makeToken: (tag, value, offsetInChunk = 0, length = value.length) ->
@@ -841,8 +949,11 @@ exports.Lexer = class Lexer
                 {first_line, first_column, last_column: first_column + (options.length ? 1) - 1}
         throwSyntaxError message, location
 
-# Helper functions
-# ----------------
+# 000   000  00000000  000      00000000   00000000  00000000   
+# 000   000  000       000      000   000  000       000   000  
+# 000000000  0000000   000      00000000   0000000   0000000    
+# 000   000  000       000      000        000       000   000  
+# 000   000  00000000  0000000  000        00000000  000   000  
 
 isUnassignable = (name, displayName = name) -> switch
     when name in [JS_KEYWORDS..., COFFEE_KEYWORDS...]
@@ -855,6 +966,7 @@ isUnassignable = (name, displayName = name) -> switch
         false
 
 exports.isUnassignable = isUnassignable
+exports.Lexer = Lexer
 
 # `from` isn’t a koffee keyword, 
 # but it behaves like one in `import` and `export` statements (handled above) and in the declaration line of a `for` loop.
@@ -877,8 +989,14 @@ isForFrom = (prev) ->
     else
         yes
 
-# Constants
-# ---------
+###
+ 0000000   0000000   000   000   0000000  000000000   0000000   000   000  000000000   0000000  
+000       000   000  0000  000  000          000     000   000  0000  000     000     000       
+000       000   000  000 0 000  0000000      000     000000000  000 0 000     000     0000000   
+000       000   000  000  0000       000     000     000   000  000  0000     000          000  
+ 0000000   0000000   000   000  0000000      000     000   000  000   000     000     0000000   
+###
+
 # Keywords that Koffee shares in common with JavaScript.
 
 JS_KEYWORDS = [

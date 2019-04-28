@@ -1,14 +1,30 @@
-fs = require 'fs'
-path = require 'path'
-vm = require 'vm'
+###
+00000000   00000000  00000000   000      
+000   000  000       000   000  000      
+0000000    0000000   00000000   000      
+000   000  000       000        000      
+000   000  00000000  000        0000000  
+###
+
+fs       = require 'fs'
+path     = require 'path'
+vm       = require 'vm'
 nodeREPL = require 'repl'
-Koffee = require './koffee'
+Koffee   = require './koffee'
 {merge, updateSyntaxError} = require './helpers'
 
+# 0000000    00000000  00000000   0000000   000   000  000      000000000   0000000  
+# 000   000  000       000       000   000  000   000  000         000     000       
+# 000   000  0000000   000000    000000000  000   000  000         000     0000000   
+# 000   000  000       000       000   000  000   000  000         000          000  
+# 0000000    00000000  000       000   000   0000000   0000000     000     0000000   
+
 replDefaults =
+    
     prompt: 'koffee> ',
     historyFile: path.join process.env.HOME, '.koffee_history' if process.env.HOME
     historyMaxInputSize: 10240
+    
     eval: (input, context, filename, cb) ->
         # XXX: multiline hack.
         input = input.replace /\uFF00/g, '\n'

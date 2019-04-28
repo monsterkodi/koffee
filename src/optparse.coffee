@@ -1,10 +1,18 @@
+###
+ 0000000   00000000   000000000  000   0000000   000   000  00000000    0000000   00000000    0000000  00000000  00000000   
+000   000  000   000     000     000  000   000  0000  000  000   000  000   000  000   000  000       000       000   000  
+000   000  00000000      000     000  000   000  000 0 000  00000000   000000000  0000000    0000000   0000000   0000000    
+000   000  000           000     000  000   000  000  0000  000        000   000  000   000       000  000       000   000  
+ 0000000   000           000     000   0000000   000   000  000        000   000  000   000  0000000   00000000  000   000  
+###
+
 {repeat} = require './helpers'
 
-# A simple **OptionParser** class to parse option flags from the command-line.
-# Use it like so:
+# A simple command-line option parser.
+# Usage:
 #
-#           parser  = new OptionParser switches, helpBanner
-#           options = parser.parse process.argv
+#      parser  = new OptionParser switches, helpBanner
+#      options = parser.parse process.argv
 #
 # The first non-option is considered to be the start of the file (and file option) list, 
 # and all subsequent arguments are left unparsed.
@@ -13,7 +21,7 @@ exports.OptionParser = class OptionParser
 
     # Initialize with a list of valid options, in the form:
     #
-    #           [short-flag, long-flag, description]
+    #     [short-flag, long-flag, description]
     #
     # Along with an optional banner for the usage help.
         
@@ -72,8 +80,12 @@ exports.OptionParser = class OptionParser
             lines.push '     ' + letPart + rule.longFlag + spaces + rule.description
         "\n#{ lines.join('\n') }\n"
         
-# Helpers
-# -------
+# 000   000  00000000  000      00000000   00000000  00000000    0000000  
+# 000   000  000       000      000   000  000       000   000  000       
+# 000000000  0000000   000      00000000   0000000   0000000    0000000   
+# 000   000  000       000      000        000       000   000       000  
+# 000   000  00000000  0000000  000        00000000  000   000  0000000   
+
 # Regex matchers for option flags.
     
 LONG_FLAG  = /^(--\w[\w\-]*)/

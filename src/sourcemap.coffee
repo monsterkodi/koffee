@@ -9,15 +9,18 @@
 # — which is a compact, VLQ-encoded representation of the JSON serialization
 # of this information — to write out alongside the generated JavaScript.
 
-
-# LineMap
-# -------
+# 000      000  000   000  00000000  00     00   0000000   00000000   
+# 000      000  0000  000  000       000   000  000   000  000   000  
+# 000      000  000 0 000  0000000   000000000  000000000  00000000   
+# 000      000  000  0000  000       000 0 000  000   000  000        
+# 0000000  000  000   000  00000000  000   000  000   000  000        
 
 # A **LineMap** object keeps track of information about original line and column
 # positions for a single line of output JavaScript code.
 # **SourceMaps** are implemented in terms of **LineMaps**.
 
 class LineMap
+    
     constructor: (@line) ->
         @columns = []
 
@@ -30,8 +33,11 @@ class LineMap
         mapping and [mapping.sourceLine, mapping.sourceColumn]
 
 
-# SourceMap
-# ---------
+#  0000000   0000000   000   000  00000000    0000000  00000000  00     00   0000000   00000000   
+# 000       000   000  000   000  000   000  000       000       000   000  000   000  000   000  
+# 0000000   000   000  000   000  0000000    000       0000000   000000000  000000000  00000000   
+#      000  000   000  000   000  000   000  000       000       000 0 000  000   000  000        
+# 0000000    0000000    0000000   000   000   0000000  00000000  000   000  000   000  000        
 
 # Maps locations in a single generated JavaScript file back to locations in the original source file.
 
@@ -40,6 +46,7 @@ class LineMap
 # through the arrays of line and column buffer to produce it.
 
 class SourceMap
+    
     constructor: ->
         @lines = []
 

@@ -33,11 +33,13 @@ class LineMap
         mapping and [mapping.sourceLine, mapping.sourceColumn]
 
 
-#  0000000   0000000   000   000  00000000    0000000  00000000  00     00   0000000   00000000   
-# 000       000   000  000   000  000   000  000       000       000   000  000   000  000   000  
-# 0000000   000   000  000   000  0000000    000       0000000   000000000  000000000  00000000   
-#      000  000   000  000   000  000   000  000       000       000 0 000  000   000  000        
-# 0000000    0000000    0000000   000   000   0000000  00000000  000   000  000   000  000        
+###
+ 0000000   0000000   000   000  00000000    0000000  00000000  00     00   0000000   00000000   
+000       000   000  000   000  000   000  000       000       000   000  000   000  000   000  
+0000000   000   000  000   000  0000000    000       0000000   000000000  000000000  00000000   
+     000  000   000  000   000  000   000  000       000       000 0 000  000   000  000        
+0000000    0000000    0000000   000   000   0000000  00000000  000   000  000   000  000        
+###
 
 # Maps locations in a single generated JavaScript file back to locations in the original source file.
 
@@ -66,8 +68,11 @@ class SourceMap
         lineMap and lineMap.sourceLocation column
 
 
-    # V3 SourceMap Generation
-    # -----------------------
+    #  0000000   00000000  000   000  00000000  00000000    0000000   000000000  00000000  
+    # 000        000       0000  000  000       000   000  000   000     000     000       
+    # 000  0000  0000000   000 0 000  0000000   0000000    000000000     000     0000000   
+    # 000   000  000       000  0000  000       000   000  000   000     000     000       
+    #  0000000   00000000  000   000  00000000  000   000  000   000     000     00000000  
     
     # Builds up a V3 source map, returning the generated JSON as a string.
     # `options.sourceRoot` may be used to specify the sourceRoot written to the source map.
@@ -133,9 +138,11 @@ class SourceMap
 
         v3
 
-
-# Base64 VLQ Encoding
-# -------------------
+# 00000000  000   000   0000000   0000000   0000000    00000000  
+# 000       0000  000  000       000   000  000   000  000       
+# 0000000   000 0 000  000       000   000  000   000  0000000   
+# 000       000  0000  000       000   000  000   000  000       
+# 00000000  000   000   0000000   0000000   0000000    00000000  
 
 # Note that SourceMap VLQ encoding is "backwards".  MIDI-style VLQ encoding puts
 # the most-significant-bit (MSB) from the original value into the MSB of the VLQ

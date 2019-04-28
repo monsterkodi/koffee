@@ -19,8 +19,6 @@
 
 {count, starts, compact, repeat, locationDataToString, throwSyntaxError} = require './helpers'
 
-# The Lexer Class
-# ---------------
 # The Lexer class reads a stream of koffee and divvies it up into tagged tokens. 
 # Some potential ambiguity in the grammar has been avoided by pushing some extra smarts into the Lexer.
 
@@ -34,6 +32,12 @@ class Lexer
     # Each tokenizing method is responsible for returning the number of characters it has consumed.
     #
     # Before returning the token stream, run it through the Rewriter.
+    
+    # 000000000   0000000   000   000  00000000  000   000  000  0000000  00000000  
+    #    000     000   000  000  000   000       0000  000  000     000   000       
+    #    000     000   000  0000000    0000000   000 0 000  000    000    0000000   
+    #    000     000   000  000  000   000       000  0000  000   000     000       
+    #    000      0000000   000   000  00000000  000   000  000  0000000  00000000  
     
     tokenize: (code, opts = {}) ->
         
@@ -81,8 +85,18 @@ class Lexer
 
         @closeIndentation()
         @error "missing #{end.tag}", end.origin[2] if end = @ends.pop()
-        return @tokens if opts.rewrite is off
+        if opts.rewrite is off
+            return @tokens 
         (new Rewriter).rewrite @tokens
+        
+        # for token in @tokens
+            # if token[0] in ['{','}']
+                # if token.generated
+                    # console.log 'FIX GENERATED', token
+                    # token[1] = token[0]
+                    # delete token.generated
+                    # delete token.origin
+        @tokens
 
     # Preprocess the code to remove leading and trailing whitespace, carriage returns, etc. 
     

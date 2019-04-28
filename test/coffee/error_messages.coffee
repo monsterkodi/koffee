@@ -906,20 +906,25 @@ test "#4070: lone expansion", ->
     '''
 
 test "#3926: implicit object in parameter list", ->
-    assertErrorFormat '''
-        (a: b) ->
-    ''', '''
-        [stdin]:1:3: error: unexpected :
-        (a: b) ->
-          ^
-    '''
-    assertErrorFormat '''
-        (one, two, {three, four: five}, key: value) ->
-    ''', '''
-        [stdin]:1:36: error: unexpected :
-        (one, two, {three, four: five}, key: value) ->
-                                           ^
-    '''
+    
+    # this is valid syntax in koffee (option_arguments) 
+    #
+    # strange that this was ever disallowed
+    
+    # assertErrorFormat '''
+    #     (a: b) ->
+    # ''', '''
+    #     [stdin]:1:3: error: unexpected :
+    #     (a: b) ->
+    #       ^
+    # '''
+    # assertErrorFormat '''
+    #     (one, two, {three, four: five}, key: value) ->
+    # ''', '''
+    #     [stdin]:1:36: error: unexpected :
+    #     (one, two, {three, four: five}, key: value) ->
+    #                                        ^
+    # '''
 
 test "#4130: unassignable in destructured param", ->
     

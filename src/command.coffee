@@ -52,6 +52,7 @@ SWITCHES = [
     ['-r', '--require [MODULE*]', 'require the given module before eval or REPL']
     ['-s', '--stdio',             'listen for and compile scripts over stdio']
     ['-t', '--tokens',            'print out the tokens that the lexer/rewriter produce']
+    ['--no-rewrite',              'suppress the rewrite of tokens']
     ['-v', '--version',           'display the version number']
     ['-w', '--watch',             'watch scripts for changes and rerun commands']
 ]
@@ -74,6 +75,7 @@ optionParser = null
 # Flags passed after `--` will be passed verbatim in `process.argv`
 
 exports.run = ->
+    
     parseOptions()
     
     # Make the REPL use the global context so as to 
@@ -100,6 +102,7 @@ exports.run = ->
         compilePath source, yes, source
 
 makePrelude = (requires) ->
+    
     requires.map (module) ->
         [_, name, module] = match if match = module.match(/^(.*)=(.*)$/)
         name ||= helpers.baseFileName module, yes, useWinPathSep
@@ -167,6 +170,12 @@ findDirectoryIndex = (source) ->
             throw err unless err.code is 'ENOENT'
     console.error "Missing index.coffee or index.litcoffee in #{source}"
     process.exit 1
+
+#  0000000   0000000   00     00  00000000   000  000      00000000   0000000   0000000  00000000   000  00000000   000000000  
+# 000       000   000  000   000  000   000  000  000      000       000       000       000   000  000  000   000     000     
+# 000       000   000  000000000  00000000   000  000      0000000   0000000   000       0000000    000  00000000      000     
+# 000       000   000  000 0 000  000        000  000      000            000  000       000   000  000  000           000     
+#  0000000   0000000   000   000  000        000  0000000  00000000  0000000    0000000  000   000  000  000           000     
 
 # Compile a single source script, containing the given code, according to the requested options. 
 # If evaluating the script directly sets `__filename`, `__dirname` and `module.filename` to be correct relative to the script's path.
@@ -371,7 +380,7 @@ mkdirp = (dir, fn) ->
 writeJs = (base, sourcePath, js, jsPath, generatedSourceMap = null) ->
     
     sourceMapPath = outputPath sourcePath, base, ".js.map"
-    jsDir    = path.dirname jsPath
+    jsDir = path.dirname jsPath
     compile = ->
         if opts.compile
             js = ' ' if js.length <= 0
@@ -399,27 +408,34 @@ wait = (milliseconds, func) -> setTimeout func, milliseconds
 timeLog = (message) ->
     console.log "#{(new Date).toLocaleTimeString()} - #{message}"
 
+# 000000000   0000000   000   000  00000000  000   000   0000000  
+#    000     000   000  000  000   000       0000  000  000       
+#    000     000   000  0000000    0000000   000 0 000  0000000   
+#    000     000   000  000  000   000       000  0000       000  
+#    000      0000000   000   000  00000000  000   000  0000000   
+
 printTokens = (tokens) ->
     # strings = for token in tokens
         # tag = token[0]
         # value = token[1].toString().replace(/\n/, '\\n')
         # "[#{tag} #{value}]"
     # printLine strings.join(' ')
-    for token in tokens
+    for index in [0...tokens.length]
+        token = tokens[index]
         tag   = token[0]
         value = token[1].toString().replace(/\n/, '\\n')
         if tag == 'TERMINATOR'
-            print '\n'
+            print '\n\n'
         else if tag == 'INDENT'
             print 'IND '
         else if tag == 'OUTDENT'
             print 'OUT '
         else if tag in ['CLASS', 'PARAM_START', 'PARAM_END']
-            print "#{tag} "
+            print "#{index} #{tag} "
         else if tag is value
-            print "#{tag} "
+            print "#{index} #{tag} "
         else
-            print "#{tag}=#{value} "
+            print "#{index} #{tag}=#{value} "
 
 #  0000000   00000000   000000000  000   0000000   000   000   0000000  
 # 000   000  000   000     000     000  000   000  0000  000  000       
@@ -428,6 +444,7 @@ printTokens = (tokens) ->
 #  0000000   000           000     000   0000000   000   000  0000000   
 
 parseOptions = ->
+    
     optionParser = new optparse.OptionParser SWITCHES, BANNER
     o = opts     = optionParser.parse process.argv[2..]
     o.compile  or= !!o.output
@@ -437,12 +454,14 @@ parseOptions = ->
 # The compile-time options to pass to the compiler.
 
 compileOptions = (filename, base) ->
+    
     answer = {
         filename
         bare: opts.bare
         header: opts.compile and not opts['no-header']
         sourceMap: opts.map
         inlineMap: opts['inline-map']
+        rewrite: not opts['no-rewrite']
     }
     if filename
         if base

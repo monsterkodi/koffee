@@ -36,7 +36,7 @@ NEGATE  = -> @negated = not @negated; this
 # 000       000   000  000   000  000   000  000 0 000  000       000  0000     000     
 # 000       000   000  000   000   0000000   000   000  00000000  000   000     000     
 
-# The various nodes defined below all compile to a collection of **CodeFragment** objects.
+# The various nodes defined below all compile to a collection of CodeFragment objects.
 # A CodeFragments is a block of generated code, and the location in the source file where the code
 # came from. CodeFragments can be assembled together into working code just by catting together
 # all the CodeFragments' `code` snippets, in order.
@@ -44,11 +44,12 @@ NEGATE  = -> @negated = not @negated; this
 exports.CodeFragment = class CodeFragment
     
     constructor: (parent, code) ->
+        
         @code = "#{code}"
         @locationData = parent?.locationData
         @type = parent?.constructor?.name or 'unknown'
 
-    toString:       ->
+    toString: ->
         "#{@code}#{if @locationData then ": " + locationDataToString(@locationData) else ''}"
 
 fragmentsToText = (fragments) -> # Convert an array of CodeFragments into a string.
@@ -115,7 +116,7 @@ exports.Base = class Base
         parts = (new Call func, args).compileNode o
         if func.isGenerator or func.base?.isGenerator
             parts.unshift @makeCode "(yield* "
-            parts.push      @makeCode ")"
+            parts.push    @makeCode ")"
         parts
 
     # If the code generation wishes to use the result of a complex expression
@@ -1123,7 +1124,7 @@ exports.Obj = class Obj extends Base
                 node.error 'cannot have an implicit value in an implicit object'
         break for prop, dynamicIndex in props when (prop.variable or prop).base instanceof Parens
         hasDynamic  = dynamicIndex < props.length
-        idt                 = o.indent += TAB
+        idt         = o.indent += TAB
         lastNoncom  = @lastNonComment @properties
         answer = []
         if hasDynamic
@@ -1891,9 +1892,10 @@ exports.Param = class Param extends Base
     constructor: (@name, @value, @splat) ->
         message = isUnassignable @name.unwrapAll().value
         @name.error message if message
-        if @name instanceof Obj and @name.generated
-            token = @name.objects[0].operatorToken
-            token.error "unexpected #{token.value}"
+        # the following error doens't throw anymore in koffee (configParameter)
+        # if @name instanceof Obj and @name.generated
+            # token = @name.objects[0].operatorToken
+            # token.error "unexpected #{token.value}"
 
     children: ['name', 'value']
 
@@ -1924,6 +1926,7 @@ exports.Param = class Param extends Base
     # `name` is the name of the parameter and `node` is the AST node corresponding to that name.
     
     eachName: (iterator, name = @name)->
+        
         atParam = (obj) -> iterator "@#{obj.properties[0].name.value}", obj
         # * simple literals `foo`
         return iterator name.value, name if name instanceof Literal
@@ -2357,8 +2360,8 @@ exports.Try = class Try extends Base
     # Compilation is more or less as you would expect -- the *finally* clause
     # is optional, the *catch* is not.
     compileNode: (o) ->
-        o.indent    += TAB
-        tryPart     = @attempt.compileToFragments o, LEVEL_TOP
+        o.indent += TAB
+        tryPart   = @attempt.compileToFragments o, LEVEL_TOP
 
         catchPart = if @recovery
             generatedErrorVariableName = o.scope.freeVariable 'error', reserve: no

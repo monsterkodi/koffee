@@ -6,6 +6,8 @@
 000   000  00000000  00     00  000   000  000     000     00000000  000   000  
 ###
 
+log = console.log
+
 # The language has a good deal of optional syntax, implicit syntax,
 # and shorthand syntax. This can greatly complicate a grammar and bloat
 # the resulting parse table. Instead of making the parser handle it all, we take
@@ -27,14 +29,14 @@ class Rewriter
         # console.log (t[0] + '/' + t[1] for t in @tokens).join ' '
         @removeLeadingNewlines()
         @constructorShortcut()
-        # @configParameters()
         @closeOpenCalls()
         @closeOpenIndexes()
         @normalizeLines()
         @tagPostfixConditionals()
         @addImplicitBracesAndParens()
+        @configParameters()
         @addLocationDataToGeneratedTokens()
-        @fixOutdentLocationData()
+        @fixOutdentLocationData()        
         @tokens
 
     # Rewrite the token stream, looking one token ahead and behind.
@@ -83,26 +85,6 @@ class Rewriter
                 @tokens[i-1][0] = 'PROPERTY'
                 @tokens[i-1][1] = 'constructor'
             1
-        
-            
-    #  0000000   0000000   000   000  00000000  000   0000000   00000000    0000000   00000000    0000000   00     00   0000000  
-    # 000       000   000  0000  000  000       000  000        000   000  000   000  000   000  000   000  000   000  000       
-    # 000       000   000  000 0 000  000000    000  000  0000  00000000   000000000  0000000    000000000  000000000  0000000   
-    # 000       000   000  000  0000  000       000  000   000  000        000   000  000   000  000   000  000 0 000       000  
-    #  0000000   0000000   000   000  000       000   0000000   000        000   000  000   000  000   000  000   000  0000000   
-    
-    # insert `option_arguments=` if parameter list starts with { followed by @ or PROPERTY
-    
-    # configParameters: ->
-#         
-        # @scanTokens (token, i) ->
-            # if i > 0 and @tokens[i-1][0] is 'PARAM_START' and @tokens[i][0] is '{' and @tokens[i+1][0] in ['@', 'PROPERTY']
-                # console.log 'before------------------------', @tokens
-                # @tokens.splice i, 0, Rewriter.generate '=', '=', @tokens[i]
-                # @tokens.splice i, 0, Rewriter.generate 'IDENTIFIER', 'option_arguments', @tokens[i+1]
-                # console.log 'after-------------------------', @tokens
-                # return -1
-            # 1
         
     # The lexer has tagged the opening parenthesis of a method call. Match it with
     # its paired close. We have the mis-nested outdent case included here for
@@ -188,6 +170,7 @@ class Rewriter
         start = null
 
         @scanTokens (token, i, tokens) ->
+            
             [tag]     = token
             [prevTag] = prevToken = if i > 0 then tokens[i - 1] else []
             [nextTag] = if i < tokens.length - 1 then tokens[i + 1] else []
@@ -197,13 +180,13 @@ class Rewriter
 
             # Helper function, used for keeping track of the number of tokens consumed
             # and spliced, when returning for getting a new token.
-            forward     = (n) -> i - startIdx + n
+            forward   = (n) -> i - startIdx + n
 
             # Helper functions
-            isImplicit              = (stackItem) -> stackItem?[2]?.ours
+            isImplicit          = (stackItem) -> stackItem?[2]?.ours
             isImplicitObject    = (stackItem) -> isImplicit(stackItem) and stackItem?[0] is '{'
             isImplicitCall      = (stackItem) -> isImplicit(stackItem) and stackItem?[0] is '('
-            inImplicit              = -> isImplicit stackTop()
+            inImplicit          = -> isImplicit stackTop()
             inImplicitCall      = -> isImplicitCall stackTop()
             inImplicitObject    = -> isImplicitObject stackTop()
             # Unclosed control statement inside implicit parens (like
@@ -304,8 +287,8 @@ class Rewriter
             #           if f(a: 1)
             #
             # which is probably always unintended.
-            # Furthermore don't allow this in literal arrays, as
-            # that creates grammatical ambiguities.
+            # Furthermore don't allow this in literal arrays, as that creates grammatical ambiguities.
+            
             if tag in IMPLICIT_FUNC and
                  @indexOfTag(i + 1, 'INDENT') > -1 and @looksObjectish(i + 2) and
                  not @findTagsBackwards(i, ['CLASS', 'EXTENDS', 'IF', 'CATCH',
@@ -407,6 +390,65 @@ class Rewriter
                     endImplicitObject i + offset
             return forward(1)
 
+    #  0000000   0000000   000   000  00000000  000   0000000   00000000    0000000   00000000    0000000   00     00   0000000  
+    # 000       000   000  0000  000  000       000  000        000   000  000   000  000   000  000   000  000   000  000       
+    # 000       000   000  000 0 000  000000    000  000  0000  00000000   000000000  0000000    000000000  000000000  0000000   
+    # 000       000   000  000  0000  000       000  000   000  000        000   000  000   000  000   000  000 0 000       000  
+    #  0000000   0000000   000   000  000       000   0000000   000        000   000  000   000  000   000  000   000  0000000   
+    
+    configParameters: ->
+        
+        generate       = Rewriter.generate
+        dictParamStart = 0
+        dictParamEnd   = 0
+        stackCount     = 0
+        configList     = []
+        
+        @scanTokens (token, i, tokens) ->
+
+            [tag]     = token
+            [prevTag] = prevToken = if i > 0 then tokens[i - 1] else []
+            [nextTag] = if i < tokens.length - 1 then tokens[i + 1] else []
+            
+            if tag is '{'
+                if prevTag is 'PARAM_START' 
+                    if not dictParamStart
+                        dictParamStart = i
+                        # log "dictParamStart #{i}"
+                    else
+                        stackCount++
+            else if tag is '}'
+                if dictParamStart 
+                    if not stackCount
+                        dictParamEnd = i
+                        dictParamStart = 0
+                    else
+                        stackCount--
+            else 
+                if dictParamStart and not stackCount
+                    if tag == ':'
+                        if nextTag not in ['IDENTIFIER', '@']
+                            # log "assign #{i}", @tag(i+1)
+                            configList.push [i,tokens[i-1]]
+                            val = tokens[i-1][1] # copy value from property token
+                            # val.generated = yes # do we need this?
+                            # prevent object assignment to fail due to Obj.generated flag in nodes.Param
+                            # token.configParameter = true 
+                            # log token
+                            if @tag(i-2) == '@'
+                                [thisToken] = tokens.splice i-2, 1 # pull the @ out
+                                tokens.splice i,   0, thisToken    # insert it after :
+                                tokens.splice i+1, 0, generate '=', '=', token
+                                tokens.splice i+1, 0, generate 'PROPERTY', val, token
+                            else
+                                tokens.splice i+1, 0, generate '=', '=', token
+                                tokens.splice i+1, 0, generate 'IDENTIFIER', val, token
+                            return 3
+            1
+            
+        # if configList.length
+            # log 'configList', configList
+            
     # 000       0000000    0000000   0000000   000000000  000   0000000   000   000  
     # 000      000   000  000       000   000     000     000  000   000  0000  000  
     # 000      000   000  000       000000000     000     000  000   000  000 0 000  
@@ -586,10 +628,10 @@ for [left, rite] in BALANCED_PAIRS
 EXPRESSION_CLOSE = ['CATCH', 'THEN', 'ELSE', 'FINALLY'].concat EXPRESSION_END
 
 # Tokens that, if followed by an `IMPLICIT_CALL`, indicate a function invocation.
-IMPLICIT_FUNC        = ['IDENTIFIER', 'PROPERTY', 'SUPER', ')', 'CALL_END', ']', 'INDEX_END', '@', 'THIS']
+IMPLICIT_FUNC = ['IDENTIFIER', 'PROPERTY', 'SUPER', ')', 'CALL_END', ']', 'INDEX_END', '@', 'THIS']
 
 # If preceded by an `IMPLICIT_FUNC`, indicates a function invocation.
-IMPLICIT_CALL        = [
+IMPLICIT_CALL = [
     'IDENTIFIER', 'PROPERTY', 'NUMBER', 'INFINITY', 'NAN'
     'STRING', 'STRING_START', 'REGEX', 'REGEX_START', 'JS'
     'NEW', 'PARAM_START', 'CLASS', 'IF', 'TRY', 'SWITCH', 'THIS'

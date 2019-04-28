@@ -181,9 +181,8 @@ exports.tokens = withPrettyErrors (code, options) ->
 # 000  0000  000   000  000   000  000            000  
 # 000   000   0000000   0000000    00000000  0000000   
 
-# Parse a string of Koffee code or an array of lexed tokens, and
-# return the AST. You can then compile it by calling `.compile()` on the root,
-# or traverse it by using `.traverseChildren()` with a callback.
+# Parse a string of Koffee code or an array of lexed tokens, and return the AST. 
+# You can then compile it by calling `.compile()` on the root, or traverse it by using `.traverseChildren()` with a callback.
 
 exports.nodes = withPrettyErrors (source, options) ->
     if typeof source is 'string'
@@ -318,6 +317,7 @@ parser.lexer =
         if token
             [tag, @yytext, @yylloc] = token
             parser.errorToken = token.origin or token
+            # console.log 'DAFUK', token if not @yylloc?.first_line
             @yylineno = @yylloc.first_line
         else
             tag = ''

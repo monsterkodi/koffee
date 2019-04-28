@@ -1,4 +1,5 @@
 name            koffee
+productName     koffee
 description     coffeescript clone
 keywords
                 javascript

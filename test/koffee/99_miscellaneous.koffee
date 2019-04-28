@@ -99,3 +99,56 @@ test "hierarchy", ->
 
     eq (new C).prop, 'A-B-C'
     
+
+test "@param defaults and super", ->    
+
+    class C
+        @: (@arg=1) ->
+            eq @arg,1
+
+    class B extends C
+        @: (@arg=2) ->
+            eq @arg,2
+            super 
+            eq @arg,1
+
+    class A extends B
+        @: (@arg=3) ->
+            eq @arg,3
+            super 
+            eq @arg,1
+
+    new A
+
+    class C
+        @: (@arg=1) ->
+            eq @arg,3
+
+    class B extends C
+        @: (@arg=2) ->
+            eq @arg,3
+            super @arg 
+            eq @arg,3
+
+    class A extends B
+        @: (@arg=3) ->
+            eq @arg,3
+            super @arg
+            eq @arg,3
+
+    new A
+
+    class C
+        @: (arg=1) ->
+            @p = arg
+
+    class B extends C
+        @: (arg=2) ->
+            super
+
+    class A extends B
+        @: (arg=3) ->
+            super
+
+    eq (new A).p, 1
+    

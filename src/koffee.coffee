@@ -393,6 +393,7 @@ getSourceMap = (filename) ->
 Error.prepareStackTrace = (err, stack) ->
     
     getSourceMapping = (filename, line, column) ->
+        # console.log {filename, line, column}
         sourceMap = getSourceMap filename
         answer = sourceMap.sourceLocation [line - 1, column - 1] if sourceMap?
         if answer? then [answer[0] + 1, answer[1] + 1] else null

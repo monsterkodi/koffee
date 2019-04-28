@@ -75,7 +75,11 @@ buildAndTest = (parser=yes) ->
 
     node ['bin/kake', parser and 'build' or 'compiler'], 'both', ->
         node ['bin/kake', 'test'], 'both'
-
+        
+spawnTest = (testset) ->
+    
+    node ['bin/kake', testset], 'both'
+        
 task 'all',      'build twice, run the tests',    -> build -> build andTest
 task 'build',    'build the compiler and parser', build
 task 'parser',   'build the parser',              buildParser
@@ -101,11 +105,11 @@ task 'watch', 'rebuild and/or test on file changes', ->
             
     watch 'test/coffee/', (event,file) ->
         yellow "test/coffee/#{file} changed"
-        andTest ['coffee'], false
+        spawnTest 'coffee'
             
     watch 'test/koffee', (event,file) ->
         yellow "test/koffee/#{file} changed"
-        andTest ['koffee'], false
+        spawnTest 'koffee'
   
     watch 'kake.coffee', ->
         blue "kake.coffee changed!"
@@ -154,7 +158,6 @@ runTests = (testsets) ->
     passedTests   = 0
     failedTests   = 0
 
-    global.Koffee = Koffee    
     global.test   = (description, fn) ->
         try
             fn.test = {description, currentFile}

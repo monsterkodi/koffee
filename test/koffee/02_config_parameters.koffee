@@ -317,7 +317,8 @@ test "config parameters shortcut", ->
 
 test "config parameters defaults", ->
 
-    # so far, so good. but bases still override parameters
+    # so far, so good. 
+    # check if base constructors override parameters when called with super ...
     
     class B
         @: (@a : 555, @b : 777) ->
@@ -326,7 +327,7 @@ test "config parameters defaults", ->
         @: (@a : 666, @c : 888) -> super
         
     a = new A {}
-    eq a.a, 555 # this should be 666
+    eq a.a, 666 # this should be 666
     eq a.b, 777
     eq a.c, 888
             
@@ -336,12 +337,12 @@ test "config parameters defaults", ->
     eq a.c, 888
     
     a = new A b:5
-    eq a.a, 555 # this should be 666
+    eq a.a, 666 # this should be 666
     eq a.b, 5
     eq a.c, 888
     
     a = new A c:6
-    eq a.a, 555 # this should be 666
+    eq a.a, 666 # this should be 666
     eq a.b, 777
     eq a.c, 6
     
@@ -369,4 +370,22 @@ test "config parameters side effect", ->
     doesNotThrow -> Koffee.compile "(c, a:a, b:b) ->"
     doesNotThrow -> Koffee.compile "(c, a:a, d, b:b) ->"
     
-    # which is a shame, because they generated working code
+test "CS1 test case #4130 ...", -> # original test desctivated in ../coffee/error_messages.coffee
+    
+    # in CS1 these would have thrown compile errors ...
+    
+    doesNotThrow -> Koffee.compile '''
+        fun = ({
+            @param : null
+        }) ->
+            console.log "Oh hello!"
+    '''
+    doesNotThrow -> Koffee.compile '({a: null}) ->'
+    doesNotThrow -> Koffee.compile '({a: 1}) ->'
+    
+    # ... these cases still don't work: ...
+    
+    throws -> Koffee.compile '({a: true = 1}) ->'
+    throws -> Koffee.compile '({1}) ->'
+    
+    

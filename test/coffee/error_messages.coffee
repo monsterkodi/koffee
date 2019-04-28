@@ -123,7 +123,7 @@ if require?
         # line 3 (the original Coffee source) and not 
         # line 6 (the generated JavaScript).
         
-        # log error.stack
+        # log error.stack.toString()[...440]
         eq /StackTraceLineNumberTestFile.coffee:(\d)/.exec(error.stack.toString())[1], '3'
 
 
@@ -907,9 +907,7 @@ test "#4070: lone expansion", ->
 
 test "#3926: implicit object in parameter list", ->
     
-    # this is valid syntax in koffee (option_arguments) 
-    #
-    # strange that this was ever disallowed
+    # this is valid syntax in koffee (config parameter) 
     
     # assertErrorFormat '''
     #     (a: b) ->
@@ -927,19 +925,19 @@ test "#3926: implicit object in parameter list", ->
     # '''
 
 test "#4130: unassignable in destructured param", ->
-    
-    # option_arguments ???
-    #
-    # assertErrorFormat '''
-    #     fun = ({
-    #         @param : null
-    #     }) ->
-    #         console.log "Oh hello!"
-    # ''', '''
-    #     [stdin]:2:14: error: keyword 'null' can't be assigned
-    #         @param : null
-    #                  ^^^^
-    # '''
+
+    # this is handled in koffee/02_config_parameters now
+        
+    #assertErrorFormat '''
+    #    fun = ({
+    #        @param : null
+    #    }) ->
+    #        console.log "Oh hello!"
+    #''', '''
+    #    [stdin]:2:14: error: keyword 'null' can't be assigned
+    #        @param : null
+    #                 ^^^^
+    #'''
     # assertErrorFormat '''
     #     ({a: null}) ->
     # ''', '''

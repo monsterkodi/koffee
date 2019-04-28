@@ -1,19 +1,106 @@
-        
-# class A
-    # @: ( a=1 )->
-    # a: ( {a:a=1,  b:@b=({x:x=1})->x} ) -> 
-    # b: (  a:1,  @b:2 )  -> 
-    # c: -> 
-    # a: ( @a:1,  b:2 )          -> ...
+require('../../lib/helpers').initTest() if not global.test
 
-# class A
-    # constructor: (@prop='A', @dict = a:[1,2,3], b:'4') ->
+class B
+    @: (@a : 555, @b : 777) ->
+    
+class A extends B
+    @a = 1
+    @c: () -> super
+    @: (a: 666, @b:777) -> super
+    b: ->
+    
+a = new A {}
+eq a.a, 666
 
-# test "config constructors", ->
-#     
-#     class A
-#         constructor: (@prop='A', @dict = a:[1,2,3], b:'4') ->
-#             
-#     a = new A
-#     eq        a.prop, 'A'
-#     deepEqual a.dict, a:[1,2,3], b:'4'
+
+# +++ Block Block { # nodes.Class.walkBody traverseChildren
+#   expressions:
+#    [ Value { base: [Obj], properties: [], locationData: [Object] } ],
+#   locationData:
+#    { first_line: 6, first_column: 4, last_line: 6, last_column: 35 },
+#   classBody: true }
+
+# if child == Block
+    # for node in child.expressions
+                
+# --- Value Value {
+#   base:
+#    Obj {
+#      generated: true,
+#      properties: [ [Assign] ],
+#      objects: [ [Assign] ],
+#      locationData:
+#       { first_line: 6, first_column: 4, last_line: 6, last_column: 35 } },
+#   properties: [],
+#   locationData:
+#    { first_line: 6, first_column: 4, last_line: 6, last_column: 35 } }
+
+# addProperties
+#    while assign
+
+# >>> Code Code {
+#   params:
+#    [ Param {
+#        name: [Obj],
+#        value: undefined,
+#        splat: undefined,
+#        locationData: [Object] } ],
+#   body:
+#    Block {
+#      expressions: [ [SuperCall] ],
+#      locationData:
+#       { first_line: 6, first_column: 31, last_line: 6, last_column: 35 } },
+#   bound: false,
+#   isGenerator: false,
+#   locationData:
+#    { first_line: 6, first_column: 7, last_line: 6, last_column: 35 } }
+
+# exp.params[0].name
+
+# $$$ Obj {
+#   generated: true,
+#   properties:
+#    [ Assign {
+#        variable: [Value],
+#        value: [Assign],
+#        context: 'object',
+#        param: undefined,
+#        subpattern: undefined,
+#        operatorToken: [Literal],
+#        moduleDeclaration: undefined,
+#        locationData: [Object] },
+#      Assign {
+#        variable: [Value],
+#        value: [Assign],
+#        context: 'object',
+#        param: undefined,
+#        subpattern: undefined,
+#        operatorToken: [Literal],
+#        moduleDeclaration: undefined,
+#        locationData: [Object] } ],
+#   objects:
+#    [ Assign {
+#        variable: [Value],
+#        value: [Assign],
+#        context: 'object',
+#        param: undefined,
+#        subpattern: undefined,
+#        operatorToken: [Literal],
+#        moduleDeclaration: undefined,
+#        locationData: [Object] },
+#      Assign {
+#        variable: [Value],
+#        value: [Assign],
+#        context: 'object',
+#        param: undefined,
+#        subpattern: undefined,
+#        operatorToken: [Literal],
+#        moduleDeclaration: undefined,
+#        locationData: [Object] } ],
+#   locationData:
+#    { first_line: 6, first_column: 9, last_line: 6, last_column: 25 } }
+# Call.compileSplat! [ CodeFragment {
+#     code: 'arguments',
+#     locationData:
+#      { first_line: 6, first_column: 31, last_line: 6, last_column: 35 },
+#     type: 'IdentifierLiteral' } ]

@@ -61,26 +61,18 @@ build = (callback) ->
 
 libDir = path.dirname(require.resolve './lib') + '/'
 
-andTest = (testsets=['koffee', 'coffee'], doExit=true) =>
-
-    for mod of require.cache when libDir is mod[0 ... libDir.length]
-        delete require.cache[mod]
-
-    results = runTests testsets
-    process.exit results if doExit
-
 buildAndTest = (parser=yes) ->
     
     childp.execSync 'git checkout lib/*', stdio:'pipe'
 
     node ['bin/kake', parser and 'build' or 'compiler'], 'both', ->
         node ['bin/kake', 'test'], 'both'
-        
+
 spawnTest = (testset) ->
     
     node ['bin/kake', testset], 'both'
         
-task 'all',      'build twice, run the tests',    -> build -> build andTest
+task 'all',      'build twice, run the tests',    -> build -> build -> node ['bin/kake', 'test'], 'both'
 task 'build',    'build the compiler and parser', build
 task 'parser',   'build the parser',              buildParser
 task 'compiler', 'build the compiler',            buildCompiler

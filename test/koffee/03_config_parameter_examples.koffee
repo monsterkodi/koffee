@@ -40,20 +40,34 @@ test "inheritance and super", ->
 
     class Base
         
-        @: (doLog:true, @a:1, @b:2) ->
+        @: (doLog:true, @a:'Base', @b:'Base') ->
             log @ if doLog
             
-    new Base {}                 # -> Base { a: 1, b: 2 }
+    new Base {}                 # -> Base { a: 'Base', b: 'Base' }
     new Base b:1, a:2           # -> Base { a: 2, b: 1 }
     
     class ClassDC extends Base
         
-        @: (@d:3, @c:4) -> super
+        @: (@d:'DC', @c:'DC') -> super
         
-    new ClassDC b:'b'           # -> ClassDC { d: 3, c: 4, a: 1, b: 'b' }
+    new ClassDC b:'myBase'        # -> ClassDC { d: 'D', c: 'C', a: 'Base', b: 'myBase' }
 
-    class ClassAC extends ClassDC
+    class ClassC extends ClassDC
         
-        @: (@a:5, @c:) -> super
+        @: (@c:) -> 
+            log "before: #{@c}"   # before: myC
+            super                 # ClassC { c: 'myC', d: 'DC', a: 'Base', b: 'Base' }
+            log "after:  #{@c}"   # after:  myC
+            
+    new ClassC c:'myC'
+
+    class Class extends ClassDC
         
-    new ClassAC {}              # -> ClassAC { a: 5, c: 4, d: 3, b: 2 }
+        @: () -> 
+            log "before: #{@c}"   # -> before: undefined
+            super                 # -> Class { d: 'DC', c: 'myC', a: 'Base', b: 'Base' }
+            log "after:  #{@c}"   # -> after:  myC
+            
+    new Class c:'myC'            
+    
+    

@@ -2043,9 +2043,9 @@ exports.Param = class Param extends Base
             # log 'A', "@#{obj.properties[0].name.value}"
             iterator "@#{obj.properties[0].name.value}", obj
         
-        if name instanceof Literal 
+        if name instanceof IdentifierLiteral
             return if name instanceof NullLiteral
-            # log 'B', name.value#, name
+            # log 'B', name.value, name
             return iterator name.value, name # simple literals `foo`, `_`, etc.
         
         return atParam name if name instanceof Value # at-params `@foo`

@@ -78,52 +78,52 @@ Let's see what happens if we use this feature for method arguments.
     class Base
         @: (@a:'Base') -> log @
 
-    class Class
-        @: (@a:'Class') -> super
+    class A
+        @: (@a:'A') -> super
 
-    new Class {}                 # -> Class { a: 'Class' }
+    new A {}                      # -> A { a: 'A' }
 ```
 
-Note that the default value of `a` in `Class` is **not** overridden by the one in `Base`. 
+Note that the default value of `a` in `A` is **not** overridden by the one in `Base`. 
 
 ```coffeescript
     class Base
         
-        @: (doLog:true, @a:'Base', @b:'Base') ->   # note that a and b are assigned to `this`
+        @: (doLog:true, @a:'Base', @b:'Base') ->   # only a and b are assigned to @
             log @ if doLog
             
     new Base {}                   # -> Base { a: 'Base', b: 'Base' }
     new Base b:1, a:2             # -> Base { a: 2, b: 1 }
     
-    class ClassBC extends Base
+    class BC extends Base
         
         @: (@b:'BC', @c:'BC') -> super
         
-    new ClassBC a:'myA'           # -> ClassBC { a: 'myA', b: 'BC', c: 'Base' }
+    new BC a:'myA'                # -> BC { a: 'myA', b: 'BC', c: 'BC' }
 ```
 
-`ClassBC` doesn't care about `a`, but it is still available in Base.
+`BC` doesn't care about parameter `a`, but it is still available in `Base`.
 
-If a subclass **does** care about a parameter, but doesn't want to change the default in `Base`:
+If a subclass **does** care about a parameter, but doesn't want to change the default of `Base`:
 
 ```coffeescript
-    class ClassA extends Base
+    class A extends Base
         
         @: (@a:) ->               # this is equivalent to @a:null
             log "before: #{@a}"   # -> before: myA
-            super                 # -> ClassC { a: 'myA', b: 'Base' }
+            super                 # -> A { a: 'myA', b: 'Base' }
             log "after:  #{@a}"   # -> after:  myA
             
-    new ClassA a:'myA'
+    new A a:'myA'
 
-    class Class extends Base
+    class Ignorant extends Base
         
         @: () -> 
             log "before: #{@a}"   # -> before: undefined
-            super                 # -> Class { a: 'myA', b: 'Base' }
+            super                 # -> N { a: 'myA', b: 'Base' }
             log "after:  #{@a}"   # -> after:  myA
             
-    new Class a:'myA'       
+    new Ignorant a:'myA'
 ```
 
 

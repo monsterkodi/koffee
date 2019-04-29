@@ -1949,15 +1949,23 @@ exports.Code = class Code extends Base
             params[i] = p.compileToFragments o
             o.scope.parameter fragmentsToText params[i]
         uniqs = []
+        
+        # log 'check names'
+        
         @eachParamName (name, node) ->
             node.error "multiple parameters named #{name}" if name in uniqs
             uniqs.push name
+            
+        # log 'uniqs', uniqs
+            
         @body.makeReturn() unless wasEmpty or @noReturn
         code = 'function'
         code += '*' if @isGenerator
         code += ' ' + @name if @ctor
         code += '('
+        
         answer = [@makeCode(code)]
+        
         for p, i in params
             if i then answer.push @makeCode ", "
             answer.push p...
@@ -2031,36 +2039,47 @@ exports.Param = class Param extends Base
     
     eachName: (iterator, name = @name)->
         
-        atParam = (obj) -> iterator "@#{obj.properties[0].name.value}", obj
-        # * simple literals `foo`
-        return iterator name.value, name if name instanceof Literal
-        # * at-params `@foo`
-        return atParam name if name instanceof Value
+        atParam = (obj) -> 
+            # log 'A', "@#{obj.properties[0].name.value}"
+            iterator "@#{obj.properties[0].name.value}", obj
+        
+        if name instanceof Literal 
+            return if name instanceof NullLiteral
+            # log 'B', name.value#, name
+            return iterator name.value, name # simple literals `foo`, `_`, etc.
+        
+        return atParam name if name instanceof Value # at-params `@foo`
+        
         for obj in name.objects ? []
-            # * destructured parameter with default value
-            if obj instanceof Assign and not obj.context?
+            
+            if obj instanceof Assign and not obj.context? # destructured parameter with default value
                 obj = obj.variable
-            # * assignments within destructured parameters `{foo:bar}`
-            if obj instanceof Assign
-                # ... possibly with a default value
-                if obj.value instanceof Assign
+            
+            if obj instanceof Assign # assignments within destructured parameters `{foo:bar}`
+                
+                if obj.value instanceof Assign # ... possibly with a default value
                     obj = obj.value
                 @eachName iterator, obj.value.unwrap()
-            # * splats within destructured parameters `[xs...]`
-            else if obj instanceof Splat
+            
+            else if obj instanceof Splat # splats within destructured parameters `[xs...]`
                 node = obj.name.unwrap()
+                # log 'C', node.value
                 iterator node.value, node
+                
             else if obj instanceof Value
-                # * destructured parameters within destructured parameters `[{a}]`
-                if obj.isArray() or obj.isObject()
+                
+                if obj.isArray() or obj.isObject() # destructured parameters within destructured parameters `[{a}]`
                     @eachName iterator, obj.base
-                # * at-params within destructured parameters `{@foo}`
-                else if obj.this
+                
+                else if obj.this # at-params within destructured parameters `{@foo}`
                     atParam obj
-                # * simple destructured parameters {foo}
-                else iterator obj.base.value, obj.base
+                
+                else
+                    # log 'D', obj.base.value
+                    iterator obj.base.value, obj.base # simple destructured parameters {foo}
             else if obj not instanceof Expansion
                 obj.error "illegal parameter #{obj.compile()}"
+                
         return
 
 #  0000000  00000000   000       0000000   000000000  

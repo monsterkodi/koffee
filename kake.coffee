@@ -19,6 +19,12 @@ blue   = -> cLog '\x1B[0;94m', arguments
 white  = -> cLog '\x1B[0;37m', arguments
 gray   = -> cLog '\x1B[0;90m', arguments
 
+# 000   000   0000000   0000000    00000000  
+# 0000  000  000   000  000   000  000       
+# 000 0 000  000   000  000   000  0000000   
+# 000  0000  000   000  000   000  000       
+# 000   000   0000000   0000000    00000000  
+
 node = (args, output='stderr', callback) ->
     
     relayOutput = (buffer) -> process.stdout.write buffer.toString()
@@ -32,6 +38,12 @@ run = (args, callback) ->
     node ['bin/koffee'].concat(args), 'stderr', (status) ->
         process.exit(1) if status != 0
         callback() if typeof callback is 'function'
+
+# 0000000    000   000  000  000      0000000    
+# 000   000  000   000  000  000      000   000  
+# 0000000    000   000  000  000      000   000  
+# 000   000  000   000  000  000      000   000  
+# 0000000     0000000   000  0000000  0000000    
 
 buildParser = ->
     

@@ -1,17 +1,22 @@
 require('../../lib/helpers').initTest() if not global.test
+(_,a)->
+throws -> Koffee.compile "(_,_)->"
+(a:null,b:null) ->
+# class B
+    # @: (@a : 555, @b : 777) ->
+#     
+# class A extends B
+    # @a = 1
+    # @c: () -> super
+    # @: (a: 666, @b:777) -> super
+    # b: ->
+#     
+# a = new A {}
+# eq a.a, 666
 
-class B
-    @: (@a : 555, @b : 777) ->
-    
-class A extends B
-    @a = 1
-    @c: () -> super
-    @: (a: 666, @b:777) -> super
-    b: ->
-    
-a = new A {}
-eq a.a, 666
-
+# f = -> 
+# if f class:'bla'
+    # log 'bla'
 
 # +++ Block Block { # nodes.Class.walkBody traverseChildren
 #   expressions:

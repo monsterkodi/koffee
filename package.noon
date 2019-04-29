@@ -7,6 +7,8 @@ keywords
                 coffeescript
                 compiler
 author          Jeremy Ashkenas
+contributors
+                monsterkodi
 version         0.1.0
 license         MIT
 engines

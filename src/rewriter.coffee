@@ -431,9 +431,6 @@ class Rewriter
                             # log "assign #{i}", @tag(i+1)
                             configList.push [i,tokens[i-1]]
                             val = tokens[i-1][1] # copy value from property token
-                            # val.generated = yes # do we need this?
-                            # prevent object assignment to fail due to Obj.generated flag in nodes.Param
-                            # token.configParameter = true 
                             # log token
                             if @tag(i-2) == '@'
                                 [thisToken] = tokens.splice i-2, 1 # pull the @ out
@@ -443,7 +440,11 @@ class Rewriter
                             else
                                 tokens.splice i+1, 0, generate '=', '=', token
                                 tokens.splice i+1, 0, generate 'IDENTIFIER', val, token
-                            return 3
+                            return 2
+                    if tag == '='
+                        if nextTag in [',', '}']
+                            tokens.splice i+1, 0, generate 'NULL', 'null', token
+                            return 2
             1
             
         # if configList.length

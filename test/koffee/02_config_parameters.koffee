@@ -315,10 +315,9 @@ test "config parameters shortcut", ->
 # 000   000  000       000       000   000  000   000  000         000          000  
 # 0000000    00000000  000       000   000   0000000   0000000     000     0000000   
 
-test "config parameters defaults", ->
+test "config parameters defaults not overridden in base", ->
 
-    # so far, so good. 
-    # check if base constructors override parameters when called with super ...
+    # check if base constructors override parameters when called with super
     
     class B
         @: (@a : 555, @b : 777) ->
@@ -327,24 +326,75 @@ test "config parameters defaults", ->
         @: (@a : 666, @c : 888) -> super
         
     a = new A {}
-    eq a.a, 666 # this should be 666
-    eq a.b, 777
-    eq a.c, 888
-            
-    a = new A a:4
-    eq a.a, 4
-    eq a.b, 777
-    eq a.c, 888
-    
+    eq a.a, 666 
+                
     a = new A b:5
-    eq a.a, 666 # this should be 666
-    eq a.b, 5
-    eq a.c, 888
+    eq a.a, 666 
     
     a = new A c:6
-    eq a.a, 666 # this should be 666
+    eq a.a, 666 
+    
+    a = new A a:4
+    eq a.a, 4
+    
+test "config parameters no defaults", ->
+    
+    class B
+        @: (@a:555, @b:777, @c:, @d:888, @e:undefined, @f:null, @g:null) ->
+        
+    class A extends B
+        @: (@any:, @a:, @b:, @c:, @e:null, @f:undefined,@g:111) -> 
+            @any ?= @a ? @b ? @c
+            super
+        
+    a = new A {}
+    eq a.any, null
+    eq a.a, 555
     eq a.b, 777
-    eq a.c, 6
+    eq a.c, null
+    eq a.d, 888
+    eq a.e, undefined
+    eq a.f, null
+    eq a.g, 111
+
+    a = new A b:1,c:2
+    eq a.any, 1
+    eq a.a, 555
+    eq a.b, 1
+    eq a.c, 2
+    eq a.d, 888
+    eq a.e, undefined
+
+    a = new A a:1
+    eq a.any, 1
+    eq a.a, 1
+    eq a.b, 777
+    eq a.c, null
+    eq a.d, 888
+    eq a.e, undefined
+    
+test "config parameters nice examples", ->
+
+    class Base
+        
+        @: (doLog:true, @a:1, @b:2) ->
+            log @ if doLog
+            
+    new Base {}                 # -> Base { a: 1, b: 2 }
+    new Base b:1, a:2           # -> Base { a: 2, b: 1 }
+    
+    class ClassDC extends Base
+        
+        @: (@d:3, @c:4) -> super
+        
+    new ClassDC b:'b'           # -> ClassDC { d: 3, c: 4, a: 1, b: 'b' }
+
+    class ClassAC extends ClassDC
+        
+        @: (@a:5, @c:) -> super
+        
+    new ClassAC {}              # -> ClassAC { a: 5, c: 4, d: 3, b: 2 }
+        
     
 # 00     00  000   0000000   0000000  
 # 000   000  000  000       000       

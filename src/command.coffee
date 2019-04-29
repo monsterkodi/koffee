@@ -430,7 +430,7 @@ printTokens = (tokens) ->
             print 'IND '
         else if tag == 'OUTDENT'
             print 'OUT '
-        else if tag in ['CLASS', 'PARAM_START', 'PARAM_END']
+        else if tag in ['CLASS', 'PARAM_START', 'PARAM_END', 'NULL']
             print "#{index} #{tag} "
         else if tag is value
             print "#{index} #{tag} "

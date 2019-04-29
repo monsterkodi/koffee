@@ -1,6 +1,6 @@
 ## koffee 
 
-is a clone of Coffeescript 1 with a few enhancements.
+is a clone of Coffeescript (Version 1) with a few enhancements.
 
 ### Constructor shortcut
 
@@ -86,6 +86,16 @@ Let's see what happens if we use this feature for method arguments.
 
 Note that the default value of `a` in `A` is **not** overridden by the one in `Base`. 
 
+Here the behavior of a `super` call without brackets differs from that of Coffeescript. 
+While the original applied the `arguments` unmodified (and thereby missing the desctructor assignment),
+koffee does internally modify the arguments by applying 
+
+```coffeescript
+arguments[0] = _.defaults {a:@a}, arguments[0]
+```
+
+before the call to `super`. 
+
 ```coffeescript
     class Base
         
@@ -120,7 +130,7 @@ If a subclass **does** care about a parameter, but doesn't want to change the de
         
         @: () -> 
             log "before: #{@a}"   # -> before: undefined
-            super                 # -> N { a: 'myA', b: 'Base' }
+            super                 # -> Ignorant { a: 'myA', b: 'Base' }
             log "after:  #{@a}"   # -> after:  myA
             
     new Ignorant a:'myA'

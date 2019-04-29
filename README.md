@@ -41,7 +41,7 @@ The default values are nicely visible, let's use it:
 
 Crap! We have to provide all the arguments? That sucks!
     
-We need a better solution. Let's use the destructuring feature:
+We need a better solution. Let's use the *destructuring feature* of Coffeescript:
 
 ```coffeescript
     f = ({a:a=1, b:b=2}) -> log {a, b}   
@@ -76,8 +76,20 @@ Let's see what happens if we use this feature for method arguments.
 
 ```coffeescript
     class Base
+        @: (@a:'Base') -> log @
+
+    class Class
+        @: (@a:'Class') -> super
+
+    new Class {}                 # -> Class { a: 'Class' }
+```
+
+Note that the default value of `a` in `Class` is **not** overridden by the one in `Base`. 
+
+```coffeescript
+    class Base
         
-        @: (doLog:true, @a:'Base', @b:'Base') ->   # note that a and b are assigned to this
+        @: (doLog:true, @a:'Base', @b:'Base') ->   # note that a and b are assigned to `this`
             log @ if doLog
             
     new Base {}                   # -> Base { a: 'Base', b: 'Base' }
@@ -85,9 +97,9 @@ Let's see what happens if we use this feature for method arguments.
     
     class ClassBC extends Base
         
-        @: (@b:'DC', @c:'DC') -> super
+        @: (@b:'BC', @c:'BC') -> super
         
-    new ClassBC a:'myA'           # -> ClassBC { a: 'myA', b: 'DC', c: 'Base' }
+    new ClassBC a:'myA'           # -> ClassBC { a: 'myA', b: 'BC', c: 'Base' }
 ```
 
 `ClassBC` doesn't care about `a`, but it is still available in Base.
@@ -108,8 +120,10 @@ If a subclass **does** care about a parameter, but doesn't want to change the de
         
         @: () -> 
             log "before: #{@a}"   # -> before: undefined
-            super                 # -> Class { a: 'Base', b: 'Base' }
-            log "after:  #{@a}"   # -> after:  myC
+            super                 # -> Class { a: 'myA', b: 'Base' }
+            log "after:  #{@a}"   # -> after:  myA
             
     new Class a:'myA'       
 ```
+
+

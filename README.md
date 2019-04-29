@@ -1,6 +1,8 @@
-koffee is a clone of Coffeescript 1
+## koffee 
 
-### constructor shortcut
+is a clone of Coffeescript 1 with a few enhancements.
+
+### Constructor shortcut
 
 ```coffeescript
     class C
@@ -16,7 +18,9 @@ koffee is a clone of Coffeescript 1
         constructor: -> 
 ```
 
-### config arguments
+The next feature might be easier to understand with a little bit of motivation up front: 
+
+### Config arguments
 
 Let's assume we need a function `f`, whose behavior should be configurable via it's arguments.
 Let's also assume that the configuration will probably grow or change a lot over time.
@@ -53,7 +57,7 @@ But hey, we got nice variable names inside `f` now and it works as intended:
     f a:8         # -> { a: 8, b: 2 }
 ```    
 
-#### koffee shortcut
+#### Shortcut
  
 koffee provides a nifty shortcut for this use case:
 
@@ -66,46 +70,46 @@ koffee provides a nifty shortcut for this use case:
 
 Almost like named parameters in other languages.
 
-### inheritance and super
+### Inheritance and `super`
 
 Let's see what happens if we use this feature for method arguments.
 
 ```coffeescript
     class Base
         
-        @: (doLog:true, @a:'Base', @b:'Base') ->   # note that a and b are assiged to this
+        @: (doLog:true, @a:'Base', @b:'Base') ->   # note that a and b are assigned to this
             log @ if doLog
             
     new Base {}                   # -> Base { a: 'Base', b: 'Base' }
     new Base b:1, a:2             # -> Base { a: 2, b: 1 }
     
-    class ClassDC extends Base
+    class ClassBC extends Base
         
-        @: (@d:'DC', @c:'DC') -> super
+        @: (@b:'DC', @c:'DC') -> super
         
-    new ClassDC b:'myBase'        # -> ClassDC { d: 'D', c: 'C', a: 'Base', b: 'myBase' }
+    new ClassBC a:'myA'           # -> ClassBC { a: 'myA', b: 'DC', c: 'Base' }
 ```
 
-ClassDC doesn't care about `b`, but it is still available in Base.
+`ClassBC` doesn't care about `a`, but it is still available in Base.
 
-If a subclass **does** care about a parameter, but doesn't want to change the default in Base:
+If a subclass **does** care about a parameter, but doesn't want to change the default in `Base`:
 
 ```coffeescript
-    class ClassC extends ClassDC
+    class ClassA extends Base
         
-        @: (@c:) ->               # this is equivalent to @c:null
-            log "before: #{@c}"   # -> before: myC
-            super                 # -> ClassC { c: 'myC', d: 'DC', a: 'Base', b: 'Base' }
-            log "after:  #{@c}"   # -> after:  myC
+        @: (@a:) ->               # this is equivalent to @a:null
+            log "before: #{@a}"   # -> before: myA
+            super                 # -> ClassC { a: 'myA', b: 'Base' }
+            log "after:  #{@a}"   # -> after:  myA
             
-    new ClassC c:'myC'
+    new ClassA a:'myA'
 
-    class Class extends ClassDC
+    class Class extends Base
         
         @: () -> 
-            log "before: #{@c}"   # -> before: undefined
-            super                 # -> Class { d: 'DC', c: 'myC', a: 'Base', b: 'Base' }
-            log "after:  #{@c}"   # -> after:  myC
+            log "before: #{@a}"   # -> before: undefined
+            super                 # -> Class { a: 'Base', b: 'Base' }
+            log "after:  #{@a}"   # -> after:  myC
             
-    new Class c:'myC'       
+    new Class a:'myA'       
 ```

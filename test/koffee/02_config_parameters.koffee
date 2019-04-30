@@ -372,7 +372,24 @@ test "config parameters no defaults", ->
     eq a.c, null
     eq a.d, 888
     eq a.e, undefined
+
+test "config parameters collections", ->
+
+    class B
+        @: (@a: d:a:1,b:2,c:[1,2,3]) ->
+        
+    b = new B {}
+    deepEqual b.a, d:a:1,b:2,c:[1,2,3]
+        
+    class A extends B
+        @: (@a:[123], @d:{a:1,b:2,c:3,d:[a:1,b:2,c:3,0,d:{f:0.5}]}, @e:'end') -> 
+            super
             
+    a = new A {}
+    deepEqual a.a, [123]
+    deepEqual a.d, a:1,b:2,c:3,d:[a:1,b:2,c:3,0,d:{f:0.5}]
+    deepEqual a.e, 'end'
+
 # 00     00  000   0000000   0000000  
 # 000   000  000  000       000       
 # 000000000  000  0000000   000       

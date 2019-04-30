@@ -317,7 +317,7 @@ parser.lexer =
         if token
             [tag, @yytext, @yylloc] = token
             parser.errorToken = token.origin or token
-            # console.log 'DAFUK', token if not @yylloc?.first_line
+            console.log 'DAFUK', token if not @yylloc?.first_line?
             @yylineno = @yylloc.first_line
         else
             tag = ''

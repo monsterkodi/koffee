@@ -28,15 +28,20 @@ class Rewriter
         # Helpful snippet for debugging:
         # console.log (t[0] + '/' + t[1] for t in @tokens).join ' '
         @removeLeadingNewlines()
-        @constructorShortcut()
+        
+        @constructorShortcut() # koffee
+        
         @closeOpenCalls()
         @closeOpenIndexes()
         @normalizeLines()
         @tagPostfixConditionals()
         @addImplicitBracesAndParens()
-        @configParameters()
+        
+        @configParameters()    # koffee
+        @negativeIndex()       # koffee
+        
         @addLocationDataToGeneratedTokens()
-        @fixOutdentLocationData()        
+        @fixOutdentLocationData()   
         @tokens
 
     # Rewrite the token stream, looking one token ahead and behind.
@@ -67,6 +72,7 @@ class Rewriter
     # Leading newlines would introduce an ambiguity in the grammar, so we dispatch them here.
     
     removeLeadingNewlines: ->
+        
         break for [tag], i in @tokens when tag != 'TERMINATOR'
         @tokens.splice 0, i if i
 
@@ -76,14 +82,43 @@ class Rewriter
     #      000  000   000  000   000  000   000     000     000       000   000     000     
     # 0000000   000   000   0000000   000   000     000      0000000   0000000      000     
     
-    # replace `@:` with `constructor:`
         
+    check: -> 
+        l = arguments
+        for j in [0...l.length] by 2
+            index = l[j]
+            return false if index < 0
+            if @tag(index) != l[j+1]
+                return false
+        true
+                
+    # replace `@:` with `constructor:`
+    
     constructorShortcut: ->
          
-        @scanTokens (token, i) ->
-            if i > 0 and @tokens[i-1][0] is '@' and @tokens[i][0] is ':' and @tokens[i+1][0] in ['->', 'PARAM_START']
-                @tokens[i-1][0] = 'PROPERTY'
-                @tokens[i-1][1] = 'constructor'
+        @scanTokens (token, i, tokens) ->
+            
+            if i > 0 and tokens[i-1][0] is '@' and tokens[i][0] is ':' and tokens[i+1][0] in ['->', 'PARAM_START']
+                tokens[i-1][0] = 'PROPERTY'
+                tokens[i-1][1] = 'constructor'
+            1
+            
+    # replace `a[-1]` with `a[-1..-1]` and `'s'[-1]` with `'s'[-1..-1]`
+    
+    negativeIndex: ->
+
+        @scanTokens (token, i, tokens) ->
+            
+            if @check i-1, 'INDEX_START', i, '-', i+1, 'NUMBER', i+2, 'INDEX_END'
+                if @tag(i-2) in ['IDENTIFIER', 'STRING', 'STRING_END', ']']
+                    generate = Rewriter.generate
+                    tokens.splice i+2, 0, generate('..', '..', token), generate(tokens[i][0], tokens[i][1], token), generate(tokens[i+1][0], tokens[i+1][1], token)
+                    if @tag(i-2) == ']'
+                        tokens.splice i+6, 0, generate('INDEX_START', '[', token), generate('NUMBER', '0', token), generate('INDEX_END', ']', token)
+                        return 7
+                    return 4
+                else
+                    log @tag(i-2)
             1
         
     # The lexer has tagged the opening parenthesis of a method call. Match it with
@@ -91,6 +126,7 @@ class Rewriter
     # calls that close on the same line, just before their outdent.
     
     closeOpenCalls: ->
+        
         condition = (token, i) ->
             token[0] in [')', 'CALL_END'] or
             token[0] is 'OUTDENT' and @tag(i - 1) is ')'
@@ -106,6 +142,7 @@ class Rewriter
     # Match it with its paired close.
     
     closeOpenIndexes: ->
+        
         condition = (token, i) ->
             token[0] in [']', 'INDEX_END']
 
@@ -129,12 +166,12 @@ class Rewriter
             return -1 if @tag(i + j + fuzz) not in pattern[j]
         i + j + fuzz - 1
 
-    # Returns `yes` if standing in front of something looking like
-    # `@<x>:`, `<x>:` or `<EXPRESSION_START><x>...<EXPRESSION_END>:`,
-    # skipping over 'HERECOMMENT's.
+    # `@<x>:`, `<x>:` or `<EXPRESSION_START><x>...<EXPRESSION_END>:`, skipping over 'HERECOMMENT's.
     
     looksObjectish: (j) ->
+        
         return yes if @indexOfTag(j, '@', null, ':') > -1 or @indexOfTag(j, null, ':') > -1
+        
         index = @indexOfTag(j, EXPRESSION_START)
         if index > -1
             end = null
@@ -402,7 +439,8 @@ class Rewriter
         dictParamStart = 0
         dictParamEnd   = 0
         stackCount     = 0
-        configList     = []
+        
+        isInside = -> dictParamStart and not stackCount
         
         @scanTokens (token, i, tokens) ->
 
@@ -414,9 +452,10 @@ class Rewriter
                 if prevTag is 'PARAM_START' 
                     if not dictParamStart
                         dictParamStart = i
-                        # log "dictParamStart #{i}"
                     else
                         stackCount++
+                else if dictParamStart
+                    stackCount++
             else if tag is '}'
                 if dictParamStart 
                     if not stackCount
@@ -425,13 +464,10 @@ class Rewriter
                     else
                         stackCount--
             else 
-                if dictParamStart and not stackCount
+                if isInside()
                     if tag == ':'
                         if nextTag not in ['IDENTIFIER', '@']
-                            # log "assign #{i}", @tag(i+1)
-                            configList.push [i,tokens[i-1]]
                             val = tokens[i-1][1] # copy value from property token
-                            # log token
                             if @tag(i-2) == '@'
                                 [thisToken] = tokens.splice i-2, 1 # pull the @ out
                                 tokens.splice i,   0, thisToken    # insert it after :
@@ -446,10 +482,7 @@ class Rewriter
                             tokens.splice i+1, 0, generate 'NULL', 'null', token
                             return 2
             1
-            
-        # if configList.length
-            # log 'configList', configList
-            
+                        
     # 000       0000000    0000000   0000000   000000000  000   0000000   000   000  
     # 000      000   000  000       000   000     000     000  000   000  0000  000  
     # 000      000   000  000       000000000     000     000  000   000  000 0 000  

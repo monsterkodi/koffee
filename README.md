@@ -18,6 +18,21 @@ is a clone of Coffeescript (Version 1) with a few enhancements.
         constructor: -> 
 ```
 
+### Negative index shortcut
+
+```coffeescript
+    s = "abcdef"
+    s[-1]  # -> 'f'  
+    s[-2]  # -> 'e'  
+    
+    "abcdef"[-3]  # -> 'd'
+    'abcdef'[-4]  # -> 'c'
+    
+    [1,2,3][-2]   # -> 2
+```
+
+Negative indexing only works with number literals, passing variables with negative values still returns `undefined`.
+
 The next feature might be easier to understand with a little bit of motivation up front: 
 
 ### Config arguments
@@ -96,6 +111,7 @@ arguments[0] = _.defaults {a:@a}, arguments[0]
 
 before the call to `super`. 
 
+<!--
 ```coffeescript
     class Base
         
@@ -135,5 +151,5 @@ If a subclass **does** care about a parameter, but doesn't want to change the de
             
     new Ignorant a:'myA'
 ```
-
+-->
 

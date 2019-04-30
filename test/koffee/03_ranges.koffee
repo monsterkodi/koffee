@@ -1,0 +1,40 @@
+require('../../lib/helpers').initTest() if not global.test
+
+test "coffeescript", ->
+
+    s = '0123456789abcdef'
+    eq s[0..],  s
+    eq s[..],   s
+    eq s[..-1], s
+    eq s[0..-1], '0123456789abcdef'
+    eq s[0..-2], '0123456789abcde'
+    eq s[..-2], '0123456789abcde'
+    eq s[..-3], '0123456789abcd'
+    eq s[10..], 'abcdef'
+    eq s[-2..-2], 'e'
+    eq s[-3..-3], 'd'
+    
+    # ... coffeescript ...
+    
+    # eq s[-1], undefined
+    # eq s[ -2 ], undefined
+    # eq s[ - 3 ], undefined
+
+test "negative index", ->
+
+    s = '0123456789abcdef'
+
+    eq s[-1], 'f'
+    eq s[ -2 ], 'e'
+    eq s[ - 3 ], 'd'
+    eq '1234'[-2], '3'
+    eq "1234"[-3], '2'
+    eq """1234"""[-4], '1'
+    
+    eq "12#{3}4"[-2], '3'
+    
+    deepEqual [1,2,3,4][-2..-2][0], 3 # coffeescript (array)    
+    eq [1,2,3,4][-2],    3        # koffee (single element)
+    eq [1,2,3,4][2],     3        # makes sense
+    eq [1,2,'3',4][-2], '3'
+    

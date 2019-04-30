@@ -1,7 +1,9 @@
 require('../../lib/helpers').initTest() if not global.test
 
-(a:'x', b:'x') ->
-(a:1, b:1) ->
+(@a:[123], @d:{a:1,b:2,c:3}, @e:3) -> 
+
+# (a:'x', b:'x') ->
+# (a:1, b:1) ->
 
 # (_,a)->
 # throws -> Koffee.compile "(_,_)->"

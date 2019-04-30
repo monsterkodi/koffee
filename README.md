@@ -31,10 +31,10 @@ is a clone of Coffeescript (Version 1) with a few enhancements.
     [1,2,3][-2]   # -> 2
 ```
 
-`v[-n]` is a shortcut for `v[-n..-n]` for number literals n and indexable values v.
-(For arrays it's actually a shortcut for `v[-n..-n][0]`, since the range operator returns an array)
+`v[-n]` is a shortcut for `v[-n..-n]` for number literals `n` and indexable values `v`.
+(For arrays it's actually a shortcut for `v[-n..-n][0]`, since the range operator returns an array).
 
-Passing variables with negative values still returns `undefined`.
+Passing variables with negative values still returns *undefined*.
 
 The next feature might be easier to understand with a little bit of motivation up front: 
 
@@ -118,7 +118,18 @@ arguments[0] = _.defaults {a:@a}, arguments[0]
 
 before the call to `super`. 
 
-<!--
+## Compatibility
+
+So far, the koffee *compiler* should be compatible with the latest version of Coffeescript on the version 1 branch.
+
+The added features only use syntax that was invalid in CS1.
+
+But I have changed and removed some features from the original toolset:
+
+- in browser compilation
+- literal coffeescript
+- kake works slightly different than cake
+
 ```coffeescript
     class Base
         
@@ -158,5 +169,4 @@ If a subclass **does** care about a parameter, but doesn't want to change the de
             
     new Ignorant a:'myA'
 ```
--->
 

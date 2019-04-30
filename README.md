@@ -31,8 +31,9 @@ is a clone of Coffeescript (Version 1) with a few enhancements.
     [1,2,3][-2]   # -> 2
 ```
 
-v[-n] is a shortcut for v[-n..-n] for number literals n and indexable values v.
-For arrays it's actually a shortcut for v[-n..-n][0], since the range operator returns an array.
+`v[-n]` is a shortcut for `v[-n..-n]` for number literals n and indexable values v.
+(For arrays it's actually a shortcut for `v[-n..-n][0]`, since the range operator returns an array)
+
 Passing variables with negative values still returns `undefined`.
 
 The next feature might be easier to understand with a little bit of motivation up front: 

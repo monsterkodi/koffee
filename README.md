@@ -18,12 +18,12 @@ is a clone of Coffeescript (Version 1) with a few enhancements.
         constructor: -> 
 ```
 
-### Negative index shortcut
+### Negative indexing
 
 ```coffeescript
     s = "abcdef"
-    s[-1]  # -> 'f'  
-    s[-2]  # -> 'e'  
+    s[-1]  # -> 'f'
+    s[-2]  # -> 'e'
     
     "abcdef"[-3]  # -> 'd'
     'abcdef'[-4]  # -> 'c'
@@ -31,7 +31,9 @@ is a clone of Coffeescript (Version 1) with a few enhancements.
     [1,2,3][-2]   # -> 2
 ```
 
-Negative indexing only works with number literals, passing variables with negative values still returns `undefined`.
+v[-n] is a shortcut for v[-n..-n] for number literals n and indexable values v.
+For arrays it's actually a shortcut for v[-n..-n][0], since the range operator returns an array.
+Passing variables with negative values still returns `undefined`.
 
 The next feature might be easier to understand with a little bit of motivation up front: 
 
@@ -72,20 +74,24 @@ But hey, we got nice variable names inside `f` now and it works as intended:
     f a:8         # -> { a: 8, b: 2 }
 ```    
 
-#### Shortcut
+### Shortcut
  
 koffee provides a nifty shortcut for this use case:
 
 ```coffeescript
     f = (a:1, b:2) -> log {a, b}  # Look, ma! The uglyness is gone :-)
-    
-    f {}          # -> { a: 1, b: 2 }
-    f b:8         # -> { a: 1, b: 8 }
 ```
 
-Almost like named parameters in other languages.
+The default values can be omitted:
 
-### Inheritance and `super`
+```coffeescript
+    f = (a:1, b:) -> log {a,b}
+    
+    f {}                          # -> { a: 1, b: null }
+    f b:2                         # -> { a: 1, b: 2 }
+```
+
+### Inheritance and *super*
 
 Let's see what happens if we use this feature for method arguments.
 
@@ -102,7 +108,7 @@ Let's see what happens if we use this feature for method arguments.
 Note that the default value of `a` in `A` is **not** overridden by the one in `Base`. 
 
 Here the behavior of a `super` call without brackets differs from that of Coffeescript. 
-While the original applied the `arguments` unmodified (and thereby missing the desctructor assignment),
+While the original applied the `arguments` unmodified (and thereby missing the destructor assignment),
 koffee does internally modify the arguments by applying 
 
 ```coffeescript

@@ -1,6 +1,9 @@
 require('../../lib/helpers').initTest() if not global.test
 
-(@a:[123], @d:{a:1,b:2,c:3}, @e:3) -> 
+# (@a:[123], @d:{a:1,b:2,c:3}, @e:3) -> 
+f = (a:1, b:) -> console.log {a,b}
+f {}
+f b:2
 
 # (a:'x', b:'x') ->
 # (a:1, b:1) ->

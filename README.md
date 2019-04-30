@@ -100,7 +100,7 @@ Let's see what happens if we use this feature for method arguments.
     class Base
         @: (@a:'Base') -> log @
 
-    class A
+    class A extends Base
         @: (@a:'A') -> super
 
     new A {}                      # -> A { a: 'A' }
@@ -120,53 +120,13 @@ before the call to `super`.
 
 ## Compatibility
 
-So far, the koffee *compiler* should be compatible with the latest version of Coffeescript on the version 1 branch.
+So far, the koffee *compiler* output should be compatible with the latest version of Coffeescript on the version 1 branch.
 
-The added features only use syntax that was invalid in CS1.
+The added features only use syntax that was invalid in CS1, so koffee should be able to compile CS1 code.
 
-But I have changed and removed some features from the original toolset:
+But I have changed and removed some features from the original:
 
-- in browser compilation
-- literal coffeescript
+- in browser compilation is gone
+- literal coffeescript is gone
 - kake works slightly different than cake
-
-```coffeescript
-    class Base
-        
-        @: (doLog:true, @a:'Base', @b:'Base') ->   # only a and b are assigned to @
-            log @ if doLog
-            
-    new Base {}                   # -> Base { a: 'Base', b: 'Base' }
-    new Base b:1, a:2             # -> Base { a: 2, b: 1 }
-    
-    class BC extends Base
-        
-        @: (@b:'BC', @c:'BC') -> super
-        
-    new BC a:'myA'                # -> BC { a: 'myA', b: 'BC', c: 'BC' }
-```
-
-`BC` doesn't care about parameter `a`, but it is still available in `Base`.
-
-If a subclass **does** care about a parameter, but doesn't want to change the default of `Base`:
-
-```coffeescript
-    class A extends Base
-        
-        @: (@a:) ->               # this is equivalent to @a:null
-            log "before: #{@a}"   # -> before: myA
-            super                 # -> A { a: 'myA', b: 'Base' }
-            log "after:  #{@a}"   # -> after:  myA
-            
-    new A a:'myA'
-
-    class Ignorant extends Base
-        
-        @: () -> 
-            log "before: #{@a}"   # -> before: undefined
-            super                 # -> Ignorant { a: 'myA', b: 'Base' }
-            log "after:  #{@a}"   # -> after:  myA
-            
-    new Ignorant a:'myA'
-```
 

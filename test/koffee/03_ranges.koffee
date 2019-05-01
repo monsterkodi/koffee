@@ -8,9 +8,9 @@ test "coffeescript", ->
     eq s[..-1], s
     eq s[0..-1], '0123456789abcdef'
     eq s[0..-2], '0123456789abcde'
-    eq s[..-2], '0123456789abcde'
-    eq s[..-3], '0123456789abcd'
-    eq s[10..], 'abcdef'
+    eq s[..-2],  '0123456789abcde'
+    eq s[..-3],  '0123456789abcd'
+    eq s[10..],  'abcdef'
     eq s[-2..-2], 'e'
     eq s[-3..-3], 'd'
     
@@ -37,4 +37,14 @@ test "negative index", ->
     eq [1,2,3,4][-2],    3        # koffee (single element)
     eq [1,2,3,4][2],     3        # makes sense
     eq [1,2,'3',4][-2], '3'
+    
+    eq (a for a in [0..10])[-1], 10
+    eq (a for a in [0..10])[1], 1
+    
+    eq ("a" + "b")[-1], 'b'
+    eq ("a" + s)[-1], 'f'
+    eq ((s))[-1], 'f'
+    eq "a" + "b"[-1], 'ab'
+    eq "a" + s[-1], 'af'
+    
     

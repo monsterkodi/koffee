@@ -103,17 +103,21 @@ class Rewriter
                 tokens[i-1][1] = 'constructor'
             1
             
-    # replace `a[-1]` with `a[-1..-1]` and `'s'[-1]` with `'s'[-1..-1]`
+    # replace `[-1]` with `[-1..-1]` after identifier, string, array, brackets
     
     negativeIndex: ->
 
         @scanTokens (token, i, tokens) ->
             
+            generate = Rewriter.generate
+            
             if @check i-1, 'INDEX_START', i, '-', i+1, 'NUMBER', i+2, 'INDEX_END'
-                if @tag(i-2) in ['IDENTIFIER', 'STRING', 'STRING_END', ']']
-                    generate = Rewriter.generate
+                if @tag(i-2) in ['IDENTIFIER', 'STRING']
+                    tokens.splice i, 0, generate(tokens[i-2][0], tokens[i-2][1], token), generate('.', '.', token), generate('PROPERTY', 'length', token)                    
+                    return 5
+                if @tag(i-2) in ['STRING_END', ']', ')']
                     tokens.splice i+2, 0, generate('..', '..', token), generate(tokens[i][0], tokens[i][1], token), generate(tokens[i+1][0], tokens[i+1][1], token)
-                    if @tag(i-2) == ']'
+                    if @tag(i-2) in [']', ')']
                         tokens.splice i+6, 0, generate('INDEX_START', '[', token), generate('NUMBER', '0', token), generate('INDEX_END', ']', token)
                         return 7
                     return 4

@@ -21,20 +21,23 @@ is a clone of [Coffeescript](http://coffeescript.org) (Version 1) with a few enh
 ### Negative indexing
 
 ```coffeescript
-    s = "abcdef"
-    s[-1]  # -> 'f'
-    s[-2]  # -> 'e'
+    s = "abcde"
     
-    "abcdef"[-3]  # -> 'd'
-    'abcdef'[-4]  # -> 'c'
+    s[-1]        # -> 'e'
     
-    [1,2,3][-2]   # -> 2
+    "abcde"[-2]  # -> 'd'
+    
+    ('cde')[-3]  # -> 'c'
+    
+    [1,2,3][-2]  # -> 2
 ```
 
-`v[-n]` is a shortcut for `v[-n..-n]` for number literals `n` and indexable values `v`.
-(For arrays it's actually a shortcut for `v[-n..-n][0]`, since the range operator returns an array).
+`v[-n]` is a shortcut for
+- `v[v.length-n]` for identifiers and strings
+- `v[-n..-n]`     for interpolated strings 
+- `v[-n..-n][0]`  arrays and scopes
 
-Passing variables with negative values still returns *undefined*.
+`n` has to be a literal number. Passing variables with negative values still returns *undefined*.
 
 The next feature might be easier to understand with a little bit of motivation up front: 
 

@@ -112,10 +112,10 @@ class Rewriter
             generate = Rewriter.generate
             
             if @check i-1, 'INDEX_START', i, '-', i+1, 'NUMBER', i+2, 'INDEX_END'
-                if @tag(i-2) in ['IDENTIFIER', 'STRING']
+                if @tag(i-2) == 'IDENTIFIER'
                     tokens.splice i, 0, generate(tokens[i-2][0], tokens[i-2][1], token), generate('.', '.', token), generate('PROPERTY', 'length', token)                    
                     return 5
-                if @tag(i-2) in ['STRING_END', ']', ')']
+                if @tag(i-2) in ['STRING', 'STRING_END', ']', ')']
                     tokens.splice i+2, 0, generate('..', '..', token), generate(tokens[i][0], tokens[i][1], token), generate(tokens[i+1][0], tokens[i+1][1], token)
                     if @tag(i-2) in [']', ')']
                         tokens.splice i+6, 0, generate('INDEX_START', '[', token), generate('NUMBER', '0', token), generate('INDEX_END', ']', token)

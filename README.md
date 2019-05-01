@@ -1,4 +1,4 @@
-# koffee 
+## koffee 
 
 is a clone of [Coffeescript](http://coffeescript.org) (Version 1) with a few enhancements.
 
@@ -33,15 +33,15 @@ is a clone of [Coffeescript](http://coffeescript.org) (Version 1) with a few enh
 ```
 
 `v[-n]` is a shortcut for
-- `v[v.length-n]` for identifiers and strings
-- `v[-n..-n]`     for interpolated strings 
+- `v[v.length-n]` for identifiers
+- `v[-n..-n]`     for strings 
 - `v[-n..-n][0]`  for arrays and scopes
 
 `n` has to be a literal number. Passing variables with negative values still returns *undefined*.
 
-The next feature might be easier to understand with a little bit of motivation up front: 
-
 ## Config arguments
+
+This feature might be easier to understand with a little bit of motivation up front: 
 
 Let's assume we need a function `f`, whose behavior should be configurable via it's arguments.
 Let's also assume that the configuration will probably grow or change a lot over time.
@@ -91,8 +91,8 @@ The default values can be omitted:
 ```coffeescript
     f = (a:1, b:) -> log {a, b}
     
-    f {}                          # -> { a: 1, b: null }
-    f b:2                         # -> { a: 1, b: 2 }
+    f {}          # -> { a: 1, b: null }
+    f b:2         # -> { a: 1, b: 2 }
 ```
 
 ### Inheritance and *super*
@@ -106,20 +106,20 @@ Let's see what happens if we use this feature for method arguments.
     class A extends Base
         @: (@a:'A') -> super
 
-    new A {}                      # -> A { a: 'A' }
+    new A {}      # -> A { a: 'A' }
 ```
 
 Note that the default value of `a` in `A` is **not** overridden by the one in `Base`. 
 
 Here the behavior of a `super` call without brackets differs from that of Coffeescript. 
 While the original applies the `arguments` unmodified (and thereby missing the destructuring assignment),
-**koffee** does internally modify the arguments by applying 
+**koffee** does internally modify the arguments by inserting 
 
 ```coffeescript
 arguments[0] = _.defaults {a:@a}, arguments[0]
 ```
 
-before the call to `super`. 
+immediately before applying `super`.
 
 This will throw at runtime, if `_.defaults` is not defined. **koffee** simply assumes that either [underscore](https://underscorejs.org/) or [lodash](https://lodash.com/) is used.
 

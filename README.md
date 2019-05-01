@@ -80,7 +80,7 @@ But hey, we got nice variable names inside `f` now and it works as intended:
 
 ### Shortcut
  
-koffee provides a nifty shortcut for this use case:
+**koffee** provides a nifty shortcut for this use case:
 
 ```coffeescript
     f = (a:1, b:2) -> log {a, b}  # Look, ma! The uglyness is gone :-)
@@ -89,7 +89,7 @@ koffee provides a nifty shortcut for this use case:
 The default values can be omitted:
 
 ```coffeescript
-    f = (a:1, b:) -> log {a,b}
+    f = (a:1, b:) -> log {a, b}
     
     f {}                          # -> { a: 1, b: null }
     f b:2                         # -> { a: 1, b: 2 }
@@ -121,6 +121,8 @@ arguments[0] = _.defaults {a:@a}, arguments[0]
 
 before the call to `super`. 
 
+This will throw at runtime, if `_.defaults` is not defined. **koffee** simply assumes that either [underscore](https://underscorejs.org/) or [lodash](https://lodash.com/) is used.
+
 ## Compatibility
 
 So far, the **koffee** *compiler* output should be compatible with the latest version of Coffeescript on the version 1 branch.
@@ -131,5 +133,5 @@ But some features have been changed or removed from the original:
 
 - literal coffeescript is gone
 - *kake* and *koffee* work slightly different than *cake* and *coffee*
-- option parser replaced by [nopt](https://github.com/npm/nopt)
+- internal option parser replaced with [nopt](https://github.com/npm/nopt)
 

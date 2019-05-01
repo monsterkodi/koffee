@@ -10,7 +10,7 @@ is a clone of [Coffeescript](http://coffeescript.org) (Version 1) with a few enh
         @: ->           
 ```
 
-... is an **optional** shortcut for ...
+... is an *optional* shortcut for ...
 
 ```coffeescript
     class C          
@@ -78,7 +78,7 @@ But hey, we got nice variable names inside `f` now and it works as intended:
     f a:8         # -> { a: 8, b: 2 }
 ```    
 
-### Shortcut
+#### Shortcut
  
 **koffee** provides a nifty shortcut for this use case:
 
@@ -95,7 +95,7 @@ The default values can be omitted:
     f b:2                         # -> { a: 1, b: 2 }
 ```
 
-### Inheritance and *super*
+#### Inheritance and *super*
 
 Let's see what happens if we use this feature for method arguments.
 
@@ -123,7 +123,7 @@ before the call to `super`.
 
 This will throw at runtime, if `_.defaults` is not defined. **koffee** simply assumes that either [underscore](https://underscorejs.org/) or [lodash](https://lodash.com/) is used.
 
-## Compatibility
+### Compatibility
 
 So far, the **koffee** *compiler* output should be compatible with the latest version of Coffeescript on the version 1 branch.
 

@@ -1,10 +1,32 @@
-require('../../lib/helpers').initTest() if not global.test
+# require('./lib/helpers').initTest() if not global.test
+
+_   = require 'underscore'
+log = console.log
+eq  = (a,b) -> log "fail: #{a} != #{b}" if a != b
+
+log 'test...'
+
+class C 
+    @: (@a:1, @b:) -> #log {@a,@b}
+    
+class D extends C
+    @: (@a:3, @b:4) -> super
+
+f = new C {}
+eq f.a, 1
+eq f.b, null
+
+f = new C b:2
+
+eq f.a, 1
+eq f.b, 2
+
+d = new D a:8
+
+eq d.a, 8
+eq d.b, 4
 
 # (@a:[123], @d:{a:1,b:2,c:3}, @e:3) -> 
-f = (a:1, b:) -> console.log {a,b}
-f {}
-f b:2
-
 # (a:'x', b:'x') ->
 # (a:1, b:1) ->
 

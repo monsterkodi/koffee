@@ -23,6 +23,7 @@ exports.ends = (string, literal, back) ->
 # Repeat a string `n` times.
 
 exports.repeat = repeat = (str, n) ->
+    
     # Use clever algorithm to have O(log(n)) string concatenation operations.
     res = ''
     while n > 0
@@ -31,11 +32,19 @@ exports.repeat = repeat = (str, n) ->
         str += str
     res
 
+exports.pad = (str, length=24) -> # str padded with spaces to length
+    
+    spaces = length - str.length
+    spaces = if spaces > 0 then Array(spaces + 1).join(' ') else ''
+    "#{str}#{spaces}"
+    
 # Trim out all falsy values from an array.
+
 exports.compact = (array) ->
     item for item in array when item
 
 # Count the number of occurrences of a string in a string.
+
 exports.count = (string, substr) ->
     num = pos = 0
     return 1/0 unless substr.length
@@ -90,6 +99,7 @@ exports.some = Array::some ? (fn) ->
 
 # Merge two jison-style location data objects together.
 # If `last` is not provided, this will simply return `first`.
+
 buildLocationData = (first, last) ->
     if not last
         first
@@ -102,6 +112,7 @@ buildLocationData = (first, last) ->
 # This returns a function which takes an object as a parameter, and if that
 # object is an AST node, updates that object's locationData.
 # The object is returned either way.
+
 exports.addLocationDataFn = (first, last) ->
     (obj) ->
         if ((typeof obj) is 'object') and (!!obj['updateLocationDataIfMissing'])
@@ -111,6 +122,7 @@ exports.addLocationDataFn = (first, last) ->
 
 # Convert jison location data to a string.
 # `obj` can be a token, or a locationData.
+
 exports.locationDataToString = (obj) ->
     if ("2" of obj) and ("first_line" of obj[2]) then locationData = obj[2]
     else if "first_line" of obj then locationData = obj
@@ -133,13 +145,13 @@ exports.baseFileName = (file, stripExt = no, useWinPathSep = no) ->
     parts.pop() if /^[ck]offee$/.test(parts[parts.length-1]) and parts.length > 1
     parts.join('.')
 
-# Determine if a filename represents a koffee file.
-
 # 000   0000000   0000000   0000000   00000000  00000000  00000000  00000000  
 # 000  000       000       000   000  000       000       000       000       
 # 000  0000000   000       000   000  000000    000000    0000000   0000000   
 # 000       000  000       000   000  000       000       000       000       
 # 000  0000000    0000000   0000000   000       000       00000000  00000000  
+
+# Determine if a filename represents a koffee file.
 
 exports.isCoffee = (file) -> /\.[ck]offee$/.test file
 
@@ -200,6 +212,7 @@ syntaxErrorToString = ->
     """
 
 exports.nameWhitespaceCharacter = (string) ->
+    
     switch string
         when ' ' then 'space'
         when '\n' then 'newline'
@@ -237,7 +250,7 @@ exports.toJS = (str) ->
 
 exports.stringify = (o) ->
     noon = require 'noon'
-    noon.stringify o, circular: true
+    noon.stringify o, circular: true, colors: true
     
 # Initialize global variables used in test scripts 
 # Supports running single test via `koffee test/..`

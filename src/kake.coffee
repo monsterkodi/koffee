@@ -3,7 +3,7 @@
 000  000   000   000  000  000   000       
 0000000    000000000  0000000    0000000   
 000  000   000   000  000  000   000       
-000   000  000   000  000   000  00000000  
+000   000  000   000  000   000  00000000
 ###
 
 # `kake` is a koffee's build tool. It executes tasks defined in a kakefile (kake.coffee).
@@ -11,14 +11,12 @@
 
 fs       = require 'fs'
 path     = require 'path'
+nopt     = require 'nopt'
 helpers  = require './helpers'
-optparse = require './optparse'
 Koffee   = require './koffee'
 
+log      = console.log
 tasks    = {}
-options  = {}
-switches = []
-oparse   = null
 
 Koffee.register() 
 
@@ -33,18 +31,15 @@ helpers.extend global,
         [action, description] = [description, action] if not action
         tasks[name] = {name, description, action}
 
-    # Define an option.
-    # The parsed options hash, containing all of the command-line options passed, 
-    # will be made available as the first argument to the action.
-    
-    option: (letter, flag, description) ->
-        
-        switches.push [letter, flag, description]
-    
     invoke: (name) -> # Invoke another task in the current file.
         
-        missingTask name unless tasks[name]
-        tasks[name].action options
+        if not tasks[name]
+        
+            log "No such task: #{name}\n"
+            log 'To see a list of all tasks, run "kake"'
+            process.exit 1
+        
+        tasks[name].action()
 
 # 00000000   000   000  000   000  
 # 000   000  000   000  0000  000  
@@ -52,44 +47,32 @@ helpers.extend global,
 # 000   000  000   000  000  0000  
 # 000   000   0000000   000   000  
 
-# Run `kake`. Executes all of the tasks you pass, in order. Note that Node's
-# asynchrony may cause tasks to execute in a different order than you'd expect.
-# If no tasks are passed, print the help screen. Keep a reference to the
-# original directory name, when running kake tasks from subdirectories.
+# Run `kake`. Executes all of the tasks you pass, in order. 
+# Note that Node's asynchrony may cause tasks to execute in a different order than you'd expect.
+# If no tasks are passed, print the help.
+# Keeps a reference to the original directory name, when running tasks from subdirectories.
 
-exports.run = ->
+run = ->
     
     global.__originalDirname = fs.realpathSync '.'
     process.chdir kakefileDirectory __originalDirname
-    args = process.argv[2..]
     Koffee.run fs.readFileSync('kake.coffee').toString(), filename: 'kake.coffee'
-    oparse = new optparse.OptionParser switches
-    return printTasks() unless args.length
-    try
-        options = oparse.parse(args)
-    catch e
-        return fatalError "#{e}"
-    invoke arg for arg in options.arguments
+    tasklist = nopt().argv.remain
+    return printTasks() if not tasklist.length
+    invoke arg for arg in tasklist
 
+exports.run = run
+        
 printTasks = ->
     
     relative = path.relative or path.resolve
     cakefilePath = path.join relative(__originalDirname, process.cwd()), 'kake.coffee'
-    console.log "#{cakefilePath} tasks:\n"
+    log "\n#{cakefilePath} tasks:\n"
     for name, task of tasks
-        spaces = 13 - name.length
-        spaces = if spaces > 0 then Array(spaces + 1).join(' ') else ''
-        desc   = if task.description then "# #{task.description}" else ''
-        console.log "kake #{name}#{spaces} #{desc}"
-    console.log oparse.help() if switches.length
-
-fatalError = (message) -> # Print an error and exit when attempting to use an invalid task/option.
-    
-    console.error message + '\n'
-    console.log 'To see a list of all tasks/options, run "kake"'
-    process.exit 1
-
-missingTask = (task) -> fatalError "No such task: #{task}"
+        desc = if task.description then "#{task.description}" else ''
+        name = helpers.pad name
+        log '    ' + name + desc
+    log ''
 
 kakefileDirectory = (dir) -> # Search in the current and all parent directories to find the relevant kakefile.
     

@@ -33,7 +33,7 @@ test "negative index", ->
     
     eq "12#{3}4"[-2], '3'
     
-    deepEqual [1,2,3,4][-2..-2][0], 3 # coffeescript (array)    
+    eq [1,2,3,4][-2..-2][0], 3    # coffeescript (array)    
     eq [1,2,3,4][-2],    3        # koffee (single element)
     eq [1,2,3,4][2],     3        # makes sense
     eq [1,2,'3',4][-2], '3'

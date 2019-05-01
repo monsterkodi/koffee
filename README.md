@@ -1,6 +1,6 @@
 ## koffee 
 
-is a clone of Coffeescript (Version 1) with a few enhancements.
+is a clone of [Coffeescript](http://coffeescript.org) (Version 1) with a few enhancements.
 
 ### Constructor shortcut
 
@@ -59,7 +59,7 @@ The default values are nicely visible, let's use it:
 
 Crap! We have to provide all the arguments? That sucks!
     
-We need a better solution. Let's use the *destructuring feature* of Coffeescript:
+We need a better solution. Let's use the *[destructuring feature](http://coffeescript.org/#destructuring)* of Coffeescript:
 
 ```coffeescript
     f = ({a:a=1, b:b=2}) -> log {a, b}   
@@ -109,7 +109,7 @@ Let's see what happens if we use this feature for method arguments.
 Note that the default value of `a` in `A` is **not** overridden by the one in `Base`. 
 
 Here the behavior of a `super` call without brackets differs from that of Coffeescript. 
-While the original applied the `arguments` unmodified (and thereby missing the destructor assignment),
+While the original applied the `arguments` unmodified (and thereby missing the destructuring assignment),
 koffee does internally modify the arguments by applying 
 
 ```coffeescript

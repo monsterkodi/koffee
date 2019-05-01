@@ -1,5 +1,5 @@
 # Parser
-# ---------
+# ------
 
 test "operator precedence for logical operators", ->
     source = '''

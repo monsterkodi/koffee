@@ -42,5 +42,8 @@
     "jison": "~0.4.18",
     "underscore": "~1.8.3",
     "noon": "^1.5.0"
+  },
+  "dependencies": {
+    "nopt": "^4.0.1"
   }
 }

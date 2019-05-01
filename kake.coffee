@@ -57,7 +57,7 @@ buildCompiler = (callback) ->
     
     blue 'compiler' 
     files = fs.readdirSync 'src'
-    files = ('src/' + file for file in files when file.match(/\.coffee$/))
+    files = ('src/' + file for file in files when file.match(/\.[ck]offee$/))
     run ['-c', '-o', 'lib'].concat(files), callback
 
 build = (callback) ->
@@ -118,7 +118,6 @@ task 'watch', 'rebuild and/or test on file changes', ->
     watch 'kake.coffee', ->
         blue "kake.coffee changed!"
         childp.execSync 'bin/kake watch', stdio: 'inherit', shell: true, cwd:process.cwd()
-        red 'done!'
         process.exit 0
             
     process.on 'exit', -> log 'exit:', process.pid

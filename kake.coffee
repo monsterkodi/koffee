@@ -212,7 +212,7 @@ runTests = (testsets) ->
     else
         red "failed #{failedTests} and #{message}"
     
-    return !failures.length
+    return failedTests
 
 task 'test',   'run the tests',    -> process.exit runTests ['koffee', 'coffee']
 task 'coffee', 'run coffee tests', -> process.exit runTests ['coffee']

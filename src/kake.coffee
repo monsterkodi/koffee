@@ -20,9 +20,7 @@ tasks    = {}
 
 Koffee.register() 
 
-# Mixin the top-level kake functions for kakefiles to use directly.
-    
-helpers.extend global,
+helpers.extend global, # Mixin the top-level kake functions for kakefiles to use directly.
 
     # Define a task with a short name, an optional description, and the function to run.
     

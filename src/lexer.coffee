@@ -89,13 +89,6 @@ class Lexer
             return @tokens 
         (new Rewriter).rewrite @tokens
         
-        # for token in @tokens
-            # if token[0] in ['{','}']
-                # if token.generated
-                    # console.log 'FIX GENERATED', token
-                    # token[1] = token[0]
-                    # delete token.generated
-                    # delete token.origin
         @tokens
 
     # Preprocess the code to remove leading and trailing whitespace, carriage returns, etc. 

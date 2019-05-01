@@ -422,8 +422,7 @@ wait = (milliseconds, func) -> setTimeout func, milliseconds
 
 # When watching scripts, it's useful to log changes with the timestamp.
 
-timeLog = (message) ->
-    console.log "#{(new Date).toLocaleTimeString()} - #{message}"
+timeLog = (message) -> log "#{(new Date).toLocaleTimeString()} - #{message}"
 
 # 000000000   0000000   000   000  00000000  000   000   0000000  
 #    000     000   000  000  000   000       0000  000  000       

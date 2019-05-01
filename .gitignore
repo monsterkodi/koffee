@@ -1,11 +1,4 @@
-raw
-presentation
-test.coffee
-test*.coffee
-test.litcoffee
-test*.litcoffee
-test/*.js
-parser.output
+/test.js
 /node_modules
 npm-debug.log*
 .vscode

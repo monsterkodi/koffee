@@ -6,7 +6,7 @@
 000   000  000   000  000   000  00000000
 ###
 
-# `kake` is a koffee's build tool. It executes tasks defined in a kakefile (kake.coffee).
+# koffee's build tool. It executes tasks defined in a kakefile (kake.coffee).
 # Called with no arguments, it prints a list of all available tasks.
 
 fs       = require 'fs'
@@ -54,6 +54,7 @@ run = ->
     
     global.__originalDirname = fs.realpathSync '.'
     process.chdir kakefileDirectory __originalDirname
+    
     Koffee.run fs.readFileSync('kake.coffee').toString(), filename: 'kake.coffee'
     tasklist = nopt().argv.remain
     return printTasks() if not tasklist.length

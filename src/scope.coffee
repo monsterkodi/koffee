@@ -63,11 +63,9 @@ exports.Scope = class Scope
         return if @shared and @parent.check name, yes
         @add name, 'param'
 
-    # Just check to see if a variable has already been declared, without reserving,
-    # walks up to the root scope.
+    # Just check to see if a variable has already been declared, without reserving, walks up to the root scope.
 
-    check: (name) ->
-        !!(@type(name) or @parent?.check(name))
+    check: (name) -> !!(@type(name) or @parent?.check(name))
 
     # Generate a temporary variable name at the given index.
 

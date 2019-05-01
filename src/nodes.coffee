@@ -46,8 +46,6 @@ exports.CodeFragment = class CodeFragment
     
     constructor: (parent, code) ->
         
-        # log code, '----', parent
-        
         @code = "#{code}"
         @locationData = parent?.locationData
         @type = parent?.constructor?.name or 'unknown'
@@ -337,8 +335,7 @@ exports.Block = class Block extends Base
             node = (node.unfoldSoak(o) or node)
             if node instanceof Block
                 # This is a nested block. We don't do anything special here like enclose
-                # it in a new scope; we just compile the statements in this block along with
-                # our own
+                # it in a new scope; we just compile the statements in this block along with our own
                 compiledNodes.push node.compileNode o
             else if top
                 node.front = true
@@ -371,11 +368,12 @@ exports.Block = class Block extends Base
         o.level  = LEVEL_TOP
         @spaced  = yes
         o.scope  = new Scope null, this, null, o.referencedVars ? []
-        # Mark given local variables in the root scope as parameters so they don't
-        # end up being declared on this block.
+        
+        # Mark given local variables in the root scope as parameters so they don't end up being declared on this block.
+        
         o.scope.parameter name for name in o.locals or []
         prelude = []
-        unless o.bare
+        if not o.bare
             preludeExps = for exp, i in @expressions
                 break unless exp.unwrap() instanceof Comment
                 exp
@@ -423,8 +421,7 @@ exports.Block = class Block extends Base
                 fragments.push @makeCode "\n"
         fragments.concat post
 
-    # Wrap up the given nodes as a **Block**, unless it already happens
-    # to be one.
+    # Wrap up the given nodes as a **Block**, unless it already happens to be one.
     
     @wrap: (nodes) ->
         
@@ -438,8 +435,7 @@ exports.Block = class Block extends Base
 # 0000000  000     000     00000000  000   000  000   000  0000000  
 
 # `Literal` is a base class for static values that can be passed through
-# directly into JavaScript without translation, such as: strings, numbers,
-# `true`, `false`, `null`...
+# directly into JavaScript without translation, such as: strings, numbers, `true`, `false`, `null`...
 
 exports.Literal = class Literal extends Base
     
@@ -545,8 +541,8 @@ exports.Return = class Return extends Base
         answer.push @makeCode ";"
         return answer
 
-# `yield return` works exactly like `return`, except that it turns the function
-# into a generator.
+# `yield return` works exactly like `return`, except that it turns the function into a generator.
+
 exports.YieldReturn = class YieldReturn extends Return
     compileNode: (o) ->
         unless o.scope.parent?
@@ -619,8 +615,7 @@ exports.Value = class Value extends Base
         @base.value is className and @properties.length is 1 and
             @properties[0].name?.value != 'prototype'
 
-    # The value can be unwrapped as its inner node, if there are no attached
-    # properties.
+    # The value can be unwrapped as its inner node, if there are no attached properties.
     unwrap: ->
         if @properties.length then this else @base
 
@@ -1019,6 +1014,7 @@ exports.Range = class Range extends Base
 
     # Compiles the range's source variables -- where it starts and where it ends.
     # But only if they need to be cached to avoid double evaluation.
+    
     compileVariables: (o) ->
         o = merge o, top: true
         isComplex = del o, 'isComplex'
@@ -1031,6 +1027,7 @@ exports.Range = class Range extends Base
 
     # When compiled normally, the range returns the contents of the *for loop*
     # needed to iterate over the values in the range. Used by comprehensions.
+    
     compileNode: (o) ->
         @compileVariables o unless @fromVar
         return @compileArray(o) unless o.index
@@ -1337,8 +1334,6 @@ exports.Class = class Class extends Base
         
     walkBody: (name, o) ->
         
-        # log "--- nodes.Class.walkBody #{name} -----------"
-        
         @traverseChildren false, (child) =>
             cont = true
             return false if child instanceof Class
@@ -1358,19 +1353,15 @@ exports.Class = class Class extends Base
 
     prepareSuperCallForConfigParams: (name, o, classBody) ->
         
-        # log "prepareSuperCallForConfigParams #{name}" #, classBody
-    
         for expr in classBody.expressions
             if expr instanceof Code
                 continue if not expr.params[0]?.name
                 param0 = expr.params[0].name
                 if not param0.generated then return #log 'CONSTRUCTOR PARAM0 NOT GENERATED?'
                 if not param0 instanceof Obj then return log 'CONSTRUCTOR PARAM0 NOT AN OBJ?'
-                # log 'CONSTRUCTOR params', expr.params
                 if not expr.body instanceof Block then return log 'CONSTRUCTOR BODY NOT AN BLOCK?'
                 for bodyExpr in expr.body.expressions
                     if bodyExpr instanceof SuperCall
-                        # log 'CONSTRUCTOR SuperCall', bodyExpr
                         bodyExpr.configParameter = param0
             
     # `use strict` (and other directives) must be the first expression statement(s)
@@ -1725,8 +1716,7 @@ exports.Assign = class Assign extends Base
                 if obj instanceof Assign
                     defaultValue = obj.value
                     obj = obj.variable
-                idx = if isObject
-                    # A shorthand `{a, b, @c} = val` pattern-match.
+                idx = if isObject # A shorthand `{a, b, @c} = val` pattern-match.
                     if obj.this
                         obj.properties[0].name
                     else
@@ -1785,8 +1775,7 @@ exports.Assign = class Assign extends Base
                 if obj instanceof Splat or obj instanceof Expansion
                     obj.error "multiple splats/expansions are disallowed in an assignment"
                 defaultValue = null
-                if obj instanceof Assign and obj.context is 'object'
-                    # A regular object pattern-match.
+                if obj instanceof Assign and obj.context is 'object' # A regular object pattern-match.
                     {variable: {base: idx}, value: obj} = obj
                     if obj instanceof Assign
                         defaultValue = obj.value
@@ -1795,14 +1784,12 @@ exports.Assign = class Assign extends Base
                     if obj instanceof Assign
                         defaultValue = obj.value
                         obj = obj.variable
-                    idx = if isObject
-                        # A shorthand `{a, b, @c} = val` pattern-match.
-                        if obj.this
+                    idx = if isObject # A shorthand `{a, b, @c} = val` pattern-match.
+                        if obj.this 
                             obj.properties[0].name
                         else
                             new PropertyName obj.unwrap().value
-                    else
-                        # A regular array pattern-match.
+                    else # A regular array pattern-match.
                         new Literal expandedIdx or idx
                         
                 name = obj.unwrap().value
@@ -1817,7 +1804,6 @@ exports.Assign = class Assign extends Base
             assigns.push new Assign(obj, val, null, param: @param, subpattern: yes).compileToFragments o, LEVEL_LIST
             
         assigns.push vvar unless top or @subpattern
-        # log "assigns #{assigns.length}"
         fragments = @joinFragmentArrays assigns, ', '
         if o.level < LEVEL_LIST then fragments else @wrapInBraces fragments
 
@@ -1846,8 +1832,7 @@ exports.Assign = class Assign extends Base
         [left, right] = @variable.cacheReference o
         new Assign(left, new Op(@context[...-1], right, @value)).compileToFragments o
 
-    # Compile the assignment from an array splice literal, using JavaScript's
-    # `Array#splice` method.
+    # Compile the assignment from an array splice literal, using JavaScript's `Array#splice` method.
     
     compileSplice: (o) ->
         
@@ -1907,21 +1892,20 @@ exports.Code = class Code extends Base
         if @bound and o.scope.method?.bound
             @context = o.scope.method.context
 
-        # Handle bound functions early.
-        if @bound and not @context
+        if @bound and not @context # Handle bound functions early.
             @context = '_this'
             wrapper = new Code [new Param new IdentifierLiteral @context], new Block [this]
             boundfunc = new Call(wrapper, [new ThisLiteral])
             boundfunc.updateLocationDataIfMissing @locationData
             return boundfunc.compileNode(o)
 
-        o.scope                 = del(o, 'classScope') or @makeScope o.scope
+        o.scope         = del(o, 'classScope') or @makeScope o.scope
         o.scope.shared  = del(o, 'sharedScope')
-        o.indent                += TAB
+        o.indent       += TAB
         delete o.bare
         delete o.isExistentialEquals
         params = []
-        exprs    = []
+        exprs  = []
         for param in @params when param not instanceof Expansion
             o.scope.parameter param.asReference o
         for param in @params when param.splat or param instanceof Expansion
@@ -1950,13 +1934,9 @@ exports.Code = class Code extends Base
             o.scope.parameter fragmentsToText params[i]
         uniqs = []
         
-        # log 'check names'
-        
         @eachParamName (name, node) ->
             node.error "multiple parameters named #{name}" if name in uniqs
             uniqs.push name
-            
-        # log 'uniqs', uniqs
             
         @body.makeReturn() unless wasEmpty or @noReturn
         code = 'function'
@@ -2852,6 +2832,7 @@ exports.If = class If extends Base
     elseBodyNode: -> @elseBody?.unwrap()
 
     # Rewrite a chain of **Ifs** to add a default case as the final *else*.
+    
     addElse: (elseBody) ->
         if @isChain
             @elseBodyNode().addElse elseBody
@@ -2863,6 +2844,7 @@ exports.If = class If extends Base
 
     # The **If** only compiles into a statement if either of its bodies needs
     # to be a statement. Otherwise a conditional operator is safe.
+    
     isStatement: (o) ->
         o?.level is LEVEL_TOP or
             @bodyNode().isStatement(o) or @elseBodyNode()?.isStatement(o)
@@ -2881,8 +2863,7 @@ exports.If = class If extends Base
     ensureBlock: (node) ->
         if node instanceof Block then node else new Block [node]
 
-    # Compile the `If` as a regular *if-else* statement. Flattened chains
-    # force inner *else* bodies into statement form.
+    # Compile the `If` as a regular *if-else* statement. Flattened chains force inner *else* bodies into statement form.
     compileStatement: (o) ->
         child        = del o, 'chainChild'
         exeq         = del o, 'isExistentialEquals'
@@ -2925,6 +2906,7 @@ UTILITIES =
 
     # Correctly set up a prototype chain for inheritance, including a reference
     # to the superclass for `super()` calls, and copies of any static properties.
+        
     extend: (o) -> "
         function(child, parent) {
             for (var key in parent) {
@@ -2965,19 +2947,18 @@ UTILITIES =
 
     # Shortcuts to speed up the lookup time for native functions.
     hasProp: -> '{}.hasOwnProperty'
-    slice    : -> '[].slice'
+    slice: -> '[].slice'
 
 # Levels indicate a node's position in the AST. Useful for knowing if
 # parens are necessary or superfluous.
-LEVEL_TOP        = 1    # ...;
+LEVEL_TOP    = 1    # ...;
 LEVEL_PAREN  = 2    # (...)
 LEVEL_LIST   = 3    # [...]
 LEVEL_COND   = 4    # ... ? x : y
 LEVEL_OP     = 5    # !...
 LEVEL_ACCESS = 6    # ...[0]
 
-# Tabs are 4 spaces for pretty printing.
-TAB = '    '
+TAB = '    ' # Tabs are 4 spaces for pretty printing.
 
 SIMPLENUM = /^[+-]?\d+$/
 

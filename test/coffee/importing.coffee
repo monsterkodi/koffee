@@ -18,11 +18,11 @@ test "modules can be imported and executed", ->
 
 test "javascript modules can be imported", ->
         magicVal = 1
-        for module in 'import.js import2 .import2 import.extension.js import.unknownextension .coffee'.split ' '
+        for module in 'import.js import2 import.extension.js import.unknownextension'.split ' '
             ok require("./importing/#{module}").value?() is magicVal, module
 
 test "modules can be imported", ->
         magicVal = 2
-        for module in '.import.coffee import.coffee import.extension.coffee'.split ' '
+        for module in 'import.coffee import.extension.coffee'.split ' '
             ok require("./importing/#{module}").value?() is magicVal, module
 

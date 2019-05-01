@@ -4,7 +4,7 @@ _   = require 'underscore'
 log = console.log
 eq  = (a,b) -> log "fail: #{a} != #{b}" if a != b
 
-log 'test...'
+log 'test...', process.argv
 
 "123".length
 
@@ -12,26 +12,35 @@ log 'test...'
 
 eq "123"[-1], '3'
 
-# class C 
-    # @: (@a:1, @b:) -> #log {@a,@b}
-#     
-# class D extends C
-    # @: (@a:3, @b:4) -> super
+class C 
+  @: (@a:1, @b:) -> #log {@a,@b}
+    
+class D extends C
+  @: (@a:3, @b:4) -> super
 
-# f = new C {}
-# eq f.a, 1
-# eq f.b, null
+f = new C {}
+eq f.a, 1
+eq f.b, null
 
-# f = new C b:2
+f = new C b:2
 
-# eq f.a, 1
-# eq f.b, 2
+eq f.a, 1
+eq f.b, 2
 
-# d = new D a:8
+d = new D a:8
 
-# eq d.a, 8
-# eq d.b, 4
+eq d.a, 8
+eq d.b, 4
 
+log '...done'
+
+# btoa encodeURIComponent(src).replace /%([0-9A-F]{2})/g, (match, p1) ->
+#     String.fromCharCode '0x' + p1
+# 
+# btoa(encodeURIComponent(src).replace(/%([0-9A-F]{2})/g, function(match, p1) {
+#   return String.fromCharCode('0x' + p1);
+# }));
+    
 # (@a:[123], @d:{a:1,b:2,c:3}, @e:3) -> 
 # (a:'x', b:'x') ->
 # (a:1, b:1) ->

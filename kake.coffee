@@ -9,6 +9,7 @@ helpers = require './lib/helpers'
 
 reset  = '\x1B[0m'
 bold   = '\x1B[0;1m'
+
 log    = console.log
 cLog   = (color,args) -> console.log.apply console.log, [color].concat [].slice.call(args,0), [reset]
     
@@ -137,7 +138,7 @@ task 'bench', 'benchmark of compilation time', ->
     total       = 0
     now         = Date.now()
     time        = -> total += ms = -(now - now = Date.now()); fmt ms
-    tokens      = Koffee.tokens coffee, rewrite: no
+    tokens      = Koffee.tokens coffee, feature: rewrite: no
     gray "Lex    #{time()} (#{tokens.length} tokens)"
     tokens      = new Rewriter().rewrite tokens
     gray "Rewrite#{time()} (#{tokens.length} tokens)"

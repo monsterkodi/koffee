@@ -11,6 +11,7 @@ path     = require 'path'
 vm       = require 'vm'
 nodeREPL = require 'repl'
 Koffee   = require './koffee'
+
 {merge, updateSyntaxError} = require './helpers'
 
 # 0000000    00000000  00000000   0000000   000   000  000      000000000   0000000  
@@ -42,9 +43,7 @@ replDefaults =
             # Tokenize the clean input.
             tokens = Koffee.tokens input
             # Collect referenced variable names just like in `Koffee.compile`.
-            referencedVars = (
-                token[1] for token in tokens when token[0] is 'IDENTIFIER'
-            )
+            referencedVars = ( token[1] for token in tokens when token[0] is 'IDENTIFIER' )
             # Generate the AST of the tokens.
             ast = Koffee.nodes tokens
             # Add assignment to `_` variable to force the input to be an expression.
@@ -147,8 +146,7 @@ addHistory = (repl, filename, maxSize) ->
 
     repl.on 'exit', -> fs.closeSync fd
 
-    # Add a command to show the history stack
-    repl.commands[getCommandId(repl, 'history')] =
+    repl.commands[getCommandId(repl, 'history')] = # Add a command to show the history stack
         help: 'Show command history'
         action: ->
             repl.outputStream.write "#{repl.rli.history[..].reverse().join '\n'}\n"

@@ -33,8 +33,8 @@ is a clone of [Coffeescript](http://coffeescript.org) (Version 1) with a few enh
 ```
 
 `v[-n]` is a shortcut for
-- `v[v.length-n]` for identifiers
 - `v[-n..-n]`     for strings 
+- `v[v.length-n]` for identifiers
 - `v[-n..-n][0]`  for arrays and scopes
 
 `n` has to be a literal number. Passing variables with negative values still returns *undefined*.
@@ -128,8 +128,9 @@ This will throw at runtime, if `_.defaults` is not defined. **koffee** simply as
 So far, the **koffee** *compiler* output should be compatible with the latest version of Coffeescript on the version 1 branch.
 
 The added features only use syntax that was invalid in CS1, so koffee should be able to compile any valid CS1 code.
+CS2 code should compile as well, but this is untested.
 
-But some features have been changed or removed from the original:
+Some features have been changed or removed:
 
 - literal coffeescript is gone
 - *kake* and *koffee* work slightly different than *cake* and *coffee*

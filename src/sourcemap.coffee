@@ -67,7 +67,6 @@ class SourceMap
         line-- until (lineMap = @lines[line]) or (line <= 0)
         lineMap and lineMap.sourceLocation column
 
-
     #  0000000   00000000  000   000  00000000  00000000    0000000   000000000  00000000  
     # 000        000       0000  000  000       000   000  000   000     000     000       
     # 000  0000  0000000   000 0 000  0000000   0000000    000000000     000     0000000   
@@ -127,12 +126,12 @@ class SourceMap
         # Produce the canonical JSON object format for a "v3" source map.
 
         v3 =
-            version:        3
-            file:               options.generatedFile or ''
+            version:    3
+            file:       options.generatedFile or ''
             sourceRoot: options.sourceRoot or ''
-            sources:        options.sourceFiles or ['']
-            names:          []
-            mappings:       buffer
+            sources:    options.sourceFiles or ['']
+            names:      []
+            mappings:   buffer
 
         v3.sourcesContent = [code] if options.inlineMap
 

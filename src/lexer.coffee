@@ -19,7 +19,9 @@
 
 {count, starts, compact, repeat, locationDataToString, throwSyntaxError} = require './helpers'
 
-# The Lexer class reads a stream of koffee and divvies it up into tagged tokens. 
+log = console.log
+
+# The Lexer class reads a string and divvies it up into tagged tokens. 
 # Some potential ambiguity in the grammar has been avoided by pushing some extra smarts into the Lexer.
 
 class Lexer
@@ -85,9 +87,11 @@ class Lexer
 
         @closeIndentation()
         @error "missing #{end.tag}", end.origin[2] if end = @ends.pop()
-        if opts.rewrite is off
-            return @tokens 
-        (new Rewriter).rewrite @tokens
+        
+        if opts.feature?.rewrite == false
+            log 'skipping rewrite!', opts
+        else
+            (new Rewriter).rewrite @tokens
         
         @tokens
 
@@ -300,7 +304,6 @@ class Lexer
                     else
                         ' '
                 value
-
         end
 
     #  0000000   0000000   00     00  00     00  00000000  000   000  000000000  
@@ -496,8 +499,7 @@ class Lexer
     # as being “spaced”, because there are some cases where it makes a difference.
     
     whitespaceToken: ->
-        return 0 unless (match = WHITESPACE.exec @chunk) or
-                                        (nline = @chunk.charAt(0) is '\n')
+        return 0 unless (match = WHITESPACE.exec @chunk) or (nline = @chunk.charAt(0) is '\n')
         [..., prev] = @tokens
         prev[if match then 'spaced' else 'newLine'] = true if prev
         if match then match[0].length else 0
@@ -649,6 +651,7 @@ class Lexer
     # This method allows us to have strings within interpolations within strings, ad infinitum.
     
     matchWithInterpolations: (regex, delimiter) ->
+        
         tokens = []
         offsetInChunk = delimiter.length
         return null unless @chunk[...offsetInChunk] is delimiter
@@ -975,8 +978,8 @@ isUnassignable = (name, displayName = name) -> switch
 exports.isUnassignable = isUnassignable
 exports.Lexer = Lexer
 
-# `from` isn’t a koffee keyword, 
-# but it behaves like one in `import` and `export` statements (handled above) and in the declaration line of a `for` loop.
+# `from` isn’t a keyword, but it behaves like one in `import` and `export` statements (handled above) 
+# and in the declaration line of a `for` loop.
 # Try to detect when `from` is a variable identifier and when it is this “sometimes” keyword.
 
 isForFrom = (prev) ->
@@ -1004,7 +1007,7 @@ isForFrom = (prev) ->
  0000000   0000000   000   000  0000000      000     000   000  000   000     000     0000000   
 ###
 
-# Keywords that Koffee shares in common with JavaScript.
+# Keywords that we share in common with JavaScript.
 
 JS_KEYWORDS = [
     'true', 'false', 'null', 'this'
@@ -1014,8 +1017,6 @@ JS_KEYWORDS = [
     'class', 'extends', 'super'
     'import', 'export', 'default'
 ]
-
-# Koffee-only keywords.
 
 COFFEE_KEYWORDS = [
     'undefined', 'Infinity', 'NaN'
@@ -1036,9 +1037,8 @@ COFFEE_ALIAS_MAP =
 COFFEE_ALIASES  = (key for key of COFFEE_ALIAS_MAP)
 COFFEE_KEYWORDS = COFFEE_KEYWORDS.concat COFFEE_ALIASES
 
-# The list of keywords that are reserved by JavaScript, but not used, or are
-# used by Koffee internally. We throw an error when these are encountered,
-# to avoid having a JavaScript error at runtime.
+# The list of keywords that are reserved by JavaScript, but not used, or used internally.
+# We throw an error when these are encountered, to avoid having a JavaScript error at runtime.
 
 RESERVED = [
     'case', 'function', 'var', 'void', 'with', 'const', 'let', 'enum'

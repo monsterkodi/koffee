@@ -29,6 +29,8 @@ helpers.extend Koffee, new EventEmitter # Allow emitting Node events
 
 { FEATURES } = require './features'
 
+{ baseFileName, isCoffee, stringify, merge, pad } = helpers
+
 log       = console.log
 error     = console.error
 print     = (line) -> process.stdout.write line
@@ -90,7 +92,7 @@ parseOptions = ->
     
     if o.Debug
         delete o.argv
-        log helpers.stringify o
+        log stringify o
 
 # 00000000   000   000  000   000  
 # 000   000  000   000  0000  000  
@@ -148,7 +150,7 @@ makePrelude = (requires) ->
     
     requires.map (module) ->
         [_, name, module] = match if match = module.match(/^(.*)=(.*)$/)
-        name ||= helpers.baseFileName module, yes, useWinPathSep
+        name ||= baseFileName module, yes, useWinPathSep
         "#{name} = require('#{module}')"
     .join ';'
 
@@ -192,7 +194,7 @@ compilePath = (source, topLevel = no) ->
         for file in files
             compilePath path.join source, file
             
-    else if topLevel or helpers.isCoffee source
+    else if topLevel or isCoffee source
         
         try
             code = fs.readFileSync source
@@ -234,7 +236,7 @@ compileScript = (input, file = null) ->
         Koffee.emit 'compile', task
         if o.tokens
             printTokens Koffee.tokens t.input, t.options
-        else if o.nodes
+        else if o.parse
             printLine Koffee.nodes(t.input, t.options).toString().trim()
         else if o.run
             Koffee.register()
@@ -289,11 +291,11 @@ compileOptions = (source) -> # The compile-time options to pass to the compiler.
         cwd = process.cwd()
         jsPath = outputPath source, '.js'
         jsDir = path.dirname jsPath
-        copts = helpers.merge copts, {
+        copts = merge copts, {
             jsPath
             sourceRoot: path.relative jsDir, cwd
             sourceFiles: [path.relative cwd, source]
-            generatedFile: helpers.baseFileName(jsPath, no, useWinPathSep)
+            generatedFile: baseFileName(jsPath, no, useWinPathSep)
         }
         # else
             # copts = helpers.merge copts,
@@ -337,7 +339,7 @@ watchPath = (source) -> # Watch a file or directory.
         
 watchFile = (source) ->
     
-    return if not helpers.isCoffee source
+    return if not isCoffee source
     
     log 'Command.watchFile', source if opts.Debug
     
@@ -413,7 +415,7 @@ watchDir = (source) ->
     
 outputPath = (source, extension) ->
     
-    basename = helpers.baseFileName source, yes, useWinPathSep
+    basename = baseFileName source, yes, useWinPathSep
     if opts.output
         dir = opts.output
     else
@@ -452,7 +454,7 @@ writeJs = (source, js, jsPath, generatedSourceMap = null) ->
     compile = ->
         if opts.compile
             js = ' ' if js.length <= 0
-            if generatedSourceMap then js = "#{js}\n//# sourceMappingURL=#{helpers.baseFileName sourceMapPath, no, useWinPathSep}\n"
+            if generatedSourceMap then js = "#{js}\n//# sourceMappingURL=#{baseFileName sourceMapPath, no, useWinPathSep}\n"
             fs.writeFile jsPath, js, (err) ->
                 if err
                     printLine err.message
@@ -511,13 +513,13 @@ usage   = ->
         match    = long.match(/\[(\w+(\*?))\]/)
         longFlag = long.match(/^(--\w[\w\-]*)/)[1]
         letter   = if short then short + ', ' else '    '
-        option   = helpers.pad letter + long
+        option   = pad letter + long
         lines.push '    ' + option + description
         
     log "\n#{ lines.join('\n') }\n"
         
 features = ->
     
-    f = (f) -> "    #{helpers.pad f[0]}#{f[1]}"
+    f = (f) -> "    #{pad f[0]}#{f[1]}"
         
     log "\nFeatures:\n\n#{ FEATURES.map(f).join('\n') }\n"

@@ -172,23 +172,23 @@ this.$ = yy.addLocationDataFn(_$[$0], _$[$0])(new yy.Value($$[$0]));
 break;
 case 52:
 this.$ = yy.addLocationDataFn(_$[$0-2], _$[$0])(new yy.Assign(yy.addLocationDataFn(_$[$0-2])(new yy.Value($$[$0-2])), $$[$0], 'object', {
-                operatorToken: yy.addLocationDataFn(_$[$0-1])(new yy.Literal($$[$0-1]))
-            }));
+                    operatorToken: yy.addLocationDataFn(_$[$0-1])(new yy.Literal($$[$0-1]))
+                }));
 break;
 case 53:
 this.$ = yy.addLocationDataFn(_$[$0-4], _$[$0])(new yy.Assign(yy.addLocationDataFn(_$[$0-4])(new yy.Value($$[$0-4])), $$[$0-1], 'object', {
-                operatorToken: yy.addLocationDataFn(_$[$0-3])(new yy.Literal($$[$0-3]))
-            }));
+                    operatorToken: yy.addLocationDataFn(_$[$0-3])(new yy.Literal($$[$0-3]))
+                }));
 break;
 case 54:
 this.$ = yy.addLocationDataFn(_$[$0-2], _$[$0])(new yy.Assign(yy.addLocationDataFn(_$[$0-2])(new yy.Value($$[$0-2])), $$[$0], null, {
-                operatorToken: yy.addLocationDataFn(_$[$0-1])(new yy.Literal($$[$0-1]))
-            }));
+                    operatorToken: yy.addLocationDataFn(_$[$0-1])(new yy.Literal($$[$0-1]))
+                }));
 break;
 case 55:
 this.$ = yy.addLocationDataFn(_$[$0-4], _$[$0])(new yy.Assign(yy.addLocationDataFn(_$[$0-4])(new yy.Value($$[$0-4])), $$[$0-1], null, {
-                operatorToken: yy.addLocationDataFn(_$[$0-3])(new yy.Literal($$[$0-3]))
-            }));
+                    operatorToken: yy.addLocationDataFn(_$[$0-3])(new yy.Literal($$[$0-3]))
+                }));
 break;
 case 62:
 this.$ = yy.addLocationDataFn(_$[$0-1], _$[$0])(new yy.Return($$[$0]));
@@ -273,8 +273,8 @@ this.$ = yy.addLocationDataFn(_$[$0], _$[$0])(new yy.Access(new yy.PropertyName(
 break;
 case 107:
 this.$ = yy.addLocationDataFn(_$[$0-1], _$[$0])(yy.extend($$[$0], {
-                soak: true
-            }));
+                    soak: true
+                }));
 break;
 case 108:
 this.$ = yy.addLocationDataFn(_$[$0], _$[$0])(new yy.Index($$[$0]));
@@ -362,18 +362,18 @@ this.$ = yy.addLocationDataFn(_$[$0-1], _$[$0])(new yy.ExportNamedDeclaration($$
 break;
 case 145:
 this.$ = yy.addLocationDataFn(_$[$0-3], _$[$0])(new yy.ExportNamedDeclaration(new yy.Assign($$[$0-2], $$[$0], null, {
-                moduleDeclaration: 'export'
-            })));
+                    moduleDeclaration: 'export'
+                })));
 break;
 case 146:
 this.$ = yy.addLocationDataFn(_$[$0-4], _$[$0])(new yy.ExportNamedDeclaration(new yy.Assign($$[$0-3], $$[$0], null, {
-                moduleDeclaration: 'export'
-            })));
+                    moduleDeclaration: 'export'
+                })));
 break;
 case 147:
 this.$ = yy.addLocationDataFn(_$[$0-5], _$[$0])(new yy.ExportNamedDeclaration(new yy.Assign($$[$0-4], $$[$0-1], null, {
-                moduleDeclaration: 'export'
-            })));
+                    moduleDeclaration: 'export'
+                })));
 break;
 case 148:
 this.$ = yy.addLocationDataFn(_$[$0-2], _$[$0])(new yy.ExportDefaultDeclaration($$[$0]));
@@ -494,19 +494,19 @@ this.$ = yy.addLocationDataFn(_$[$0-1], _$[$0])(new yy.While($$[$0]));
 break;
 case 205:
 this.$ = yy.addLocationDataFn(_$[$0-3], _$[$0])(new yy.While($$[$0-2], {
-                guard: $$[$0]
-            }));
+                    guard: $$[$0]
+                }));
 break;
 case 206:
 this.$ = yy.addLocationDataFn(_$[$0-1], _$[$0])(new yy.While($$[$0], {
-                invert: true
-            }));
+                    invert: true
+                }));
 break;
 case 207:
 this.$ = yy.addLocationDataFn(_$[$0-3], _$[$0])(new yy.While($$[$0-2], {
-                invert: true,
-                guard: $$[$0]
-            }));
+                    invert: true,
+                    guard: $$[$0]
+                }));
 break;
 case 208:
 this.$ = yy.addLocationDataFn(_$[$0-1], _$[$0])($$[$0-1].addBody($$[$0]));
@@ -531,93 +531,93 @@ this.$ = yy.addLocationDataFn(_$[$0-1], _$[$0])(new yy.For($$[$0], $$[$0-1]));
 break;
 case 217:
 this.$ = yy.addLocationDataFn(_$[$0-1], _$[$0])({
-                source: yy.addLocationDataFn(_$[$0])(new yy.Value($$[$0]))
-            });
+                    source: yy.addLocationDataFn(_$[$0])(new yy.Value($$[$0]))
+                });
 break;
 case 218:
 this.$ = yy.addLocationDataFn(_$[$0-3], _$[$0])({
-                source: yy.addLocationDataFn(_$[$0-2])(new yy.Value($$[$0-2])),
-                step: $$[$0]
-            });
+                    source: yy.addLocationDataFn(_$[$0-2])(new yy.Value($$[$0-2])),
+                    step: $$[$0]
+                });
 break;
 case 219:
 this.$ = yy.addLocationDataFn(_$[$0-1], _$[$0])((function() {
-            $$[$0].own = $$[$0-1].own;
-            $$[$0].ownTag = $$[$0-1].ownTag;
-            $$[$0].name = $$[$0-1][0];
-            $$[$0].index = $$[$0-1][1];
-            return $$[$0];
-        }()));
+                $$[$0].own = $$[$0-1].own;
+                $$[$0].ownTag = $$[$0-1].ownTag;
+                $$[$0].name = $$[$0-1][0];
+                $$[$0].index = $$[$0-1][1];
+                return $$[$0];
+            }()));
 break;
 case 220:
 this.$ = yy.addLocationDataFn(_$[$0-1], _$[$0])($$[$0]);
 break;
 case 221:
 this.$ = yy.addLocationDataFn(_$[$0-2], _$[$0])((function() {
-            $$[$0].own = true;
-            $$[$0].ownTag = yy.addLocationDataFn(_$[$0-1])(new yy.Literal($$[$0-1]));
-            return $$[$0];
-        }()));
+                $$[$0].own = true;
+                $$[$0].ownTag = yy.addLocationDataFn(_$[$0-1])(new yy.Literal($$[$0-1]));
+                return $$[$0];
+            }()));
 break;
 case 227:
 this.$ = yy.addLocationDataFn(_$[$0-2], _$[$0])([$$[$0-2], $$[$0]]);
 break;
 case 228:
 this.$ = yy.addLocationDataFn(_$[$0-1], _$[$0])({
-                source: $$[$0]
-            });
+                    source: $$[$0]
+                });
 break;
 case 229:
 this.$ = yy.addLocationDataFn(_$[$0-1], _$[$0])({
-                source: $$[$0],
-                object: true
-            });
+                    source: $$[$0],
+                    object: true
+                });
 break;
 case 230:
 this.$ = yy.addLocationDataFn(_$[$0-3], _$[$0])({
-                source: $$[$0-2],
-                guard: $$[$0]
-            });
+                    source: $$[$0-2],
+                    guard: $$[$0]
+                });
 break;
 case 231:
 this.$ = yy.addLocationDataFn(_$[$0-3], _$[$0])({
-                source: $$[$0-2],
-                guard: $$[$0],
-                object: true
-            });
+                    source: $$[$0-2],
+                    guard: $$[$0],
+                    object: true
+                });
 break;
 case 232:
 this.$ = yy.addLocationDataFn(_$[$0-3], _$[$0])({
-                source: $$[$0-2],
-                step: $$[$0]
-            });
+                    source: $$[$0-2],
+                    step: $$[$0]
+                });
 break;
 case 233:
 this.$ = yy.addLocationDataFn(_$[$0-5], _$[$0])({
-                source: $$[$0-4],
-                guard: $$[$0-2],
-                step: $$[$0]
-            });
+                    source: $$[$0-4],
+                    guard: $$[$0-2],
+                    step: $$[$0]
+                });
 break;
 case 234:
 this.$ = yy.addLocationDataFn(_$[$0-5], _$[$0])({
-                source: $$[$0-4],
-                step: $$[$0-2],
-                guard: $$[$0]
-            });
+                    source: $$[$0-4],
+                    step: $$[$0-2],
+                    guard: $$[$0]
+                });
 break;
 case 235:
 this.$ = yy.addLocationDataFn(_$[$0-1], _$[$0])({
-                source: $$[$0],
-                from: true
-            });
+                    source: $$[$0],
+                    from: true
+                });
 break;
 case 236:
 this.$ = yy.addLocationDataFn(_$[$0-3], _$[$0])({
-                source: $$[$0-2],
-                guard: $$[$0],
-                from: true
-            });
+                    source: $$[$0-2],
+                    guard: $$[$0],
+                    from: true
+                });
 break;
 case 237:
 this.$ = yy.addLocationDataFn(_$[$0-4], _$[$0])(new yy.Switch($$[$0-3], $$[$0-1]));
@@ -642,22 +642,22 @@ this.$ = yy.addLocationDataFn(_$[$0-3], _$[$0])([[$$[$0-2], $$[$0-1]]]);
 break;
 case 245:
 this.$ = yy.addLocationDataFn(_$[$0-2], _$[$0])(new yy.If($$[$0-1], $$[$0], {
-                type: $$[$0-2]
-            }));
+                    type: $$[$0-2]
+                }));
 break;
 case 246:
 this.$ = yy.addLocationDataFn(_$[$0-4], _$[$0])($$[$0-4].addElse(yy.addLocationDataFn(_$[$0-2], _$[$0])(new yy.If($$[$0-1], $$[$0], {
-                type: $$[$0-2]
-            }))));
+                    type: $$[$0-2]
+                }))));
 break;
 case 248:
 this.$ = yy.addLocationDataFn(_$[$0-2], _$[$0])($$[$0-2].addElse($$[$0]));
 break;
 case 249: case 250:
 this.$ = yy.addLocationDataFn(_$[$0-2], _$[$0])(new yy.If($$[$0], yy.addLocationDataFn(_$[$0-2])(yy.Block.wrap([$$[$0-2]])), {
-                type: $$[$0-1],
-                statement: true
-            }));
+                    type: $$[$0-1],
+                    statement: true
+                }));
 break;
 case 253:
 this.$ = yy.addLocationDataFn(_$[$0-1], _$[$0])(new yy.Op('-', $$[$0]));
@@ -691,12 +691,12 @@ this.$ = yy.addLocationDataFn(_$[$0-2], _$[$0])(new yy.Op($$[$0-1], $$[$0-2], $$
 break;
 case 272:
 this.$ = yy.addLocationDataFn(_$[$0-2], _$[$0])((function() {
-            if ($$[$0-1].charAt(0) === '!') {
-                return new yy.Op($$[$0-1].slice(1), $$[$0-2], $$[$0]).invert();
-            } else {
-                return new yy.Op($$[$0-1], $$[$0-2], $$[$0]);
-            }
-        }()));
+                if ($$[$0-1].charAt(0) === '!') {
+                    return new yy.Op($$[$0-1].slice(1), $$[$0-2], $$[$0]).invert();
+                } else {
+                    return new yy.Op($$[$0-1], $$[$0-2], $$[$0]);
+                }
+            }()));
 break;
 case 273:
 this.$ = yy.addLocationDataFn(_$[$0-2], _$[$0])(new yy.Assign($$[$0-2], $$[$0], $$[$0-1]));

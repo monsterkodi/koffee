@@ -58,9 +58,9 @@ buildCompiler = (callback) ->
     
     blue 'compiler' 
     files = fs.readdirSync 'coffee'
-    files = ('js/' + file for file in files when file.match(/\.[ck]offee$/))
-    run ['-c', '-o', 'lib'].concat(files), callback
-
+    files = ('coffee/' + file for file in files when file.match(/\.[ck]offee$/))
+    run ['-co', 'js'].concat(files), callback
+    
 build = (callback) ->
     
     buildParser()
@@ -104,8 +104,8 @@ task 'watch', 'rebuild and/or test on file changes', ->
             if event is 'change' then cb event, file
     
     blue 'watching ...'
-    watch 'js/', (event,file) ->
-        blue "js/#{file} changed"
+    watch 'coffee/', (event,file) ->
+        blue "coffee/#{file} changed"
         buildAndTest file is 'grammar.coffee'
             
     watch 'test/coffee/', (event,file) ->

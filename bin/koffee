@@ -4,8 +4,8 @@ var path = require('path');
 var fs   = require('fs');
 
 var potentialPaths = [
-  path.join(process.cwd(), 'node_modules/koffee/lib'),
-  path.join(__dirname, '../lib')
+  path.join(process.cwd(), 'node_modules/koffee/js'),
+  path.join(__dirname, '../js')
 ];
 
 for (var i = 0, len = potentialPaths.length; i < len; i++) {

@@ -228,7 +228,7 @@ test "Closure-wrapped comprehensions that refer to the 'arguments' object.", ->
 test "Fast object comprehensions over all properties, including prototypal ones.", ->
 
     class Cat
-        constructor: -> @name = 'Whiskers'
+        @: -> @name = 'Whiskers'
         breed: 'tabby'
         hair:    'cream'
 

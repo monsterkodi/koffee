@@ -26,7 +26,7 @@ test "classes with a four-level inheritance chain", ->
         @array = [1, 2, 3]
 
     class ThirdChild extends SecondChild
-        constructor: -> thirdCtor.call this
+        @: -> thirdCtor.call this
 
         # Gratuitous comment for testing.
         func: (string) ->
@@ -52,15 +52,15 @@ test "constructors with inheritance and super", ->
     identity = (f) -> f
 
     class TopClass
-        constructor: (arg) ->
+        @: (arg) ->
             @prop = 'top-' + arg
 
     class SuperClass extends TopClass
-        constructor: (arg) ->
+        @: (arg) ->
             identity super 'super-' + arg
 
     class SubClass extends SuperClass
-        constructor: ->
+        @: ->
             identity super 'sub'
 
     ok (new SubClass).prop is 'top-super-sub'
@@ -71,7 +71,7 @@ test "Overriding the static property new doesn't clobber Function::new", ->
     class OneClass
         @new: 'new'
         function: 'function'
-        constructor: (name) -> @name = name
+        @: (name) -> @name = name
 
     class TwoClass extends OneClass
     delete TwoClass.new
@@ -149,10 +149,10 @@ test "'@' referring to the current instance, and not being coerced into a call",
 test "super() calls in constructors of classes that are defined as object properties", ->
 
     class Hive
-        constructor: (name) -> @name = name
+        @: (name) -> @name = name
 
     class Hive.Bee extends Hive
-        constructor: (name) -> super
+        @: (name) -> super
 
     maya = new Hive.Bee 'Maya'
     ok maya.name is 'Maya'
@@ -172,7 +172,7 @@ test "classes with JS-keyword properties", ->
 test "Classes with methods that are pre-bound to the instance, or statically, to the class", ->
 
     class Dog
-        constructor: (name) ->
+        @: (name) ->
             @name = name
 
         bark: =>
@@ -208,7 +208,7 @@ test "a bound function in a bound function", ->
 test "contructor called with varargs", ->
 
     class Connection
-        constructor: (one, two, three) ->
+        @: (one, two, three) ->
             [@one, @two, @three] = [one, two, three]
 
         out: ->
@@ -301,10 +301,10 @@ test "classes with value'd constructors", ->
             @value = inner
 
     class One
-        constructor: classMaker()
+        @: classMaker()
 
     class Two
-        constructor: classMaker()
+        @: classMaker()
 
     eq (new One).value, 1
     eq (new Two).value, 2
@@ -393,11 +393,11 @@ test "namespaced classes do not reserve their function name in outside scope", -
 test "nested classes", ->
 
     class Outer
-        constructor: ->
+        @: ->
             @label = 'outer'
 
         class @Inner
-            constructor: ->
+            @: ->
                 @label = 'inner'
 
     eq (new Outer).label, 'outer'
@@ -408,7 +408,7 @@ test "variables in constructor bodies are correctly scoped", ->
 
     class A
         x = 1
-        constructor: ->
+        @: ->
             x = 10
             y = 20
         y = 2
@@ -483,7 +483,7 @@ test "#1182: a subclass should be able to set its constructor to an external fun
         @val = 1
     class A
     class B extends A
-        constructor: ctor
+        @: ctor
     eq (new B).val, 1
 
 test "#1182: external constructors continued", ->
@@ -491,7 +491,7 @@ test "#1182: external constructors continued", ->
     class A
     class B extends A
         method: ->
-        constructor: ctor
+        @: ctor
     ok B::method
 
 test "#1313: misplaced __extends", ->
@@ -499,7 +499,7 @@ test "#1313: misplaced __extends", ->
     class A
     class B extends A
         prop: nonce
-        constructor: ->
+        @: ->
     eq nonce, B::prop
 
 test "#1182: execution order needs to be considered as well", ->
@@ -507,7 +507,7 @@ test "#1182: execution order needs to be considered as well", ->
     makeFn = (n) -> eq n, ++counter; ->
     class B extends (makeFn 1)
         @B: makeFn 2
-        constructor: makeFn 3
+        @: makeFn 3
 
 test "#1182: external constructors with bound functions", ->
     fn = ->
@@ -515,7 +515,7 @@ test "#1182: external constructors with bound functions", ->
         this
     class B
     class A
-        constructor: fn
+        @: fn
         method: => this instanceof A
     ok (new A).method.call(new B)
 
@@ -537,7 +537,7 @@ test "#1464: bound class methods should keep context", ->
     nonce    = {}
     nonce2 = {}
     class C
-        constructor: (@id) ->
+        @: (@id) ->
         @boundStaticColon: => new this(nonce)
         @boundStaticEqual= => new this(nonce2)
     eq nonce,    C.boundStaticColon().id
@@ -619,7 +619,7 @@ test "#1813: Passing class definitions as expressions", ->
 
 test "#1966: external constructors should produce their return value", ->
     ctor = -> {}
-    class A then constructor: ctor
+    class A then @: ctor
     ok (new A) not instanceof A
 
 test "#1980: regression with an inherited class with static function members", ->
@@ -731,7 +731,7 @@ test "#2319: fn class n extends o.p [INDENT] x = 123", ->
 
 test "#2599: other typed constructors should be inherited", ->
     class Base
-        constructor: -> return {}
+        @: -> return {}
 
     class Derived extends Base
 
@@ -748,7 +748,7 @@ test "#2359: extending native objects that use other typed constructors requires
     ok typeof brokenArray.method is 'undefined'
 
     class WorkingArray extends Array
-        constructor: -> super
+        @: -> super
         method: -> 'yes!'
 
     workingArray = new WorkingArray
@@ -796,7 +796,7 @@ test "#2796: ditto, ditto, ditto", ->
         func.call message: 'wrong!'
 
     class Base
-        constructor: ->
+        @: ->
             @message = 'right!'
             outsideMethod @echo
 

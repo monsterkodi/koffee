@@ -21,7 +21,7 @@ exports.Scope = class Scope
     # it belongs to, and a list of variables referenced in the source code
     # and therefore should be avoided when generating variables.
     
-    constructor: (@parent, @expressions, @method, @referencedVars) ->
+    @: (@parent, @expressions, @method, @referencedVars) ->
         @variables = [{name: 'arguments', type: 'arguments'}]
         @positions = {}
         @utilities = {} unless @parent

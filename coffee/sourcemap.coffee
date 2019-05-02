@@ -21,7 +21,7 @@
 
 class LineMap
     
-    constructor: (@line) ->
+    @: (@line) ->
         @columns = []
 
     add: (column, [sourceLine, sourceColumn], options={}) ->
@@ -49,8 +49,7 @@ class LineMap
 
 class SourceMap
     
-    constructor: ->
-        @lines = []
+    @: -> @lines = []
 
     # Adds a mapping to this SourceMap. 
     # `sourceLocation` and `generatedLocation` are both `[line, column]` arrays. 

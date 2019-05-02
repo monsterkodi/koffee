@@ -18,16 +18,16 @@
     "node": ">=11.11.0"
   },
   "directories": {
-    "lib": "./lib"
+    "js": "./js"
   },
-  "main": "./lib/koffee",
+  "main": "./js/koffee.js",
   "bin": {
     "koffee": "./bin/koffee",
     "kake": "./bin/kake"
   },
   "files": [
     "bin",
-    "lib"
+    "js"
   ],
   "scripts": {
     "test": "node ./bin/kake test"

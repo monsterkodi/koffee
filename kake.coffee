@@ -4,8 +4,8 @@ path    = require 'path'
 noon    = require 'noon'
 _       = require 'underscore'
 childp  = require 'child_process'
-Koffee  = require './lib/koffee'
-helpers = require './lib/helpers'
+Koffee  = require './js/koffee'
+helpers = require './js/helpers'
 
 reset  = '\x1B[0m'
 bold   = '\x1B[0;1m'
@@ -51,8 +51,8 @@ buildParser = ->
     blue 'parser'
     helpers.extend global, require 'util'
     require 'jison'
-    parser = require('./lib/grammar').parser.generate()
-    fs.writeFileSync 'lib/parser.js', parser
+    parser = require('./js/grammar').parser.generate()
+    fs.writeFileSync 'js/parser.js', parser
 
 buildCompiler = (callback) ->
     
@@ -72,11 +72,11 @@ build = (callback) ->
 # 000   000  000  0000  000   000     000     000            000     000     
 # 000   000  000   000  0000000       000     00000000  0000000      000     
 
-libDir = path.dirname(require.resolve './lib') + '/'
+libDir = path.dirname(require.resolve './js') + '/'
 
 buildAndTest = (parser=yes) ->
     
-    childp.execSync 'git checkout lib/*', stdio:'pipe'
+    childp.execSync 'git checkout js/*', stdio:'pipe'
 
     node ['bin/kake', parser and 'build' or 'compiler'], 'both', ->
         node ['bin/kake', 'test'], 'both'
@@ -131,7 +131,7 @@ task 'watch', 'rebuild and/or test on file changes', ->
 
 task 'bench', 'benchmark of compilation time', ->
     
-    {Rewriter}  = require './lib/rewriter'
+    {Rewriter}  = require './js/rewriter'
     sources     = ['koffee', 'grammar', 'helpers', 'lexer', 'nodes', 'rewriter', 'scope']
     coffee      = sources.map((name) -> fs.readFileSync "src/#{name}.coffee").join '\n'
     fmt         = (ms) -> " #{bold}#{ "     #{ms}".slice -4 }#{reset} ms"

@@ -2,7 +2,7 @@
 # ----------------
 # Ensure that errors of different kinds (lexer, parser and compiler) are shown in a consistent way.
 
-require('../../lib/helpers').initTest() if not global.test
+require('../../js/helpers').initTest() if not global.test
 
 assertErrorFormat = (code, expectedErrorFormat) ->
     throws (-> Koffee.run code), (err) ->
@@ -1039,7 +1039,7 @@ test "anonymous functions cannot be exported", ->
 test "anonymous classes cannot be exported", ->
     assertErrorFormat '''
         export class
-            constructor: ->
+            @: ->
                 console.log 'hello, world!'
     ''', '''
         [stdin]:1:8: error: anonymous classes cannot be exported

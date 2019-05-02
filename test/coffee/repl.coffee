@@ -3,10 +3,10 @@ os = require 'os'
 fs = require 'fs'
 path = require 'path'
 Stream = require 'stream'
-Repl = require '../../lib/repl'
+Repl = require '../../js/repl'
 
 class MockInputStream extends Stream
-    constructor: ->
+    @: ->
         @readable = true
 
     resume: ->
@@ -15,7 +15,7 @@ class MockInputStream extends Stream
         @emit 'data', Buffer.from("#{val}\n")
 
 class MockOutputStream extends Stream
-    constructor: ->
+    @: ->
         @writable = true
         @written = []
 

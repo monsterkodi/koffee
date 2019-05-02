@@ -14,14 +14,14 @@ license         MIT
 engines
                 node  >=11.11.0
 directories
-                lib  ./lib
-main            ./lib/koffee
+                js  ./js
+main            ./js/koffee.js
 bin
                 koffee  ./bin/koffee
                 kake    ./bin/kake
 files
                 bin
-                lib
+                js
 scripts
                 test  node ./bin/kake test
 bugs            https://github.com/monsterkodi/koffee/issues

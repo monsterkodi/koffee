@@ -63,7 +63,7 @@ test "#1183: super + fat arrows", ->
     dolater = (cb) -> cb()
 
     class A
-        constructor: ->
+        @: ->
             @_i = 0
         foo : (cb) ->
             dolater =>
@@ -95,7 +95,7 @@ test "#1183: super + wrap", ->
 
 test "#1183: super + closures", ->
     class A
-        constructor: ->
+        @: ->
             @i = 10
         foo : -> @i
 

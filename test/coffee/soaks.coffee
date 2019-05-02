@@ -121,7 +121,7 @@ test "soaked constructor invocations with caching and property access", ->
     semaphore = 0
     nonce = {}
     class C
-        constructor: ->
+        @: ->
             ok false if semaphore
             semaphore++
         prop: nonce

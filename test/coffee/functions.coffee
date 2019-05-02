@@ -137,7 +137,7 @@ test "@-parameters and splats with constructors", ->
     a = {}
     b = {}
     class Klass
-        constructor: (@first, splat..., @last) ->
+        @: (@first, splat..., @last) ->
 
     obj = new Klass a, 0, 0, b
     eq a, obj.first

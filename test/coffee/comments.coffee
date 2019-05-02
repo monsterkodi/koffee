@@ -357,7 +357,7 @@ test "#3132: Place block-comments nicely", ->
         ###*
         # @constructor
         ###
-        constructor: ->
+        @: ->
 
         ###*
         # Singleton reference

@@ -50,8 +50,13 @@ is a clone of [Coffeescript](http://coffeescript.org) (Version 1) with a few enh
 Simple shortcuts for `log`, `warn` and `error` methods of `console`.
 
 By the way, did I mention that all **koffee** features are individually toggleable? 
-E.g., this one can be deactivated by passing the commandline flag `--no-console-shortcut` to the *koffee* command or 
-setting the `feature.console_shortcut]` option of the koffee.compile method to `false`
+E.g., this one can be deactivated by passing the commandline flag `--no-console-shortcut` to the *koffee* command or by
+setting a flag in the options when calling koffee module methods:
+
+```coffeescript
+    koffee = require 'koffee'
+    koffee.compile code, feature:console_shortcut:false
+```
 
 ## Config arguments
 

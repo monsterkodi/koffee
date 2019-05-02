@@ -17,7 +17,7 @@
 
 {Rewriter, INVERSES} = require './rewriter'
 
-{count, starts, compact, repeat, locationDataToString, throwSyntaxError} = require './helpers'
+{ count, starts, compact, repeat, locationDataToString, throwSyntaxError, injectFeature } = require './helpers'
 
 log = console.log
 
@@ -41,7 +41,9 @@ class Lexer
     #    000     000   000  000  000   000       000  0000  000   000     000       
     #    000      0000000   000   000  00000000  000   000  000  0000000  00000000  
     
-    tokenize: (code, opts = {}) ->
+    tokenize: (code, opts) ->
+        
+        opts = injectFeature opts
         
         @indent     = 0            # The current indentation level.
         @baseIndent = 0            # The overall minimum indentation level

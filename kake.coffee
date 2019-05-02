@@ -57,8 +57,8 @@ buildParser = ->
 buildCompiler = (callback) ->
     
     blue 'compiler' 
-    files = fs.readdirSync 'src'
-    files = ('src/' + file for file in files when file.match(/\.[ck]offee$/))
+    files = fs.readdirSync 'coffee'
+    files = ('js/' + file for file in files when file.match(/\.[ck]offee$/))
     run ['-c', '-o', 'lib'].concat(files), callback
 
 build = (callback) ->
@@ -104,8 +104,8 @@ task 'watch', 'rebuild and/or test on file changes', ->
             if event is 'change' then cb event, file
     
     blue 'watching ...'
-    watch 'src/', (event,file) ->
-        blue "src/#{file} changed"
+    watch 'js/', (event,file) ->
+        blue "js/#{file} changed"
         buildAndTest file is 'grammar.coffee'
             
     watch 'test/coffee/', (event,file) ->
@@ -133,7 +133,7 @@ task 'bench', 'benchmark of compilation time', ->
     
     {Rewriter}  = require './js/rewriter'
     sources     = ['koffee', 'grammar', 'helpers', 'lexer', 'nodes', 'rewriter', 'scope']
-    coffee      = sources.map((name) -> fs.readFileSync "src/#{name}.coffee").join '\n'
+    coffee      = sources.map((name) -> fs.readFileSync "coffee/#{name}.coffee").join '\n'
     fmt         = (ms) -> " #{bold}#{ "     #{ms}".slice -4 }#{reset} ms"
     total       = 0
     now         = Date.now()

@@ -93,8 +93,12 @@ class Rewriter
         for j in [0...l.length] by 2
             index = l[j]
             return false if index < 0
-            if @tag(index) != l[j+1]
-                return false
+            if l[j+1] instanceof Array
+                if @tag(index) not in l[j+1]
+                    return false
+            else
+                if @tag(index) != l[j+1]
+                    return false
         true
                 
     # replace `@:` with `constructor:`
@@ -103,7 +107,7 @@ class Rewriter
          
         @scanTokens (token, i, tokens) ->
             
-            if i > 0 and tokens[i-1][0] is '@' and tokens[i][0] is ':' and tokens[i+1][0] in ['->', 'PARAM_START']
+            if @check i-1, '@', i, ':', i+1, ['->', 'PARAM_START', 'IDENTIFIER']
                 tokens[i-1][0] = 'PROPERTY'
                 tokens[i-1][1] = 'constructor'
             1

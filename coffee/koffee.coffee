@@ -73,29 +73,17 @@ sourceMaps = {}
 
 # Compile koffee to JavaScript, using the Jison compiler.
 #
-# If `options.sourceMap` is specified, then `options.filename` must also be
-# specified. All options that can be passed to `SourceMap#generate` may also
-# be passed here.
+# If `options.sourceMap` is specified, then `options.filename` must also be specified. 
+# All options that can be passed to `SourceMap#generate` may also be passed here.
 #
-# This returns a javascript string, unless `options.sourceMap` is passed,
-# in which case this returns a `{js, v3SourceMap, sourceMap}`
-# object, where sourceMap is a sourcemap.coffee#SourceMap object, handy for
-# doing programmatic lookups.
+# This returns a javascript string, unless `options.sourceMap` is passed, in which case it returns a `{js, v3SourceMap, sourceMap}` object
 
 exports.compile = compile = withPrettyErrors (code, options) ->
     
     { merge, extend } = helpers
-    # options = extend {}, options
     
-    defaultFeatures = 
-        header:                 true
-        rewrite:                true
-        'negative-index':       true
-        'config-parameters':    true
-        'constructor-shortcut': true
-    
-    options = extend {feature:defaultFeatures}, options
-    
+    options = helpers.injectFeature options
+        
     # Always generate a source map if no filename is passed in, since without a
     # a filename we have no way to retrieve this source later in the event that
     # we need to recompile it to get a source map for `prepareStackTrace`.

@@ -1,5 +1,5 @@
 
-SourceMap = require '../../src/sourcemap'
+SourceMap = require '../../js/sourcemap'
 
 vlqEncodedValues = [
         [1, "C"],

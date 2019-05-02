@@ -14,14 +14,12 @@
 Error.stackTraceLimit = Infinity
 log = console.log
 
-{Scope} = require './scope'
-{isUnassignable, JS_FORBIDDEN} = require './lexer'
+{ Scope } = require './scope'
+{ isUnassignable, JS_FORBIDDEN } = require './lexer'
 
-# Import the helpers we plan to use.
-{compact, flatten, extend, merge, del, starts, ends, some,
-addLocationDataFn, locationDataToString, throwSyntaxError} = require './helpers'
+{ compact, flatten, extend, merge, del, starts, ends, some, injectFeature,
+  addLocationDataFn, locationDataToString, throwSyntaxError } = require './helpers'
 
-# Functions required by parser
 exports.extend = extend
 exports.addLocationDataFn = addLocationDataFn
 
@@ -88,7 +86,8 @@ exports.Base = class Base
     
     compileToFragments: (o, lvl) ->
         
-        o        = extend {}, o
+        o = injectFeature o
+        # log 'compileToFragments', o.feature
         o.level  = lvl if lvl
         node     = @unfoldSoak(o) or this
         node.tab = o.indent
@@ -913,12 +912,14 @@ exports.SuperCall = class SuperCall extends Call
 # `RegExp()` call to be precise) with a `StringWithInterpolations` inside.
 
 exports.RegexWithInterpolations = class RegexWithInterpolations extends Call
+    
     @: (args = []) ->
         super (new Value new IdentifierLiteral 'RegExp'), args, false
 
 # TaggedTemplateCall
 
 exports.TaggedTemplateCall = class TaggedTemplateCall extends Call
+    
     @: (variable, arg, soak) ->
         arg = new StringWithInterpolations Block.wrap([ new Value arg ]) if arg instanceof StringLiteral
         super variable, [ arg ], soak
@@ -1348,7 +1349,7 @@ exports.Class = class Class extends Base
                         exps[i] = @addProperties node, name, o
                 child.expressions = exps = flatten exps
                 
-                if child.classBody and o.feature['config-parameters']
+                if child.classBody and o?.feature?['config-parameters'] != false
                     @prepareSuperCallForConfigParams name, o, child
                 
             cont and child not instanceof Class
@@ -1380,7 +1381,7 @@ exports.Class = class Class extends Base
 
     # Make sure that a constructor is defined for the class, and properly configured.
         
-    @: (name) ->
+    ensureConstructor: (name) ->
         
         if not @ctor
             @ctor = new Code
@@ -2022,12 +2023,10 @@ exports.Param = class Param extends Base
     eachName: (iterator, name = @name)->
         
         atParam = (obj) -> 
-            # log 'A', "@#{obj.properties[0].name.value}"
             iterator "@#{obj.properties[0].name.value}", obj
         
         if name instanceof IdentifierLiteral
             return if name instanceof NullLiteral
-            # log 'B', name.value, name
             return iterator name.value, name # simple literals `foo`, `_`, etc.
         
         return atParam name if name instanceof Value # at-params `@foo`
@@ -2045,7 +2044,6 @@ exports.Param = class Param extends Base
             
             else if obj instanceof Splat # splats within destructured parameters `[xs...]`
                 node = obj.name.unwrap()
-                # log 'C', node.value
                 iterator node.value, node
                 
             else if obj instanceof Value
@@ -2057,7 +2055,6 @@ exports.Param = class Param extends Base
                     atParam obj
                 
                 else
-                    # log 'D', obj.base.value
                     iterator obj.base.value, obj.base # simple destructured parameters {foo}
             else if obj not instanceof Expansion
                 obj.error "illegal parameter #{obj.compile()}"
@@ -2824,13 +2821,13 @@ exports.If = class If extends Base
     
     @: (condition, @body, options = {}) ->
         @condition = if options.type is 'unless' then condition.invert() else condition
-        @elseBody    = null
-        @isChain     = false
-        {@soak}      = options
+        @elseBody  = null
+        @isChain   = false
+        {@soak}    = options
 
     children: ['condition', 'body', 'elseBody']
 
-    bodyNode:           -> @body?.unwrap()
+    bodyNode:     -> @body?.unwrap()
     elseBodyNode: -> @elseBody?.unwrap()
 
     # Rewrite a chain of **Ifs** to add a default case as the final *else*.
@@ -2839,7 +2836,7 @@ exports.If = class If extends Base
         if @isChain
             @elseBodyNode().addElse elseBody
         else
-            @isChain    = elseBody instanceof If
+            @isChain  = elseBody instanceof If
             @elseBody = @ensureBlock elseBody
             @elseBody.updateLocationDataIfMissing elseBody.locationData
         this
@@ -2857,8 +2854,8 @@ exports.If = class If extends Base
         if @isStatement o then @compileStatement o else @compileExpression o
 
     makeReturn: (res) ->
-        @elseBody    or= new Block [new Literal 'void 0'] if res
-        @body           and= new Block [@body.makeReturn res]
+        @elseBody  or= new Block [new Literal 'void 0'] if res
+        @body     and= new Block [@body.makeReturn res]
         @elseBody and= new Block [@elseBody.makeReturn res]
         this
 
@@ -2867,16 +2864,16 @@ exports.If = class If extends Base
 
     # Compile the `If` as a regular *if-else* statement. Flattened chains force inner *else* bodies into statement form.
     compileStatement: (o) ->
-        child        = del o, 'chainChild'
-        exeq         = del o, 'isExistentialEquals'
+        child = del o, 'chainChild'
+        exeq  = del o, 'isExistentialEquals'
 
         if exeq
             return new If(@condition.invert(), @elseBodyNode(), type: 'if').compileToFragments o
 
-        indent   = o.indent + TAB
-        cond         = @condition.compileToFragments o, LEVEL_PAREN
-        body         = @ensureBlock(@body).compileToFragments merge o, {indent}
-        ifPart   = [].concat @makeCode("if ("), cond, @makeCode(") {\n"), body, @makeCode("\n#{@tab}}")
+        indent = o.indent + TAB
+        cond   = @condition.compileToFragments o, LEVEL_PAREN
+        body   = @ensureBlock(@body).compileToFragments merge o, {indent}
+        ifPart = [].concat @makeCode("if ("), cond, @makeCode(") {\n"), body, @makeCode("\n#{@tab}}")
         ifPart.unshift @makeCode @tab unless child
         return ifPart unless @elseBody
         answer = ifPart.concat @makeCode(' else ')

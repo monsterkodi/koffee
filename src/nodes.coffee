@@ -44,7 +44,7 @@ NEGATE  = -> @negated = not @negated; this
 
 exports.CodeFragment = class CodeFragment
     
-    constructor: (parent, code) ->
+    @: (parent, code) ->
         
         @code = "#{code}"
         @locationData = parent?.locationData
@@ -885,7 +885,7 @@ exports.SuperCall = class SuperCall extends Call
         (method and not method.klass and method.context) or "this"
 
     compileSplat: (o, splatArgs) ->
-        log 'compileSplat', o.feature
+        # log 'compileSplat', o.feature
         if splatArgs.length == 1 and splatArgs[0].code == 'arguments' and @configParameter? and o.feature['config-parameters']
             # TODO: shouldn't all references to arguments be converted?
             return [].concat @makeCode("#{@configParameterCodeBeforeSuper()}#{ @superReference o }.apply(#{@superThis(o)}, "), splatArgs, @makeCode(")")

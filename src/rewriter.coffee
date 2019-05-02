@@ -26,7 +26,7 @@ class Rewriter
     
     rewrite: (@tokens, opts) ->
         
-        log 'Rewriter.rewrite', opts
+        # log 'Rewriter.rewrite', opts
         # Helpful snippet for debugging:
         # console.log (t[0] + '/' + t[1] for t in @tokens).join ' '
             

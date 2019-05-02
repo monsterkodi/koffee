@@ -43,7 +43,7 @@
     "noon": "^1.5.0"
   },
   "dependencies": {
-    "underscore": "~1.8.3",
-    "nopt": "^4.0.1"
+    "nopt": "^4.0.1",
+    "underscore": "~1.8.3"
   }
 }

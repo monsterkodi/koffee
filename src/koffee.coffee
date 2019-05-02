@@ -84,11 +84,11 @@ sourceMaps = {}
 
 exports.compile = compile = withPrettyErrors (code, options) ->
     
-    {merge, extend} = helpers
+    { merge, extend } = helpers
     # options = extend {}, options
     
     defaultFeatures = 
-        header:                 false
+        header:                 true
         rewrite:                true
         'negative-index':       true
         'config-parameters':    true

@@ -10,7 +10,6 @@ helpers = require './js/helpers'
 reset  = '\x1B[0m'
 bold   = '\x1B[0;1m'
 
-log    = console.log
 cLog   = (color,args) -> console.log.apply console.log, [color].concat [].slice.call(args,0), [reset]
 
 yellow = -> cLog '\x1B[0;93m', arguments

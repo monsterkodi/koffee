@@ -12,7 +12,6 @@
 # To convert the syntax tree into a string of JavaScript code, call `compile()` on the root.
 
 Error.stackTraceLimit = Infinity
-log = console.log
 
 { Scope } = require './scope'
 { isUnassignable, JS_FORBIDDEN } = require './lexer'

@@ -265,6 +265,5 @@ exports.initTest = ->
     global.Koffee = require './koffee'
     global._ = require 'underscore'
     extend global, exports
-    if not global.log  then global.log = console.log 
     if not global.test then global.test = (n,f) -> log n; f()
     

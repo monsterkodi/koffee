@@ -19,8 +19,6 @@
 
 { count, starts, compact, repeat, locationDataToString, throwSyntaxError, injectFeature, hasFeature } = require './helpers'
 
-log = console.log
-
 # The Lexer class reads a string and divvies it up into tagged tokens. 
 # Some potential ambiguity in the grammar has been avoided by pushing some extra smarts into the Lexer.
 

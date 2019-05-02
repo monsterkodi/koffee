@@ -24,8 +24,6 @@ exports.helpers = helpers
 
 { injectFeature, updateSyntaxError, nameWhitespaceCharacter, throwSyntaxError, isCoffee, count, hasFeature } = helpers
 
-log = console.log
-
 base64encode = (src) ->
     
     if typeof Buffer is 'function'
@@ -316,7 +314,7 @@ parser.lexer =
         if token
             [tag, @yytext, @yylloc] = token
             parser.errorToken = token.origin or token
-            console.log 'DAFUK', token if not @yylloc?.first_line?
+            error 'DAFUK', token if not @yylloc?.first_line?
             @yylineno = @yylloc.first_line
         else
             tag = ''

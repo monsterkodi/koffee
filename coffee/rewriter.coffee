@@ -6,8 +6,6 @@
 000   000  00000000  00     00  000   000  000     000     00000000  000   000  
 ###
 
-log = console.log
-
 { hasFeature } = require './helpers'
 
 # The language has a good deal of optional syntax, implicit syntax,
@@ -30,7 +28,7 @@ class Rewriter
         
         # log 'Rewriter.rewrite', @opts
         # Helpful snippet for debugging:
-        # console.log (t[0] + '/' + t[1] for t in @tokens).join ' '
+        # log (t[0] + '/' + t[1] for t in @tokens).join ' '
             
         @removeLeadingNewlines()
         

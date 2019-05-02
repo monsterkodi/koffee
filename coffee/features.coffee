@@ -37,7 +37,6 @@ logFeatures = ->
     
     f = (f) -> "    #{pad f.flag}#{f.desc}"
     
-    log = console.log
     log "\nFeatures:\n\n#{ FEATURES.map(f).join('\n') }\n"
     
 module.exports = { FEATURES, injectFeature, logFeatures, hasFeature }

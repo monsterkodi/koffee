@@ -31,7 +31,6 @@ helpers.extend Koffee, new EventEmitter # Allow emitting Node events
 
 { baseFileName, isCoffee, stringify, merge, pad } = helpers
 
-log       = console.log
 error     = console.error
 print     = (line) -> process.stdout.write line
 printLine = (line) -> process.stdout.write line + '\n' # ???

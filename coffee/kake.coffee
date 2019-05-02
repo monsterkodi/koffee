@@ -15,7 +15,6 @@ nopt     = require 'nopt'
 helpers  = require './helpers'
 Koffee   = require './koffee'
 
-log      = console.log
 tasks    = {}
 
 Koffee.register() 

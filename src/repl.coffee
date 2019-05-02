@@ -161,8 +161,8 @@ module.exports =
     start: (opts = {}) ->
         [major, minor, build] = process.versions.node.split('.').map (n) -> parseInt(n, 10)
 
-        if major < 11
-            console.warn "Node 11.11.0+ required for koffee REPL"
+        if major < 10
+            console.warn "Node 10.0.0+ required for koffee REPL"
             process.exit 1
 
         Koffee.register()

@@ -347,8 +347,9 @@ watchFile = (source) ->
     
     log 'Command.watchFile', source if opts.Debug
     
-    watcher   = null
-    prevStats = null
+    watcher        = null
+    prevStats      = null
+    compileTimeout = null
 
     startWatcher = ->
         
@@ -359,15 +360,19 @@ watchFile = (source) ->
             
             log 'Command.watchFile', change, source if opts.Debug
 
-            fs.stat source, (err, stats) ->
-                return watcher.close() if err?.code is 'ENOENT'
-                return error err if err
-                return if prevStats and stats.mtime.getTime() is prevStats.mtime.getTime() and stats.size is prevStats.size
-                prevStats = stats
-                fs.readFile source, (err, code) ->
+            clearTimeout compileTimeout
+            compileTimeout = wait 25, ->
+                
+                fs.stat source, (err, stats) ->
+                    return watcher.close() if err?.code is 'ENOENT'
                     return error err if err
-                    log 'Command.watchFile compile', source if opts.Debug
-                    compileScript code.toString(), source
+                    return if prevStats and stats.mtime.getTime() is prevStats.mtime.getTime() and stats.size is prevStats.size
+                    prevStats = stats
+                    fs.readFile source, (err, code) ->
+                        return error err if err
+                        log 'Command.watchFile compile', source if opts.Debug
+                        compileScript code.toString(), source
+                        
         .on 'error', (err) ->
             throw err unless err.code is 'EPERM'
 

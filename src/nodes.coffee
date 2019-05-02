@@ -885,9 +885,9 @@ exports.SuperCall = class SuperCall extends Call
         (method and not method.klass and method.context) or "this"
 
     compileSplat: (o, splatArgs) ->
-        # TODO: shouldn't all references to arguments be converted?
-        if splatArgs.length == 1 and splatArgs[0].code == 'arguments' and @configParameter?
-            # log 'SuperCall.compileSplat MOD ARGUMENTS!'
+        log 'compileSplat', o.feature
+        if splatArgs.length == 1 and splatArgs[0].code == 'arguments' and @configParameter? and o.feature['config-parameters']
+            # TODO: shouldn't all references to arguments be converted?
             return [].concat @makeCode("#{@configParameterCodeBeforeSuper()}#{ @superReference o }.apply(#{@superThis(o)}, "), splatArgs, @makeCode(")")
          
         super
@@ -895,11 +895,12 @@ exports.SuperCall = class SuperCall extends Call
     configParameterCodeBeforeSuper: ->
         
         return '' if not param = @configParameter
-        # log 'configParameterCodeBeforeSuper', param
+
         a = param.objects.map (obj) -> 
             n = obj.variable.base.value
             t = obj.value.variable.this and 'this.' or ''
             "#{n}:#{t+n}"
+            
         "arguments[0] = _.defaults({#{a.join ','}}, arguments[0]); "
 
 # 00000000   00000000   0000000   00000000  000   000  
@@ -1333,7 +1334,7 @@ exports.Class = class Class extends Base
     # Walk the body of the class, looking for prototype properties to be converted and tagging static assignments.
         
     walkBody: (name, o) ->
-        
+        #log 'walkBody', o.feature
         @traverseChildren false, (child) =>
             cont = true
             return false if child instanceof Class
@@ -1346,7 +1347,7 @@ exports.Class = class Class extends Base
                         exps[i] = @addProperties node, name, o
                 child.expressions = exps = flatten exps
                 
-                if child.classBody
+                if child.classBody and o.feature['config-parameters']
                     @prepareSuperCallForConfigParams name, o, child
                 
             cont and child not instanceof Class

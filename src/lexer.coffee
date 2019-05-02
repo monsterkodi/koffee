@@ -91,7 +91,7 @@ class Lexer
         if opts.feature?.rewrite == false
             log 'skipping rewrite!', opts
         else
-            (new Rewriter).rewrite @tokens
+            (new Rewriter).rewrite @tokens, opts
         
         @tokens
 

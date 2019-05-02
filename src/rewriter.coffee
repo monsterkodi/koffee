@@ -24,12 +24,15 @@ class Rewriter
     # like this. The order of these passes matters -- indentation must be
     # corrected before implicit parentheses can be wrapped around blocks of code.
     
-    rewrite: (@tokens) ->
+    rewrite: (@tokens, opts) ->
+        
+        log 'Rewriter.rewrite', opts
         # Helpful snippet for debugging:
         # console.log (t[0] + '/' + t[1] for t in @tokens).join ' '
+            
         @removeLeadingNewlines()
         
-        @constructorShortcut() # koffee
+        @constructorShortcut() if opts?.feature?['constructor-shortcut'] != false # koffee
         
         @closeOpenCalls()
         @closeOpenIndexes()
@@ -37,8 +40,8 @@ class Rewriter
         @tagPostfixConditionals()
         @addImplicitBracesAndParens()
         
-        @configParameters()    # koffee
-        @negativeIndex()       # koffee
+        @configParameters()    if opts?.feature?['config-parameters'] != false # koffee
+        @negativeIndex()       if opts?.feature?['negative-index']    != false # koffee
         
         @addLocationDataToGeneratedTokens()
         @fixOutdentLocationData()   
@@ -51,12 +54,14 @@ class Rewriter
     # our feet.
     
     scanTokens: (block) ->
+        
         {tokens} = this
         i = 0
         i += block.call this, token, i, tokens while token = tokens[i]
         true
 
     detectEnd: (i, condition, action) ->
+        
         {tokens} = this
         levels = 0
         while token = tokens[i]

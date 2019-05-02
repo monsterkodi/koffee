@@ -9,23 +9,11 @@
 # Functions that we'd like to share among the Lexer, Rewriter, and Nodes. 
 # Merge objects, flatten arrays, count characters, that sort of thing.
 
-exports.injectFeature = (options) -> # make sure that options has a feature set
-    
-    options ?= {}
-    
-    defaultFeatures = 
-        header:                 false
-        rewrite:                true
-        'negative-index':       true
-        'config-parameters':    true
-        'constructor-shortcut': true
-    
-    feature = extend defaultFeatures, options.feature ? {}
-    
-    options = extend { feature: feature }, options
-    options
-
 # Peek at the beginning of a given string to see if it matches a sequence.
+
+features = require './features'
+
+exports.injectFeature = features.injectFeature
 
 exports.starts = (string, literal, start) ->
     literal is string.substr start, literal.length

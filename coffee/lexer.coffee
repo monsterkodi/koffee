@@ -17,7 +17,7 @@
 
 {Rewriter, INVERSES} = require './rewriter'
 
-{ count, starts, compact, repeat, locationDataToString, throwSyntaxError, injectFeature } = require './helpers'
+{ count, starts, compact, repeat, locationDataToString, throwSyntaxError, injectFeature, hasFeature } = require './helpers'
 
 log = console.log
 
@@ -90,10 +90,10 @@ class Lexer
         @closeIndentation()
         @error "missing #{end.tag}", end.origin[2] if end = @ends.pop()
         
-        if opts.feature?.rewrite == false
-            log 'skipping rewrite!', opts
-        else
+        if hasFeature opts, 'rewrite'
             (new Rewriter).rewrite @tokens, opts
+        else
+            log 'skipping rewrite!', opts
         
         @tokens
 

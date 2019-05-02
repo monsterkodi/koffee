@@ -39,6 +39,20 @@ is a clone of [Coffeescript](http://coffeescript.org) (Version 1) with a few enh
 
 `n` has to be a literal number. Passing variables with negative values still returns *undefined*.
 
+## Console shortcuts
+
+```coffeescript
+    log 'hello'  # -> hello
+    warn 'world' # -> world
+    error '!'    # -> !
+```
+
+Simple shortcuts for `log`, `warn` and `error` methods of `console`.
+
+By the way, did I mention that all **koffee** features are individually toggleable? 
+E.g., this one can be deactivated by passing the commandline flag `--no-console-shortcut` to the *koffee* command or 
+setting the `feature.console_shortcut]` option of the koffee.compile method to `false`
+
 ## Config arguments
 
 This feature might be easier to understand with a little bit of motivation up front: 

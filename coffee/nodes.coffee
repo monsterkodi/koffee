@@ -17,7 +17,7 @@ log = console.log
 { Scope } = require './scope'
 { isUnassignable, JS_FORBIDDEN } = require './lexer'
 
-{ compact, flatten, extend, merge, del, starts, ends, some, injectFeature,
+{ compact, flatten, extend, merge, del, starts, ends, some, injectFeature, hasFeature, 
   addLocationDataFn, locationDataToString, throwSyntaxError } = require './helpers'
 
 exports.extend = extend
@@ -885,7 +885,7 @@ exports.SuperCall = class SuperCall extends Call
 
     compileSplat: (o, splatArgs) ->
         # log 'compileSplat', o.feature
-        if splatArgs.length == 1 and splatArgs[0].code == 'arguments' and @configParameter? and o.feature['config-parameters']
+        if splatArgs.length == 1 and splatArgs[0].code == 'arguments' and @configParameter? and hasFeature o, 'config_parameters'
             # TODO: shouldn't all references to arguments be converted?
             return [].concat @makeCode("#{@configParameterCodeBeforeSuper()}#{ @superReference o }.apply(#{@superThis(o)}, "), splatArgs, @makeCode(")")
          
@@ -1349,7 +1349,7 @@ exports.Class = class Class extends Base
                         exps[i] = @addProperties node, name, o
                 child.expressions = exps = flatten exps
                 
-                if child.classBody and o?.feature?['config-parameters'] != false
+                if child.classBody and hasFeature o, 'config_parameters'
                     @prepareSuperCallForConfigParams name, o, child
                 
             cont and child not instanceof Class

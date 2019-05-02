@@ -77,6 +77,7 @@ class SourceMap
     # Also, `options.sourceFiles` and `options.generatedFile` may be passed to set "sources" and "file", respectively.
 
     generate: (options = {}, code = null) ->
+        
         writingline      = 0
         lastColumn       = 0
         lastSourceLine   = 0

@@ -1,0 +1,56 @@
+require('../../js/helpers').initTest() if not global.test
+
+compile = (s) -> Koffee.compile s, bare:true
+
+test "konsole shortcut works", ->
+
+    check = (c,p) -> notEqual -1, compile(c).indexOf p
+
+    check '(s) -> log s', 'console.log(s);'
+    check '(s) -> warn s', 'console.warn(s);'
+    check '(s) -> error s', 'console.error(s);'
+    check 'log a', 'console.log(a);'
+    check 'warn a', 'console.warn(a);'
+    check 'error a', 'console.error(a);'
+    check 'log 1', 'console.log(1);'
+    check 'warn 1', 'console.warn(1);'
+    check 'error 1', 'console.error(1);'
+    check 'log "1"', 'console.log("1");'
+    check 'warn "1"', 'console.warn("1");'
+    check 'error "1"', 'console.error("1");'
+    
+test "konsole shortcut keep non calls", ->
+
+    check = (c,p='console') -> eq -1, compile(c).indexOf p
+    
+    check 'log'
+    check 'log = b'
+    check 'b = log'
+    check 'f log, b'
+    check """
+        try 
+            log:log 
+        catch log
+            log.log log"""
+            
+    check 'warn'
+    check 'warn = b'
+    check 'b = warn'
+    check 'f warn, b'
+    check """
+        try 
+            warn:warn 
+        catch warn
+            warn.warn warn"""
+
+    check 'error'
+    check 'error = b'
+    check 'b = error'
+    check 'f error, b'
+    check """
+        try 
+            error:error 
+        catch error
+            error.error error"""
+            
+            

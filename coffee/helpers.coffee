@@ -14,6 +14,7 @@
 features = require './features'
 
 exports.injectFeature = features.injectFeature
+exports.hasFeature = features.hasFeature
 
 exports.starts = (string, literal, start) ->
     literal is string.substr start, literal.length

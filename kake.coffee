@@ -189,8 +189,8 @@ runTests = (testsets) ->
         code = fs.readFileSync filename
         try
             Koffee.run code.toString(), {filename}
-        catch error
-            failures.push {filename, error}
+        catch err
+            failures.push {filename, err}
             
         if failures.length
             red path.basename(filename, '.coffee')
@@ -207,11 +207,11 @@ runTests = (testsets) ->
         failures = []
             
     time = ((Date.now() - startTime) / 1000).toFixed(2)
-    message = "passed #{passedTests} tests in #{time} seconds"
+    message = "#{passedTests} passed tests in #{time} seconds"
     if not failedTests
         green message
     else
-        red "failed #{failedTests} and #{message}"
+        red "#{failedTests} failed and #{message}"
     
     return failedTests
 

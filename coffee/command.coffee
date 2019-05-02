@@ -27,7 +27,7 @@ useWinPathSep    = path.sep is '\\'
 
 helpers.extend Koffee, new EventEmitter # Allow emitting Node events
 
-{ FEATURES } = require './features'
+{ FEATURES, logFeatures } = require './features'
 
 { baseFileName, isCoffee, stringify, merge, pad } = helpers
 
@@ -76,7 +76,7 @@ parseOptions = ->
     known = {Debug:Boolean}
     short = {D:'--Debug'}
     SWITCHES.map (s) -> l = s[1].split(' ')[0][2..]; known[l] = s[3] if s[3]; short[s[0][1]] = "--#{l}" if s[0]!=''
-    FEATURES.map (f) -> known[f[0]] = Boolean
+    FEATURES.map (f) -> known[f.lag] = Boolean
     
     o = opts = nopt known, short
         
@@ -88,7 +88,7 @@ parseOptions = ->
     o.js         = !!(o.js or o.eval or o.stdio and o.compile) # js output is passed to eval and stdio compile
     
     o.feature = {}
-    FEATURES.map (f) -> o.feature[f[0]] = o[f[0]] ? true; delete o[f[0]]
+    FEATURES.map (f) -> o.feature[f.key] = o[f.flag] ? true; delete o[f.flag]
     
     if o.Debug
         delete o.argv
@@ -108,7 +108,7 @@ run = ->
     
     parseOptions()
         
-    return features()     if opts.features
+    return logFeatures()  if opts.features
     return usage()        if opts.help
     return version()      if opts.version
     return startRepl()    if opts.interactive
@@ -518,8 +518,3 @@ usage   = ->
         
     log "\n#{ lines.join('\n') }\n"
         
-features = ->
-    
-    f = (f) -> "    #{pad f[0]}#{f[1]}"
-        
-    log "\nFeatures:\n\n#{ FEATURES.map(f).join('\n') }\n"

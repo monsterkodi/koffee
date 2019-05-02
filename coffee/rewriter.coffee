@@ -8,6 +8,8 @@
 
 log = console.log
 
+{ hasFeature } = require './helpers'
+
 # The language has a good deal of optional syntax, implicit syntax,
 # and shorthand syntax. This can greatly complicate a grammar and bloat
 # the resulting parse table. Instead of making the parser handle it all, we take
@@ -24,15 +26,15 @@ class Rewriter
     # like this. The order of these passes matters -- indentation must be
     # corrected before implicit parentheses can be wrapped around blocks of code.
     
-    rewrite: (@tokens, opts) ->
+    rewrite: (@tokens, @opts) ->
         
-        # log 'Rewriter.rewrite', opts
+        # log 'Rewriter.rewrite', @opts
         # Helpful snippet for debugging:
         # console.log (t[0] + '/' + t[1] for t in @tokens).join ' '
             
         @removeLeadingNewlines()
         
-        @constructorShortcut() if opts?.feature?['constructor-shortcut'] != false # koffee
+        @shortcuts() # koffee
         
         @closeOpenCalls()
         @closeOpenIndexes()
@@ -40,8 +42,8 @@ class Rewriter
         @tagPostfixConditionals()
         @addImplicitBracesAndParens()
         
-        @configParameters()    if opts?.feature?['config-parameters'] != false # koffee
-        @negativeIndex()       if opts?.feature?['negative-index']    != false # koffee
+        @configParameters() if hasFeature @opts, 'config_parameters' # koffee
+        @negativeIndex()    if hasFeature @opts, 'negative_index'    # koffee
         
         @addLocationDataToGeneratedTokens()
         @fixOutdentLocationData()   
@@ -80,37 +82,70 @@ class Rewriter
         
         break for [tag], i in @tokens when tag != 'TERMINATOR'
         @tokens.splice 0, i if i
-
-    #  0000000  000   000   0000000   00000000   000000000   0000000  000   000  000000000  
-    # 000       000   000  000   000  000   000     000     000       000   000     000     
-    # 0000000   000000000  000   000  0000000       000     000       000   000     000     
-    #      000  000   000  000   000  000   000     000     000       000   000     000     
-    # 0000000   000   000   0000000   000   000     000      0000000   0000000      000     
     
+    doesMatch: (index, match) ->
         
+        if typeof(match) == 'string'
+            @tag(index) == match
+        else if match.constructor == Object
+            t = @tokens[index]
+            key = Object.keys(match)[0]
+            val = match[key]
+            t[0] == key and t[1] == val
+        else
+            false
+    
+    #  0000000  000   000  00000000   0000000  000   000  
+    # 000       000   000  000       000       000  000   
+    # 000       000000000  0000000   000       0000000    
+    # 000       000   000  000       000       000  000   
+    #  0000000  000   000  00000000   0000000  000   000  
+    
     check: -> 
+                
         l = arguments
         for j in [0...l.length] by 2
             index = l[j]
             return false if index < 0
             if l[j+1] instanceof Array
-                if @tag(index) not in l[j+1]
+                found = false
+                for e in l[j+1]
+                    if @doesMatch index, e
+                        found = true
+                        break
+                if not found
                     return false
             else
-                if @tag(index) != l[j+1]
+                if not @doesMatch index, l[j+1]
                     return false
         true
-                
-    # replace `@:` with `constructor:`
+        
+    #  0000000  000   000   0000000   00000000   000000000   0000000  000   000  000000000   0000000  
+    # 000       000   000  000   000  000   000     000     000       000   000     000     000       
+    # 0000000   000000000  000   000  0000000       000     000       000   000     000     0000000   
+    #      000  000   000  000   000  000   000     000     000       000   000     000          000  
+    # 0000000   000   000   0000000   000   000     000      0000000   0000000      000     0000000   
     
-    constructorShortcut: ->
-         
+    shortcuts: ->
+        
         @scanTokens (token, i, tokens) ->
+
+            if hasFeature @opts, 'constructor_shortcut'
+                
+                if @check i-1, '@', i, ':', i+1, ['->', 'PARAM_START', 'IDENTIFIER']
+                    tokens[i-1][0] = 'PROPERTY'
+                    tokens[i-1][1] = 'constructor'
+                    return 1
+                   
+            if hasFeature @opts, 'console_shortcut'
             
-            if @check i-1, '@', i, ':', i+1, ['->', 'PARAM_START', 'IDENTIFIER']
-                tokens[i-1][0] = 'PROPERTY'
-                tokens[i-1][1] = 'constructor'
+                if @check i, [{IDENTIFIER:'log'}, {IDENTIFIER:'warn'}, {IDENTIFIER:'error'}], i+1, ['STRING_END', 'STRING', 'NUMBER', 'IDENTIFIER']
+                    token[0] = 'PROPERTY'
+                    tokens.splice i, 0, @generate('IDENTIFIER', 'console', token), @generate('.', '.', token)
+                    return 3
+                
             1
+                
             
     # replace `[-1]` with `[-1..-1]` after identifier, string, array, brackets
     
@@ -118,16 +153,14 @@ class Rewriter
 
         @scanTokens (token, i, tokens) ->
             
-            generate = Rewriter.generate
-            
             if @check i-1, 'INDEX_START', i, '-', i+1, 'NUMBER', i+2, 'INDEX_END'
                 if @tag(i-2) == 'IDENTIFIER'
-                    tokens.splice i, 0, generate(tokens[i-2][0], tokens[i-2][1], token), generate('.', '.', token), generate('PROPERTY', 'length', token)                    
+                    tokens.splice i, 0, @generate(tokens[i-2][0], tokens[i-2][1], token), @generate('.', '.', token), @generate('PROPERTY', 'length', token)                    
                     return 5
                 if @tag(i-2) in ['STRING', 'STRING_END', ']', ')']
-                    tokens.splice i+2, 0, generate('..', '..', token), generate(tokens[i][0], tokens[i][1], token), generate(tokens[i+1][0], tokens[i+1][1], token)
+                    tokens.splice i+2, 0, @generate('..', '..', token), @generate(tokens[i][0], tokens[i][1], token), @generate(tokens[i+1][0], tokens[i+1][1], token)
                     if @tag(i-2) in [']', ')']
-                        tokens.splice i+6, 0, generate('INDEX_START', '[', token), generate('NUMBER', '0', token), generate('INDEX_END', ']', token)
+                        tokens.splice i+6, 0, @generate('INDEX_START', '[', token), @generate('NUMBER', '0', token), @generate('INDEX_END', ']', token)
                         return 7
                     return 4
                 else
@@ -226,7 +259,6 @@ class Rewriter
             [nextTag] = if i < tokens.length - 1 then tokens[i + 1] else []
             stackTop  = -> stack[stack.length - 1]
             startIdx  = i
-            generate  = Rewriter.generate
 
             # Helper function, used for keeping track of the number of tokens consumed
             # and spliced, when returning for getting a new token.
@@ -246,12 +278,12 @@ class Rewriter
             startImplicitCall = (j) ->
                 idx = j ? i
                 stack.push ['(', idx, ours: yes]
-                tokens.splice idx, 0, generate 'CALL_START', '(', ['', 'implicit function call', token[2]]
+                tokens.splice idx, 0, Rewriter.generate 'CALL_START', '(', ['', 'implicit function call', token[2]]
                 i += 1 if not j?
 
             endImplicitCall = ->
                 stack.pop()
-                tokens.splice i, 0, generate 'CALL_END', ')', ['', 'end of input', token[2]]
+                tokens.splice i, 0, Rewriter.generate 'CALL_END', ')', ['', 'end of input', token[2]]
                 i += 1
 
             startImplicitObject = (j, startsLine = yes) ->
@@ -259,13 +291,13 @@ class Rewriter
                 stack.push ['{', idx, sameLine: yes, startsLine: startsLine, ours: yes]
                 val = new String '{'
                 val.generated = yes
-                tokens.splice idx, 0, generate '{', val, token
+                tokens.splice idx, 0, Rewriter.generate '{', val, token
                 i += 1 if not j?
 
             endImplicitObject = (j) ->
                 j = j ? i
                 stack.pop()
-                tokens.splice j, 0, generate '}', '}', token
+                tokens.splice j, 0, Rewriter.generate '}', '}', token
                 i += 1
 
             # Don't end an implicit call on next indent if any of these are in an argument
@@ -448,7 +480,6 @@ class Rewriter
     
     configParameters: ->
         
-        generate       = Rewriter.generate
         dictParamStart = 0
         dictParamEnd   = 0
         stackCount     = 0
@@ -484,15 +515,15 @@ class Rewriter
                             if @tag(i-2) == '@'
                                 [thisToken] = tokens.splice i-2, 1 # pull the @ out
                                 tokens.splice i,   0, thisToken    # insert it after :
-                                tokens.splice i+1, 0, generate '=', '=', token
-                                tokens.splice i+1, 0, generate 'PROPERTY', val, token
+                                tokens.splice i+1, 0, @generate '=', '=', token
+                                tokens.splice i+1, 0, @generate 'PROPERTY', val, token
                             else
-                                tokens.splice i+1, 0, generate '=', '=', token
-                                tokens.splice i+1, 0, generate 'IDENTIFIER', val, token
+                                tokens.splice i+1, 0, @generate '=', '=', token
+                                tokens.splice i+1, 0, @generate 'IDENTIFIER', val, token
                             return 2
                     if tag == '='
                         if nextTag in [',', '}']
-                            tokens.splice i+1, 0, generate 'NULL', 'null', token
+                            tokens.splice i+1, 0, @generate 'NULL', 'null', token
                             return 2
             1
                         
@@ -635,6 +666,8 @@ class Rewriter
         tok.generated = yes
         tok.origin = origin if origin
         tok
+        
+    generate: Rewriter.generate
 
     tag: (i) -> @tokens[i]?[0] # Look up a tag by token index.
 

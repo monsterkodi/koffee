@@ -137,24 +137,39 @@ class Rewriter
                    
             if hasFeature @opts, 'console_shortcut'
             
-                if @check i, [{IDENTIFIER:'log'}, {IDENTIFIER:'warn'}, {IDENTIFIER:'error'}], i+1, ['NUMBER', 'IDENTIFIER', 'STRING', 'STRING_START', 'CALL_START', '[', '(', '{']
+                if @check i, [{IDENTIFIER:'log'}, {IDENTIFIER:'warn'}, {IDENTIFIER:'error'}], i+1, ['NUMBER', 'IDENTIFIER', 'STRING', 'STRING_START', 'CALL_START', '[', '(', '{', '@']
                     token[0] = 'PROPERTY'
-                    tokens.splice i, 0, @generate('IDENTIFIER', 'console', token), @generate('.', '.', token)
+                    tokens.splice i, 0, @generate('IDENTIFIER', 'console'), @generate('.', '.')
                     return 3
+                    
+            if hasFeature @opts, 'optional_commata'
+                
+                if @check i, ['NUMBER', 'STRING', 'STRING_END', '}'], i+1, ['NUMBER', 'STRING', 'STRING_START', 'IDENTIFIER', 'PROPERTY', '{', '(', '[']  
+                    tokens.splice i+1, 0, @generate ',', ','
+                    return 2
+                    
+                if @tag(i) in [']', ')'] and tokens[i].spaced and @tag(i+1) in ['NUMBER', 'STRING', 'STRING_START', 'IDENTIFIER', 'PROPERTY', '{', '(', '[']  
+                    tokens[i].optional_commata = true
+                        
             1
-            
+
+    findMatchingTokenBackwards: (token, i, tokens) -> 
+        
+        match = index:-1
+        match
+    
     negativeIndex: ->
 
         @scanTokens (token, i, tokens) ->
             
             if @check i-1, 'INDEX_START', i, '-', i+1, 'NUMBER', i+2, 'INDEX_END'
                 if @tag(i-2) == 'IDENTIFIER'
-                    tokens.splice i, 0, @generate(tokens[i-2][0], tokens[i-2][1], token), @generate('.', '.', token), @generate('PROPERTY', 'length', token)                    
+                    tokens.splice i, 0, @generate(tokens[i-2][0], tokens[i-2][1]), @generate('.', '.'), @generate('PROPERTY', 'length')                    
                     return 5
                 if @tag(i-2) in ['STRING', 'STRING_END', ']', ')']
-                    tokens.splice i+2, 0, @generate('..', '..', token), @generate(tokens[i][0], tokens[i][1], token), @generate(tokens[i+1][0], tokens[i+1][1], token)
+                    tokens.splice i+2, 0, @generate('..', '..'), @generate(tokens[i][0], tokens[i][1]), @generate(tokens[i+1][0], tokens[i+1][1])
                     if @tag(i-2) in [']', ')']
-                        tokens.splice i+6, 0, @generate('INDEX_START', '[', token), @generate('NUMBER', '0', token), @generate('INDEX_END', ']', token)
+                        tokens.splice i+6, 0, @generate('INDEX_START', '['), @generate('NUMBER', '0'), @generate('INDEX_END', ']')
                         return 7
                     return 4
                 else
@@ -509,15 +524,15 @@ class Rewriter
                             if @tag(i-2) == '@'
                                 [thisToken] = tokens.splice i-2, 1 # pull the @ out
                                 tokens.splice i,   0, thisToken    # insert it after :
-                                tokens.splice i+1, 0, @generate '=', '=', token
-                                tokens.splice i+1, 0, @generate 'PROPERTY', val, token
+                                tokens.splice i+1, 0, @generate '=', '='
+                                tokens.splice i+1, 0, @generate 'PROPERTY', val
                             else
-                                tokens.splice i+1, 0, @generate '=', '=', token
-                                tokens.splice i+1, 0, @generate 'IDENTIFIER', val, token
+                                tokens.splice i+1, 0, @generate '=', '='
+                                tokens.splice i+1, 0, @generate 'IDENTIFIER', val
                             return 2
                     if tag == '='
                         if nextTag in [',', '}']
-                            tokens.splice i+1, 0, @generate 'NULL', 'null', token
+                            tokens.splice i+1, 0, @generate 'NULL', 'null'
                             return 2
             1
                         

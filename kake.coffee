@@ -75,7 +75,10 @@ libDir = path.dirname(require.resolve './js') + '/'
 
 buildAndTest = (parser=yes) ->
     
-    childp.execSync 'git checkout js/*', stdio:'pipe'
+    try
+        childp.execSync 'git checkout js/*', stdio:'pipe'
+    catch err
+        error err.message
 
     node ['bin/kake', parser and 'build' or 'compiler'], 'both', ->
         node ['bin/kake', 'test'], 'both'
@@ -197,7 +200,7 @@ runTests = (testsets) ->
                 {error, filename, description, source} = fail
                 white ''
                 green  "    #{description}" if description
-                yellow "    #{error.message}"
+                yellow "    #{error?.message}"
                 gray   "    #{filename}"
                 if source
                     white  "    #{source}" 

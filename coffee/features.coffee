@@ -12,6 +12,7 @@ FEATURES = [
     { flag: 'console-shortcut',      key: 'console_shortcut',      desc: 'replace log with console.log',      enabled: true  }
     { flag: 'constructor-shortcut',  key: 'constructor_shortcut',  desc: 'replace @: with constructor:',      enabled: true  }
     { flag: 'negative-index',        key: 'negative_index',        desc: 'replace a[-1] with a[-1..-1]',      enabled: true  }
+    { flag: 'optional-commata',      key: 'optional_commata',      desc: 'insert commata when possible',      enabled: true  }
     { flag: 'rewrite',               key: 'rewrite',               desc: 'rewrite tokens',                    enabled: true  }
 ]
 

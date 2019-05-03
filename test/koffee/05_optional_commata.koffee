@@ -1,0 +1,166 @@
+require('../../js/helpers').initTest() if not global.test
+
+compile = (s) -> r = Koffee.compile s, bare:true; r
+
+test "optional commata", ->
+
+    check = (c,p) -> notEqual -1, compile(c).indexOf p
+
+    check "a = [ 1 2 3 ]", "a = [1, 2, 3];"
+    check "a = { a:1 b:2 }", """
+        a = {
+            a: 1,
+            b: 2
+        };"""
+    check "a = a:1 b:2", """
+        a = {
+            a: 1,
+            b: 2
+        };"""
+    check "a = ( a, b=1 c=2 ) ->",  "a = function(a, b, c)"
+    check "a = ( a:1 b:2 ) ->",     "a = function(arg)"
+    check "a = ['a' 'b' 'c']",      "a = ['a', 'b', 'c']"
+    check 'log "#{a+1}", "#{a}"',   'log("" + (a + 1), "" + a)'
+    check 'log "#{a+1}" "#{a}"',    'log("" + (a + 1), "" + a)'
+    check 'log "hello" 1 "world"',  'log("hello", 1, "world")'
+    check 'log 1 2 3',              'log(1, 2, 3)'
+    check "a = [1 2 - 3 x 4 + 5 'a' b 'c']", "a = [1, 2 - 3, x(4 + 5, 'a', b('c'))];"
+    
+    check "a = { a:{a:1}, b:{b:2} }", """
+        a = {
+            a: {
+                a: 1
+            },
+            b: {
+                b: 2
+            }
+        };"""  
+        
+    check "a = { a:{a:1} b:{b:2} }", """
+        a = {
+            a: {
+                a: 1
+            },
+            b: {
+                b: 2
+            }
+        };"""    
+
+    check "a = [ {a:1} {b:2} ]", """
+        a = [
+            {
+                a: 1
+            }, {
+                b: 2
+            }
+        ];"""    
+
+    check "a = [ {a:1 b:2} ]", """
+        a = [
+            {
+                a: 1,
+                b: 2
+            }
+        ];"""   
+        
+    # doesNotThrow -> compile "a [2] [3]"
+    # log compile "a = [ 1 [2] [3]]"
+    # log compile "a = [ 1 [2] [3]]"
+    # check "a = [ [1] [2] ]", """
+        # a = [
+            # {
+                # a: 1,
+                # b: 2
+            # }
+        # ];"""   
+        
+assertErrorFormat = (code, expectedErrorFormat) ->
+    throws (-> Koffee.run code), (err) ->
+        err.colorful = no
+        eq "#{err}", expectedErrorFormat
+        yes
+
+test "stuff that doesn't work", ->
+    
+    assertErrorFormat "a = 'a' 'b'", '''
+        [stdin]:1:7: error: unexpected ,
+        a = 'a' 'b'
+              ^
+    '''
+
+    assertErrorFormat "a = 1 2", '''
+        [stdin]:1:5: error: unexpected ,
+        a = 1 2
+            ^
+    '''
+
+    assertErrorFormat 'a = "#{1}" 2', '''
+        [stdin]:1:10: error: unexpected ,
+        a = "#{1}" 2
+                 ^
+    '''
+    
+test "CS1 tests from error_messages", ->
+    
+    assertErrorFormat "1''", '''
+        [stdin]:1:1: error: unexpected ,
+        1''
+        ^
+    '''
+    assertErrorFormat '1""', '''
+        [stdin]:1:1: error: unexpected ,
+        1""
+        ^
+    '''
+    assertErrorFormat "1'b'", '''
+        [stdin]:1:1: error: unexpected ,
+        1'b'
+        ^
+    '''
+    assertErrorFormat '1"b"', '''
+        [stdin]:1:1: error: unexpected ,
+        1"b"
+        ^
+    '''
+    assertErrorFormat "1'''b'''", """
+        [stdin]:1:1: error: unexpected ,
+        1'''b'''
+        ^
+    """
+    assertErrorFormat '1"""b"""', '''
+        [stdin]:1:1: error: unexpected ,
+        1"""b"""
+        ^
+    '''
+    assertErrorFormat '1"#{b}"', '''
+        [stdin]:1:1: error: unexpected ,
+        1"#{b}"
+        ^
+    '''
+    assertErrorFormat '1"""#{b}"""', '''
+        [stdin]:1:1: error: unexpected ,
+        1"""#{b}"""
+        ^
+    '''
+    assertErrorFormat '"a"0x00Af2', '''
+        [stdin]:1:3: error: unexpected ,
+        "a"0x00Af2
+          ^
+    '''
+    
+    assertErrorFormat '''
+        'foo'bar
+    ''', '''
+        [stdin]:1:5: error: unexpected ,
+        'foo'bar
+            ^
+    '''
+    assertErrorFormat '''
+        "foo"bar
+    ''', '''
+        [stdin]:1:5: error: unexpected ,
+        "foo"bar
+            ^
+    '''
+    
+    

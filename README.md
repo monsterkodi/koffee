@@ -58,6 +58,32 @@ setting a flag in the options when calling koffee module methods:
     koffee.compile code, feature:console_shortcut:false
 ```
 
+## Optional Commata
+
+Still here? Nice!
+
+Coffeescript has a very nice way of initializing arrays:
+```coffeescript
+     a = [
+        1
+        2
+        3
+     ]
+```
+
+If you decide to join these into a single line, you have a problem: for each of the lines you have to insert a comma.
+The same goes for objects that span over multiple lines. 
+
+In **koffee**, you don't need to insert the commata in some cases. 
+Those are all valid koffee code lines:
+
+```coffeescript
+     a = [ 1 2 3 ]               # a = [ 1, 2, 3 ]    
+     b = { a:1 b:'2' d:3 }       # b = { a:1, b:'2', d:3 }     
+     b =   a:1 b:'2' d:3         # b =   a:1, b:'2', d:3     
+     log "value" a               # log "value", a    
+```
+
 ## Config arguments
 
 This feature might be easier to understand with a little bit of motivation up front: 

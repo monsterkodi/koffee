@@ -201,11 +201,14 @@ test "#1096: unexpected generated tokens", ->
     '''
 
     # Unexpected number
-    assertErrorFormat '"a"0x00Af2', '''
-        [stdin]:1:4: error: unexpected number
-        "a"0x00Af2
-           ^^^^^^^
-    '''
+    
+    # different error in koffee, see optional_commata
+    
+    # assertErrorFormat '"a"0x00Af2', '''
+    #     [stdin]:1:4: error: unexpected number
+    #     "a"0x00Af2
+    #        ^^^^^^^
+    # '''
 
 test "#1316: unexpected end of interpolation", ->
     assertErrorFormat '''
@@ -398,20 +401,23 @@ test "unclosed heregexes", ->
 
 test "unexpected token after string", ->
     # Parsing error.
-    assertErrorFormat '''
-        'foo'bar
-    ''', '''
-        [stdin]:1:6: error: unexpected identifier
-        'foo'bar
-             ^^^
-    '''
-    assertErrorFormat '''
-        "foo"bar
-    ''', '''
-        [stdin]:1:6: error: unexpected identifier
-        "foo"bar
-             ^^^
-    '''
+    
+    # different errors in koffee, see optional_commata
+    
+    # assertErrorFormat '''
+    #     'foo'bar
+    # ''', '''
+    #     [stdin]:1:6: error: unexpected identifier
+    #     'foo'bar
+    #          ^^^
+    # '''
+    # assertErrorFormat '''
+    #     "foo"bar
+    # ''', '''
+    #     [stdin]:1:6: error: unexpected identifier
+    #     "foo"bar
+    #          ^^^
+    # '''
     # Lexing error.
     assertErrorFormat '''
         'foo'bar'
@@ -1220,46 +1226,49 @@ test "own is not supported in for-from loops", ->
         '''
 
 test "tagged template literals must be called by an identifier", ->
-    assertErrorFormat "1''", '''
-        [stdin]:1:1: error: literal is not a function
-        1''
-        ^
-    '''
-    assertErrorFormat '1""', '''
-        [stdin]:1:1: error: literal is not a function
-        1""
-        ^
-    '''
-    assertErrorFormat "1'b'", '''
-        [stdin]:1:1: error: literal is not a function
-        1'b'
-        ^
-    '''
-    assertErrorFormat '1"b"', '''
-        [stdin]:1:1: error: literal is not a function
-        1"b"
-        ^
-    '''
-    assertErrorFormat "1'''b'''", """
-        [stdin]:1:1: error: literal is not a function
-        1'''b'''
-        ^
-    """
-    assertErrorFormat '1"""b"""', '''
-        [stdin]:1:1: error: literal is not a function
-        1"""b"""
-        ^
-    '''
-    assertErrorFormat '1"#{b}"', '''
-        [stdin]:1:1: error: literal is not a function
-        1"#{b}"
-        ^
-    '''
-    assertErrorFormat '1"""#{b}"""', '''
-        [stdin]:1:1: error: literal is not a function
-        1"""#{b}"""
-        ^
-    '''
+    
+    # these throw a different error in koffee, see optional_commata
+    
+    #assertErrorFormat "1''", '''
+    #    [stdin]:1:1: error: literal is not a function
+    #    1''
+    #    ^
+    #'''
+    #assertErrorFormat '1""', '''
+    #    [stdin]:1:1: error: literal is not a function
+    #    1""
+    #    ^
+    #'''
+    #assertErrorFormat "1'b'", '''
+    #    [stdin]:1:1: error: literal is not a function
+    #    1'b'
+    #    ^
+    #'''
+    #assertErrorFormat '1"b"', '''
+    #    [stdin]:1:1: error: literal is not a function
+    #    1"b"
+    #    ^
+    #'''
+    #assertErrorFormat "1'''b'''", """
+    #    [stdin]:1:1: error: literal is not a function
+    #    1'''b'''
+    #    ^
+    #"""
+    #assertErrorFormat '1"""b"""', '''
+    #    [stdin]:1:1: error: literal is not a function
+    #    1"""b"""
+    #    ^
+    #'''
+    #assertErrorFormat '1"#{b}"', '''
+    #    [stdin]:1:1: error: literal is not a function
+    #    1"#{b}"
+    #    ^
+    #'''
+    #assertErrorFormat '1"""#{b}"""', '''
+    #    [stdin]:1:1: error: literal is not a function
+    #    1"""#{b}"""
+    #    ^
+    #'''
 
 test "can't use pattern matches for loop indices", ->
     assertErrorFormat 'a for b, {c} in d', '''

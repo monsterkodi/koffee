@@ -33,6 +33,7 @@ test "console shortcut works", ->
     check 'log "1#{a}"', 'console.log("1'
     check 'warn "1#{a}"', 'console.warn("1'
     check 'error "1#{a}"', 'console.error("1'
+    check 'log @variable', 'console.log(this.variable)'
     
 test "console shortcut keep non calls", ->
 

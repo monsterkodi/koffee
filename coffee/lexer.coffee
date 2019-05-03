@@ -854,23 +854,21 @@ class Lexer
     # If not specified, the length of `value` will be used. Returns the new token.
     
     token: (tag, value, offsetInChunk, length, origin) ->
+        
         token = @makeToken tag, value, offsetInChunk, length
         token.origin = origin if origin
         @tokens.push token
         token
 
-    # Peek at the last tag in the token stream.
-    tag: ->
+    tag: -> # Peek at the last tag in the token stream.
         [..., token] = @tokens
         token?[0]
 
-    # Peek at the last value in the token stream.
-    value: ->
+    value: -> # Peek at the last value in the token stream.
         [..., token] = @tokens
         token?[1]
 
-    # Are we in the midst of an unfinished expression?
-    unfinished: ->
+    unfinished: -> # Are we in the midst of an unfinished expression?
         LINE_CONTINUER.test(@chunk) or
         @tag() in UNFINISHED
 

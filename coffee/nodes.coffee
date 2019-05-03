@@ -701,9 +701,12 @@ exports.Comment = class Comment extends Base
 # Node for a function invocation.
     
 exports.Call = class Call extends Base
+    
     @: (@variable, @args = [], @soak) ->
-        @isNew      = false
+        
+        @isNew = false
         if @variable instanceof Value and @variable.isNotCallable()
+            log @variable
             @variable.error "literal is not a function"
 
     children: ['variable', 'args']

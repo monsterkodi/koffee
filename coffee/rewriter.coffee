@@ -148,8 +148,8 @@ class Rewriter
                     tokens.splice i+1, 0, @generate ',', ','
                     return 2
                     
-                if @tag(i) in [']', ')'] and tokens[i].spaced and @tag(i+1) in ['NUMBER', 'STRING', 'STRING_START', 'IDENTIFIER', 'PROPERTY', '{', '(', '[']  
-                    tokens[i].optional_commata = true
+                # if @tag(i) in [']', ')'] and tokens[i].spaced and @tag(i+1) in ['NUMBER', 'STRING', 'STRING_START', 'IDENTIFIER', 'PROPERTY', '{', '(', '[']  
+                    # tokens[i].optional_commata = true
                         
             1
 
@@ -257,6 +257,7 @@ class Rewriter
     # Look for signs of implicit calls and objects in the token stream and add them.
         
     addImplicitBracesAndParens: ->
+
         # Track current balancing depth (both implicit and explicit) on stack.
         stack = []
         start = null

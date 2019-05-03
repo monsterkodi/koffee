@@ -61,18 +61,7 @@ test "optional commata", ->
                 a: 1,
                 b: 2
             }
-        ];"""   
-        
-    # doesNotThrow -> compile "a [2] [3]"
-    # log compile "a = [ 1 [2] [3]]"
-    # log compile "a = [ 1 [2] [3]]"
-    # check "a = [ [1] [2] ]", """
-        # a = [
-            # {
-                # a: 1,
-                # b: 2
-            # }
-        # ];"""   
+        ];"""
         
 assertErrorFormat = (code, expectedErrorFormat) ->
     throws (-> Koffee.run code), (err) ->

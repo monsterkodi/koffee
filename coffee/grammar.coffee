@@ -214,8 +214,8 @@ grammar =
         o 'HERECOMMENT',                                                                   -> new Comment $1
     ]
 
-    # The **Code** node is the function literal. It's defined by an indented block
-    # of **Block** preceded by a function arrow, with an optional parameter list.
+    # The Code node is the function literal. It's defined by an indented block
+    # of Block preceded by a function arrow, with an optional parameter list.
     
     Code: [
         o 'PARAM_START ParamList PARAM_END FuncGlyph Block',                               -> new Code $2, $5, $4
@@ -229,8 +229,6 @@ grammar =
         o '=>',                                                                            -> 'boundfunc'
     ]
 
-    # An optional, trailing comma.
-    
     OptComma: [
         o ''
         o ','
@@ -300,9 +298,9 @@ grammar =
     # The general group of accessors into an object, by property, by prototype or by array index or slice.
     
     Accessor: [
-        o '.    Property',                                                                 -> new Access $2
-        o '?. Property',                                                                   -> new Access $2, 'soak'
-        o ':: Property',                                                                   -> [LOC(1)(new Access new PropertyName('prototype')), LOC(2)(new Access $2)]
+        o '.   Property',                                                                  -> new Access $2
+        o '?.  Property',                                                                  -> new Access $2, 'soak'
+        o '::  Property',                                                                  -> [LOC(1)(new Access new PropertyName('prototype')), LOC(2)(new Access $2)]
         o '?:: Property',                                                                  -> [LOC(1)(new Access new PropertyName('prototype'), 'soak'), LOC(2)(new Access $2)]
         o '::',                                                                            -> new Access new PropertyName 'prototype'
         o 'Index'
@@ -556,9 +554,9 @@ grammar =
     # Comprehensions can either be normal, with a block of expressions to execute, or postfix, with a single expression.
     
     For: [
-        o 'Statement    ForBody',                                                          -> new For $1, $2
+        o 'Statement ForBody',                                                             -> new For $1, $2
         o 'Expression ForBody',                                                            -> new For $1, $2
-        o 'ForBody      Block',                                                            -> new For $2, $1
+        o 'ForBody Block',                                                                 -> new For $2, $1
     ]
 
     ForBody: [
@@ -636,7 +634,7 @@ grammar =
     If: [
         o 'IfBlock'
         o 'IfBlock ELSE Block',                                                            -> $1.addElse $3
-        o 'Statement    POST_IF Expression',                                               -> new If $3, LOC(1)(Block.wrap [$1]), type: $2, statement: true
+        o 'Statement POST_IF Expression',                                                  -> new If $3, LOC(1)(Block.wrap [$1]), type: $2, statement: true
         o 'Expression POST_IF Expression',                                                 -> new If $3, LOC(1)(Block.wrap [$1]), type: $2, statement: true
     ]
 
@@ -660,16 +658,16 @@ grammar =
         o 'Expression + Expression',                                                       -> new Op '+' , $1, $3
         o 'Expression - Expression',                                                       -> new Op '-' , $1, $3
 
-        o 'Expression MATH     Expression',                                              -> new Op $2, $1, $3
-        o 'Expression **       Expression',                                          -> new Op $2, $1, $3
-        o 'Expression SHIFT    Expression',                                              -> new Op $2, $1, $3
-        o 'Expression COMPARE  Expression',                                              -> new Op $2, $1, $3
-        o 'Expression &        Expression',                                          -> new Op $2, $1, $3
-        o 'Expression ^        Expression',                                          -> new Op $2, $1, $3
-        o 'Expression |        Expression',                                          -> new Op $2, $1, $3
-        o 'Expression &&       Expression',                                          -> new Op $2, $1, $3
-        o 'Expression ||       Expression',                                          -> new Op $2, $1, $3
-        o 'Expression BIN?     Expression',                                              -> new Op $2, $1, $3
+        o 'Expression MATH     Expression',                                                -> new Op $2, $1, $3
+        o 'Expression **       Expression',                                                -> new Op $2, $1, $3
+        o 'Expression SHIFT    Expression',                                                -> new Op $2, $1, $3
+        o 'Expression COMPARE  Expression',                                                -> new Op $2, $1, $3
+        o 'Expression &        Expression',                                                -> new Op $2, $1, $3
+        o 'Expression ^        Expression',                                                -> new Op $2, $1, $3
+        o 'Expression |        Expression',                                                -> new Op $2, $1, $3
+        o 'Expression &&       Expression',                                                -> new Op $2, $1, $3
+        o 'Expression ||       Expression',                                                -> new Op $2, $1, $3
+        o 'Expression BIN?     Expression',                                                -> new Op $2, $1, $3
         o 'Expression RELATION Expression',                                                -> if $2.charAt(0) is '!' then new Op($2[1..], $1, $3).invert() else new Op $2, $1, $3
 
         o 'SimpleAssignable COMPOUND_ASSIGN Expression',                                   -> new Assign $1, $3, $2

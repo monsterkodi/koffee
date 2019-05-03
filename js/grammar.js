@@ -241,11 +241,11 @@
             }), o('This')
         ],
         Accessor: [
-            o('.    Property', function() {
+            o('.   Property', function() {
                 return new Access($2);
-            }), o('?. Property', function() {
+            }), o('?.  Property', function() {
                 return new Access($2, 'soak');
-            }), o(':: Property', function() {
+            }), o('::  Property', function() {
                 return [LOC(1)(new Access(new PropertyName('prototype'))), LOC(2)(new Access($2))];
             }), o('?:: Property', function() {
                 return [LOC(1)(new Access(new PropertyName('prototype'), 'soak')), LOC(2)(new Access($2))];
@@ -576,11 +576,11 @@
             })
         ],
         For: [
-            o('Statement    ForBody', function() {
+            o('Statement ForBody', function() {
                 return new For($1, $2);
             }), o('Expression ForBody', function() {
                 return new For($1, $2);
-            }), o('ForBody      Block', function() {
+            }), o('ForBody Block', function() {
                 return new For($2, $1);
             })
         ],
@@ -713,7 +713,7 @@
         If: [
             o('IfBlock'), o('IfBlock ELSE Block', function() {
                 return $1.addElse($3);
-            }), o('Statement    POST_IF Expression', function() {
+            }), o('Statement POST_IF Expression', function() {
                 return new If($3, LOC(1)(Block.wrap([$1])), {
                     type: $2,
                     statement: true

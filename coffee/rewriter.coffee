@@ -149,7 +149,9 @@ class Rewriter
                     return 2
                     
                 # if @tag(i) in [']', ')'] and tokens[i].spaced and @tag(i+1) in ['NUMBER', 'STRING', 'STRING_START', 'IDENTIFIER', 'PROPERTY', '{', '(', '[']  
-                    # tokens[i].optional_commata = true
+                    # walk backwards until matching bracket is found
+                        # bail if identifier or other non POD is found
+                        # if matching bracket is not preceded by identifier than insert comma
                         
             1
 

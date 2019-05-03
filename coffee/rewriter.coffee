@@ -137,16 +137,12 @@ class Rewriter
                    
             if hasFeature @opts, 'console_shortcut'
             
-                if @check i, [{IDENTIFIER:'log'}, {IDENTIFIER:'warn'}, {IDENTIFIER:'error'}], i+1, ['STRING_END', 'STRING', 'NUMBER', 'IDENTIFIER', 'CALL_START', '[', '(', '{']
+                if @check i, [{IDENTIFIER:'log'}, {IDENTIFIER:'warn'}, {IDENTIFIER:'error'}], i+1, ['NUMBER', 'IDENTIFIER', 'STRING', 'STRING_START', 'CALL_START', '[', '(', '{']
                     token[0] = 'PROPERTY'
                     tokens.splice i, 0, @generate('IDENTIFIER', 'console', token), @generate('.', '.', token)
                     return 3
-                
             1
-                
             
-    # replace `[-1]` with `[-1..-1]` after identifier, string, array, brackets
-    
     negativeIndex: ->
 
         @scanTokens (token, i, tokens) ->

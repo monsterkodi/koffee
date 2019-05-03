@@ -2,7 +2,7 @@ require('../../js/helpers').initTest() if not global.test
 
 compile = (s) -> Koffee.compile s, bare:true
 
-test "konsole shortcut works", ->
+test "console shortcut works", ->
 
     check = (c,p) -> notEqual -1, compile(c).indexOf p
 
@@ -12,6 +12,18 @@ test "konsole shortcut works", ->
     check 'log a', 'console.log(a);'
     check 'warn a', 'console.warn(a);'
     check 'error a', 'console.error(a);'
+    check 'log(a)', 'console.log(a);'
+    check 'warn(a)', 'console.warn(a);'
+    check 'error(a)', 'console.error(a);'
+    check 'log (a)', 'console.log(a);'
+    check 'warn (a)', 'console.warn(a);'
+    check 'error (a)', 'console.error(a);'
+    check 'log [a]', 'console.log([a]);'
+    check 'warn [a]', 'console.warn([a]);'
+    check 'error [a]', 'console.error([a]);'
+    check 'log {a:1}', 'console.log({'
+    check 'warn {a:1}', 'console.warn({'
+    check 'error {a:1}', 'console.error({'
     check 'log 1', 'console.log(1);'
     check 'warn 1', 'console.warn(1);'
     check 'error 1', 'console.error(1);'
@@ -19,14 +31,16 @@ test "konsole shortcut works", ->
     check 'warn "1"', 'console.warn("1");'
     check 'error "1"', 'console.error("1");'
     
-test "konsole shortcut keep non calls", ->
+test "console shortcut keep non calls", ->
 
     check = (c,p='console') -> eq -1, compile(c).indexOf p
     
     check 'log'
     check 'log = b'
     check 'b = log'
+    check 'Math.log 10'
     check 'f log, b'
+    
     check """
         try 
             log:log 

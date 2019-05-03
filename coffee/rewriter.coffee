@@ -137,7 +137,7 @@ class Rewriter
                    
             if hasFeature @opts, 'console_shortcut'
             
-                if @check i, [{IDENTIFIER:'log'}, {IDENTIFIER:'warn'}, {IDENTIFIER:'error'}], i+1, ['STRING_END', 'STRING', 'NUMBER', 'IDENTIFIER']
+                if @check i, [{IDENTIFIER:'log'}, {IDENTIFIER:'warn'}, {IDENTIFIER:'error'}], i+1, ['STRING_END', 'STRING', 'NUMBER', 'IDENTIFIER', 'CALL_START', '[', '(', '{']
                     token[0] = 'PROPERTY'
                     tokens.splice i, 0, @generate('IDENTIFIER', 'console', token), @generate('.', '.', token)
                     return 3

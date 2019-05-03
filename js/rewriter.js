@@ -146,7 +146,7 @@
                         }, {
                             IDENTIFIER: 'error'
                         }
-                    ], i + 1, ['STRING_END', 'STRING', 'NUMBER', 'IDENTIFIER'])) {
+                    ], i + 1, ['STRING_END', 'STRING', 'NUMBER', 'IDENTIFIER', 'CALL_START', '[', '(', '{'])) {
                         token[0] = 'PROPERTY';
                         tokens.splice(i, 0, this.generate('IDENTIFIER', 'console', token), this.generate('.', '.', token));
                         return 3;

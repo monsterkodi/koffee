@@ -86,7 +86,7 @@ exports.Base = class Base
     compileToFragments: (o, lvl) ->
         
         o = injectFeature o
-        # log 'compileToFragments', o.feature
+        # log 'compileToFragments', o.level
         o.level  = lvl if lvl
         node     = @unfoldSoak(o) or this
         node.tab = o.indent
@@ -255,15 +255,12 @@ exports.Base = class Base
 # 000   000  000      000   000  000       000  000   
 # 0000000    0000000   0000000    0000000  000   000  
 
-# The block is the list of expressions that forms the body of an
-# indented block of code -- the implementation of a function, a clause in an
-# `if`, `switch`, or `try`, and so on...
+# The block is the list of expressions that forms the body of an indented block of code 
+# -- the implementation of a function, a clause in an `if`, `switch`, or `try`, and so on...
 
 exports.Block = class Block extends Base
     
-    @: (nodes) ->
-        
-        @expressions = compact flatten nodes or []
+    @: (nodes) -> @expressions = compact flatten nodes or []
 
     children: ['expressions']
 
@@ -298,8 +295,7 @@ exports.Block = class Block extends Base
         for exp in @expressions
             return jumpNode if jumpNode = exp.jumps o
 
-    # A Block node does not return its entire body, rather it
-    # ensures that the final expression is returned.
+    # A Block node does not return its entire body, rather it ensures that the final expression is returned.
     
     makeReturn: (res) ->
         
@@ -318,8 +314,8 @@ exports.Block = class Block extends Base
         if o.scope then super o, level else @compileRoot o
 
     # Compile all expressions within the **Block** body. If we need to
-    # return the result, and it's an expression, simply return it. If it's a
-    # statement, ask the statement to do so.
+    # return the result, and it's an expression, simply return it. 
+    # If it's a statement, ask the statement to do so.
     
     compileNode: (o) ->
         
@@ -355,12 +351,20 @@ exports.Block = class Block extends Base
             answer = [@makeCode "void 0"]
         if compiledNodes.length > 1 and o.level >= LEVEL_LIST then @wrapInBraces answer else answer
 
-    # If we happen to be the top-level **Block**, wrap everything in
-    # a safety closure, unless requested not to.
-    # It would be better not to generate them in the first place, but for now,
-    # clean up obvious double-parentheses.
+    #  0000000   0000000   00     00  00000000   000  000      00000000  00000000    0000000    0000000   000000000  
+    # 000       000   000  000   000  000   000  000  000      000       000   000  000   000  000   000     000     
+    # 000       000   000  000000000  00000000   000  000      0000000   0000000    000   000  000   000     000     
+    # 000       000   000  000 0 000  000        000  000      000       000   000  000   000  000   000     000     
+    #  0000000   0000000   000   000  000        000  0000000  00000000  000   000   0000000    0000000      000     
+    
+    # If we happen to be the top-level Block, wrap everything in a safety closure, unless requested not to.
+    # It would be better not to generate them in the first place, but for now, clean up obvious double-parentheses.
     
     compileRoot: (o) ->
+        
+        # o2 = Object.assign {}, o
+        # delete o2.referencedVars 
+        # log 'Block.compileRoot', o2
         
         o.indent = if o.bare then '' else TAB
         o.level  = LEVEL_TOP
@@ -385,8 +389,7 @@ exports.Block = class Block extends Base
         return fragments if o.bare
         [].concat prelude, @makeCode("(function() {\n"), fragments, @makeCode("\n}).call(this);\n")
 
-    # Compile the expressions body for the contents of a function, with
-    # declarations of all inner variables pushed up to the top.
+    # Compile the expressions body for the contents of a function, with declarations of all inner variables pushed up to the top.
     
     compileWithDeclarations: (o) ->
         
@@ -432,8 +435,8 @@ exports.Block = class Block extends Base
 # 000      000     000     000       000   000  000   000  000      
 # 0000000  000     000     00000000  000   000  000   000  0000000  
 
-# `Literal` is a base class for static values that can be passed through
-# directly into JavaScript without translation, such as: strings, numbers, `true`, `false`, `null`...
+# `Literal` is a base class for static values that can be passed through directly into JavaScript without translation, 
+# such as: strings, numbers, `true`, `false`, `null`...
 
 exports.Literal = class Literal extends Base
     
@@ -706,7 +709,7 @@ exports.Call = class Call extends Base
         
         @isNew = false
         if @variable instanceof Value and @variable.isNotCallable()
-            log @variable
+            # log @variable
             @variable.error "literal is not a function"
 
     children: ['variable', 'args']

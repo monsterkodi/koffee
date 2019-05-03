@@ -1027,7 +1027,6 @@
             this.soak = soak1;
             this.isNew = false;
             if (this.variable instanceof Value && this.variable.isNotCallable()) {
-                console.log(this.variable);
                 this.variable.error("literal is not a function");
             }
         }

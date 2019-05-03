@@ -77,11 +77,11 @@ The same goes for objects that span over multiple lines.
 In **koffee**, you don't need to insert the commata in some cases. 
 Those are all valid koffee code lines:
 
-```coffeescript
-     a = [ 1 2 3 ]               # a = [ 1, 2, 3 ]    
-     b = { a:1 b:'2' d:3 }       # b = { a:1, b:'2', d:3 }     
-     b =   a:1 b:'2' d:3         # b =   a:1, b:'2', d:3     
-     log "value" a               # log "value", a    
+```
+     a = [ 1 2 3 ]           # a = [ 1, 2, 3 ]    
+     b = { a:1 b:'2' d:3 }   # b = { a:1, b:'2', d:3 }     
+     b =   a:1 b:'2' d:3     # b =   a:1, b:'2', d:3     
+     log 'a:' a, 'b:' b      # log 'a:', a, 'b:', b    
 ```
 
 ## Config arguments

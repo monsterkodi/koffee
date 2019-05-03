@@ -32,9 +32,9 @@ o = (patternString, action, options) ->
     action = action.replace /\bnew /g, '$&yy.'
     action = action.replace /\b(?:Block\.wrap|extend)\b/g, 'yy.$&'
 
-    # Returns a function which adds location data to the first parameter passed
-    # in, and returns the parameter.    If the parameter is not a node, it will
-    # just be passed through unaffected.
+    # Returns a function which adds location data to the first parameter passed in, and returns the parameter.    
+    # If the parameter is not a node, it will just be passed through unaffected.
+    
     addLocationDataFn = (first, last) ->
         if not last
             "yy.addLocationDataFn(@#{first})"

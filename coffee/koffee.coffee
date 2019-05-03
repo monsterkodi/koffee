@@ -327,9 +327,7 @@ parser.lexer =
         
 parser.yy = require './nodes' # Make all the AST nodes visible to the parser.
 
-# Override Jison's default error handling function.
-
-parser.yy.parseError = (message, {token}) ->
+parser.yy.parseError = (message, {token}) -> # Override Jison's default error handling function.
     
     # Disregard Jison's message, it contains redundant line number information.
     # Disregard the token, we take its value directly from the lexer in case

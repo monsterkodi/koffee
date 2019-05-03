@@ -74,15 +74,18 @@ Coffeescript has a very nice way of initializing arrays:
 If you decide to join these into a single line, you have a problem: for each of the lines you have to insert a comma.
 The same goes for objects that span over multiple lines. 
 
-In **koffee**, you don't need to insert the commata in some cases. 
-Those are all valid koffee code lines:
+In **koffee**, you don't need to insert the commata after string and number primitives.
+Those are all valid koffee expressions:
 
 ```
-     a = [ 1 2 3 ]           # a = [ 1, 2, 3 ]    
-     b = { a:1 b:'2' d:3 }   # b = { a:1, b:'2', d:3 }     
-     b =   a:1 b:'2' d:3     # b =   a:1, b:'2', d:3     
-     log 'a:' a, 'b:' b      # log 'a:', a, 'b:', b    
+     a = [ 1 2 3 ]           
+     a = { b:1 c:2 d:3 }   
+     a =   b:1 c:2 d:3
+     a =   b:[ c:2 'd' 3 ]  
+     log 'a:' a , 'd:' 3      
 ```
+
+We are probably reaching the limits of minimalism here.
 
 ## Config arguments
 

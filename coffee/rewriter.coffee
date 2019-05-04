@@ -80,9 +80,15 @@ class Rewriter
         
         break for [tag], i in @tokens when tag != 'TERMINATOR'
         @tokens.splice 0, i if i
-    
-    doesMatch: (index, match) ->
         
+    #  0000000  000   000  00000000   0000000  000   000  
+    # 000       000   000  000       000       000  000   
+    # 000       000000000  0000000   000       0000000    
+    # 000       000   000  000       000       000  000   
+    #  0000000  000   000  00000000   0000000  000   000  
+
+    doesMatch: (index, match) ->
+        # log 'doesMatch', index, @tag(index), match
         if typeof(match) == 'string'
             @tag(index) == match
         else if match.constructor == Object
@@ -92,12 +98,6 @@ class Rewriter
             t[0] == key and t[1] == val
         else
             false
-    
-    #  0000000  000   000  00000000   0000000  000   000  
-    # 000       000   000  000       000       000  000   
-    # 000       000000000  0000000   000       0000000    
-    # 000       000   000  000       000       000  000   
-    #  0000000  000   000  00000000   0000000  000   000  
     
     check: -> 
                 
@@ -137,9 +137,9 @@ class Rewriter
                    
             if hasFeature @opts, 'console_shortcut'
             
-                if @check i, [{IDENTIFIER:'log'}, {IDENTIFIER:'warn'}, {IDENTIFIER:'error'}], i+1, ['NUMBER', 'IDENTIFIER', 'STRING', 'STRING_START', 'CALL_START', '[', '(', '{', '@']
+                if @check i, [{IDENTIFIER:'log'}, {IDENTIFIER:'warn'}, {IDENTIFIER:'error'}], i+1, ['NUMBER', 'IDENTIFIER', 'PROPERTY', 'STRING', 'STRING_START', 'CALL_START', '[', '(', '{', '@']
                     token[0] = 'PROPERTY'
-                    tokens.splice i, 0, @generate('IDENTIFIER', 'console'), @generate('.', '.')
+                    tokens.splice i, 0, @generate('IDENTIFIER', 'console', token), @generate('.', '.', token)
                     return 3
                     
             if hasFeature @opts, 'optional_commata'
@@ -148,11 +148,27 @@ class Rewriter
                     tokens.splice i+1, 0, @generate ',', ','
                     return 2
                     
-                # if @tag(i) in [']', ')'] and tokens[i].spaced and @tag(i+1) in ['NUMBER', 'STRING', 'STRING_START', 'IDENTIFIER', 'PROPERTY', '{', '(', '[']  
-                    # walk backwards until matching bracket is found
-                        # bail if identifier or other non POD is found
-                        # if matching bracket is not preceded by identifier than insert comma
-                        
+                if @tag(i) in [']'] and tokens[i].spaced and @tag(i+1) in ['NUMBER', 'STRING', 'STRING_START', 'IDENTIFIER', 'PROPERTY', '{', '(', '[']  
+                    open = '['
+                    close = ']'
+                    pushed = 0
+                    j = i
+                    while j-- # walk backwards until matching bracket is found
+                        current = @tag(j)
+                        if current == close
+                            pushed++
+                        else if current == open
+                            if pushed
+                                pushed--
+                            if pushed == 0 # matching bracket found
+                                # if matching bracket is not preceded by identifier than insert comma
+                                if j == 0 or @tag(j-1) not in ['IDENTIFIER', 'CALL_END'] 
+                                    tokens.splice i+1, 0, @generate ',', ','
+                                    break
+                                        
+                        else if current not in ['NUMBER', 'STRING', 'PROPERTY', ':', ',']
+                            # bail if identifier or other non POD is found
+                            break
             1
 
     findMatchingTokenBackwards: (token, i, tokens) -> 

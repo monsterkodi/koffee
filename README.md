@@ -51,7 +51,7 @@ Simple shortcuts for `log`, `warn` and `error` methods of `console`.
 
 By the way, did I mention that all **koffee** features are individually toggleable? 
 E.g., this one can be deactivated by passing the commandline flag `--no-console-shortcut` to the *koffee* command or by
-setting a flag in the options when the calling module methods:
+setting a flag in the options when calling module methods:
 
 ```coffeescript
     koffee = require 'koffee'
@@ -60,9 +60,8 @@ setting a flag in the options when the calling module methods:
 
 ## Optional Commata
 
-Still here? Nice!
-
 Coffeescript has a very nice way of initializing arrays:
+
 ```coffeescript
      a = [
         1
@@ -74,7 +73,7 @@ Coffeescript has a very nice way of initializing arrays:
 If you decide to join these into a single line, you have a problem: for each of the lines a comma must be inserted.
 The same goes for objects that span over multiple lines. 
 
-In **koffee**, you don't need to insert commata after string and number primitives.
+In **koffee**, you don't need to insert commata after number or string primitives and POD structures.
 Those are all valid expressions:
 
 ```
@@ -82,12 +81,15 @@ Those are all valid expressions:
      a = { b:1 c:2 d:3 }   
      a =   b:1 c:2 d:3
      a =   b:[ c:2 'd' 3 ]  
+     a = [ [1 2] [d:3] ]
      log 'a:' a , 'd:' 3      
 ```
 
 We are probably reaching the limits of minimalism here :)
 
 ## Config arguments
+
+Still here? Nice!
 
 This feature might be easier to understand with a little bit of motivation up front: 
 

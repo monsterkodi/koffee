@@ -4,7 +4,10 @@ compile = (s) -> r = Koffee.compile s, bare:true; r
 
 test "optional commata", ->
 
-    check = (c,p) -> notEqual -1, compile(c).indexOf p
+    check = (c,p) -> 
+        js = compile(c)
+        if -1 == js.indexOf p
+            eq js, p
 
     check "a = [ 1 2 3 ]", "a = [1, 2, 3];"
     check "a = { a:1 b:2 }", """
@@ -62,6 +65,29 @@ test "optional commata", ->
                 b: 2
             }
         ];"""
+        
+    throws -> compile "[[][]]"
+    check "a = [ [] [] ]", "a = [[], []];"
+    check "a = [[] []]", "a = [[], []];"
+    check "a = [[[[[] []] [[] []]]]]", "a = [[[[[], []], [[], []]]]];"
+    check "a = [ [1 2] [3 '4'] ]", "a = [[1, 2], [3, '4']];"
+    check "a = [ [a:2] [b:'4'] [c:[]] ]", """
+        a = [
+            [
+                {
+                    a: 2
+                }
+            ], [
+                {
+                    b: '4'
+                }
+            ], [
+                {
+                    c: []
+                }
+            ]
+        ];"""    
+        
         
 assertErrorFormat = (code, expectedErrorFormat) ->
     throws (-> Koffee.run code), (err) ->

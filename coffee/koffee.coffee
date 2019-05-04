@@ -18,7 +18,7 @@ SourceMap = require './sourcemap'
 pkg       = require '../package.json'
 
 exports.VERSION = pkg.version
-exports.FILE_EXTENSIONS = FILE_EXTENSIONS = ['.coffee', '.koffee']
+exports.FILE_EXTENSIONS = FILE_EXTENSIONS = ['.coffee' '.koffee']
 
 exports.helpers = helpers
 
@@ -104,7 +104,7 @@ exports.compile = compile = withPrettyErrors (code, options) ->
         
     if not options.bare
         for token in tokens
-            if token[0] in ['IMPORT', 'EXPORT']
+            if token[0] in ['IMPORT' 'EXPORT']
                 options.bare = yes
                 break
 
@@ -247,14 +247,14 @@ exports.eval = (code, options = {}) ->
         else
             sandbox = global
         sandbox.__filename = options.filename || 'eval'
-        sandbox.__dirname    = path.dirname sandbox.__filename
+        sandbox.__dirname  = path.dirname sandbox.__filename
         # define module/require only if they chose not to specify their own
         unless sandbox != global or sandbox.module or sandbox.require
             Module = require 'module'
             sandbox.module  = _module    = new Module(options.modulename || 'eval')
             sandbox.require = _require = (path) ->  Module._load path, _module, true
             _module.filename = sandbox.__filename
-            for r in Object.getOwnPropertyNames require when r not in ['paths', 'arguments', 'caller']
+            for r in Object.getOwnPropertyNames require when r not in ['paths' 'arguments' 'caller']
                 _require[r] = require[r]
             # use the same hack node currently uses for their own REPL
             _require.paths = _module.paths = Module._nodeModulePaths process.cwd()
@@ -339,9 +339,9 @@ parser.yy.parseError = (message, {token}) -> # Override Jison's default error ha
     errorText = switch
         when errorToken is tokens[tokens.length - 1]
             'end of input'
-        when errorTag in ['INDENT', 'OUTDENT']
+        when errorTag in ['INDENT' 'OUTDENT']
             'indentation'
-        when errorTag in ['IDENTIFIER', 'NUMBER', 'INFINITY', 'STRING', 'STRING_START', 'REGEX', 'REGEX_START']
+        when errorTag in ['IDENTIFIER' 'NUMBER' 'INFINITY' 'STRING' 'STRING_START' 'REGEX' 'REGEX_START']
             errorTag.replace(/_START$/, '').toLowerCase()
         else
             nameWhitespaceCharacter errorText

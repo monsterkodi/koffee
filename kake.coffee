@@ -87,7 +87,7 @@ spawnTest = (testset) ->
     
     node ['bin/kake', testset], 'both'
         
-task 'all',      'build twice, run the tests',    -> build -> build -> node ['bin/kake', 'test'], 'both'
+task 'all',      'build twice, run the tests',    -> build -> build -> node ['bin/kake' 'test'], 'both'
 task 'build',    'build the compiler and parser', build
 task 'parser',   'build the parser',              buildParser
 task 'compiler', 'build the compiler',            buildCompiler
@@ -134,7 +134,7 @@ task 'watch', 'rebuild and/or test on file changes', ->
 task 'bench', 'benchmark of compilation time', ->
     
     {Rewriter}  = require './js/rewriter'
-    sources     = ['koffee', 'grammar', 'helpers', 'lexer', 'nodes', 'rewriter', 'scope']
+    sources     = ['koffee' 'grammar' 'helpers' 'lexer' 'nodes' 'rewriter' 'scope']
     coffee      = sources.map((name) -> fs.readFileSync "coffee/#{name}.coffee").join '\n'
     fmt         = (ms) -> " #{bold}#{ "     #{ms}".slice -4 }#{reset} ms"
     total       = 0
@@ -217,7 +217,7 @@ runTests = (testsets) ->
     
     return failedTests
 
-task 'test',   'run the tests',    -> process.exit runTests ['koffee', 'coffee']
+task 'test',   'run the tests',    -> process.exit runTests ['koffee' 'coffee']
 task 'coffee', 'run coffee tests', -> process.exit runTests ['coffee']
 task 'koffee', 'run koffee tests', -> process.exit runTests ['koffee']
 

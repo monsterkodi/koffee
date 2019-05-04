@@ -66,6 +66,10 @@ test "optional commata", ->
             }
         ];"""
         
+    check "undefined", "void 0" # wtf?
+    check "a = [undefined, undefined]", "a = [void 0, void 0]" # wtf?
+    check "a = ['a' null undefined true false]", "a = ['a', null, void 0, true, false]"
+        
     throws -> compile "[[][]]"
     check "a = [ [] [] ]", "a = [[], []];"
     check "a = [[] []]", "a = [[], []];"

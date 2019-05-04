@@ -40,23 +40,23 @@ hidden    = (file) -> /^\.|~$/.test file
 BANNER = "Usage: koffee [options] path/to/script -- [args]"
 
 SWITCHES = [
-    ['-b', '--bare',              'compile without a top-level function wrapper',          Boolean        ]
-    ['-c', '--compile',           'compile to JavaScript and save as .js files',           Boolean        ]
-    ['-e', '--eval [STRING]',     'pass a string from the command line as input',         [String, Array] ]
-    ['-f', '--features',          'list available features',                               Boolean        ]
-    ['',   '--no-[feature]',      'disable a feature, e.g. --no-negative-index',           null           ]
-    ['-h', '--help',              'display this help message',                             Boolean        ]
-    ['-j', '--js',                'print out the compiled JavaScript',                     Boolean        ]
-    ['-m', '--map',               'generate source map and save as .js.map files',         Boolean        ]
-    ['-M', '--inline-map',        'generate source map and include it directly in output', Boolean        ]
-    ['-n', '--noop',              'does nothing, for debugging purposes',                  Boolean        ]
-    ['-o', '--output [DIR]',      'set the output directory for compiled JavaScript',      String         ]
-    ['-p', '--parse',             'print out the parse tree that the parser produces',     Boolean        ]
-    ['-r', '--require [MODULE]',  'require the given module before eval or REPL',         [String, Array] ]
-    ['-s', '--stdio',             'listen for and compile scripts over stdio',             Boolean        ]
-    ['-t', '--tokens',            'print out the tokens that the lexer/rewriter produce',  Boolean        ]
-    ['-v', '--version',           'display the version number',                            Boolean        ]
-    ['-w', '--watch',             'watch scripts for changes and rerun commands',          Boolean        ]
+    ['-b' '--bare'              'compile without a top-level function wrapper'          Boolean        ]
+    ['-c' '--compile'           'compile to JavaScript and save as .js files'           Boolean        ]
+    ['-e' '--eval [STRING]'     'pass a string from the command line as input'         [String, Array] ]
+    ['-f' '--features'          'list available features'                               Boolean        ]
+    [''   '--no-[feature]'      'disable a feature, e.g. --no-negative-index',          null           ]
+    ['-h' '--help'              'display this help message'                             Boolean        ]
+    ['-j' '--js'                'print out the compiled JavaScript'                     Boolean        ]
+    ['-m' '--map'               'generate source map and save as .js.map files'         Boolean        ]
+    ['-M' '--inline-map'        'generate source map and include it directly in output' Boolean        ]
+    ['-n' '--noop'              'does nothing, for debugging purposes'                  Boolean        ]
+    ['-o' '--output [DIR]'      'set the output directory for compiled JavaScript'      String         ]
+    ['-p' '--parse'             'print out the parse tree that the parser produces'     Boolean        ]
+    ['-r' '--require [MODULE]'  'require the given module before eval or REPL'         [String, Array] ]
+    ['-s' '--stdio'             'listen for and compile scripts over stdio'             Boolean        ]
+    ['-t' '--tokens'            'print out the tokens that the lexer/rewriter produce'  Boolean        ]
+    ['-v' '--version'           'display the version number'                            Boolean        ]
+    ['-w' '--watch'             'watch scripts for changes and rerun commands'          Boolean        ]
 ]
 
 opts = {}
@@ -69,9 +69,6 @@ opts = {}
 
 parseOptions = ->
 
-    toggles = [ 'bare', 'compile', 'features', 'help', 'inline-map', 'js', 'map', 
-                'parse', 'stdio', 'tokens','version', 'watch', 'Debug' ] 
-    
     known = {Debug:Boolean}
     short = {D:'--Debug'}
     SWITCHES.map (s) -> l = s[1].split(' ')[0][2..]; known[l] = s[3] if s[3]; short[s[0][1]] = "--#{l}" if s[0]!=''
@@ -79,8 +76,6 @@ parseOptions = ->
     
     o = opts = nopt known, short
         
-    # log o
-    
     o.compile  or= !!o.output
     o.arguments  = o.argv.remain
     o.run        = not (o.compile or o.js or o.map or o.tokens or o.parse)
@@ -130,7 +125,7 @@ run = ->
         if opts.watch
             watchPath source
         else
-            compilePath source, yes
+            compilePath source, topLevel:yes
 
 exports.run = run
         
@@ -161,7 +156,7 @@ makePrelude = (requires) ->
 
 # Compile a script or a directory. If a directory is passed, recursively compile all '.coffee' and '.koffee' files.
 
-compilePath = (source, topLevel = no) ->
+compilePath = (source, topLevel:topLevel=no) ->
 
     return if not topLevel and hidden source
               
@@ -175,11 +170,11 @@ compilePath = (source, topLevel = no) ->
         
     if stats.isDirectory()
         
-        if path.basename(source) in ['node_modules', '.git']
+        if path.basename(source) in ['node_modules' '.git']
             return
             
         if opts.run
-            compilePath findDirectoryIndex(source), topLevel
+            compilePath findDirectoryIndex(source), topLevel:topLevel
             return
                  
         log 'Command.compilePath dir:', source if opts.Debug
@@ -240,10 +235,7 @@ compileScript = (code, source = null) ->
         else if o.run
             Koffee.register()
             Koffee.eval opts.prelude, t.options if opts.prelude
-            # log "Command.compileScript Koffee.run code:", t.code if opts.Debug
             t.options.filename ?= options.source
-            # log "Command.compileScript Koffee.run options:", t.options if opts.Debug
-            # log "Command.compileScript Koffee.run task:", t if opts.Debug
             if opts.noop then log "noop run #{source}"
             else
                 Koffee.run t.code, t.options
@@ -494,7 +486,7 @@ printTokens = (tokens) ->
             print 'IND '
         else if tag == 'OUTDENT'
             print 'OUT '
-        else if tag in ['CLASS', 'PARAM_START', 'PARAM_END', 'NULL']
+        else if tag in ['CLASS' 'PARAM_START' 'PARAM_END' 'NULL']
             print "#{index} #{tag} "
         else if tag is value
             print "#{index} #{tag} "

@@ -880,7 +880,7 @@ exports.SuperCall = class SuperCall extends Call
             # log "SuperCall.superReference #{method.name} dadumm!"
             "#{method.name}.__super__.constructor"
         else
-            @error 'cannot call super outside of an instance method.'
+            @error 'cannot call super outside of an instance method. ' + method
 
     # The appropriate `this` value for a `super` call.
         

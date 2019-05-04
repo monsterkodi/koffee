@@ -6,20 +6,17 @@
 0000000    0000000   0000000   000        00000000  
 ###
 
-# The **Scope** class regulates lexical scoping within Koffee. As you
-# generate code, you create a tree of scopes in the same shape as the nested
-# function bodies. Each scope knows about the variables declared within it,
-# and has a reference to its parent enclosing scope. In this way, we know which
-# variables are new and need to be declared with `var`, and which are shared
-# with external scopes.
+# The Scope class regulates lexical scoping. 
+# As you generate code, you create a tree of scopes in the same shape as the nested function bodies. 
+# Each scope knows about the variables declared within it, and has a reference to its parent enclosing scope. 
+# In this way, we know which variables are new and need to be declared with `var`, and which are shared with external scopes.
 
 exports.Scope = class Scope
 
     # Initialize a scope with its parent, for lookups up the chain,
-    # as well as a reference to the **Block** node it belongs to, which is
-    # where it should declare its variables, a reference to the function that
-    # it belongs to, and a list of variables referenced in the source code
-    # and therefore should be avoided when generating variables.
+    # as well as a reference to the **Block** node it belongs to, 
+    # which is where it should declare its variables, a reference to the function that it belongs to, 
+    # and a list of variables referenced in the source code and therefore should be avoided when generating variables.
     
     @: (@parent, @expressions, @method, @referencedVars) ->
         @variables = [{name: 'arguments', type: 'arguments'}]

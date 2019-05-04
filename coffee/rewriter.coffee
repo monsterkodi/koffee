@@ -8,28 +8,22 @@
 
 { hasFeature } = require './helpers'
 
-# The language has a good deal of optional syntax, implicit syntax,
-# and shorthand syntax. This can greatly complicate a grammar and bloat
-# the resulting parse table. Instead of making the parser handle it all, we take
-# a series of passes over the token stream, using this **Rewriter** to convert
-# shorthand into the unambiguous long form, add implicit indentation and
-# parentheses, and generally clean things up.
+# The language has a good deal of optional, implicit and shorthand syntax. 
+# This can greatly complicate a grammar and bloat the resulting parse table. 
+# Instead of making the parser handle it all, we take a series of passes over the token stream, 
+# using this **Rewriter** to convert shorthand into the unambiguous long form, 
+# add implicit indentation and parentheses, and generally clean things up.
 # The Rewriter is used by the Lexer, directly against its internal array of tokens.
 
 class Rewriter
 
-    # Rewrite the token stream in multiple passes, one logical filter at
-    # a time. This could certainly be changed into a single pass through the
-    # stream, with a big ol' efficient switch, but it's much nicer to work with
-    # like this. The order of these passes matters -- indentation must be
-    # corrected before implicit parentheses can be wrapped around blocks of code.
+    # Rewrite the token stream in multiple passes, one logical filter at a time. 
+    # This could certainly be changed into a single pass through the stream, with a big switch, 
+    # but it's much nicer to work with like this. 
+    # The order of these passes matters -- indentation must be corrected before implicit parentheses can be wrapped around blocks of code.
     
     rewrite: (@tokens, @opts) ->
         
-        # log 'Rewriter.rewrite', @opts
-        # Helpful snippet for debugging:
-        # log (t[0] + '/' + t[1] for t in @tokens).join ' '
-            
         @removeLeadingNewlines()
         
         @shortcuts() # koffee
@@ -50,8 +44,7 @@ class Rewriter
     # Rewrite the token stream, looking one token ahead and behind.
     # Allow the return value of the block to tell us how many tokens to move
     # forwards (or backwards) in the stream, to make sure we don't miss anything
-    # as tokens are inserted and removed, and the stream changes length under
-    # our feet.
+    # as tokens are inserted and removed, and the stream changes length under our feet.
     
     scanTokens: (block) ->
         
@@ -88,7 +81,7 @@ class Rewriter
     #  0000000  000   000  00000000   0000000  000   000  
 
     doesMatch: (index, match) ->
-        # log 'doesMatch', index, @tag(index), match
+
         if typeof(match) == 'string'
             @tag(index) == match
         else if match.constructor == Object
@@ -118,6 +111,25 @@ class Rewriter
                     return false
         true
         
+    findMatchingTagBackwards: (close, i, check) -> 
+        
+        open = {']':'[', PARAM_END:'PARAM_START'}[close]
+        pushed = 0
+        j = i
+        while j-- # walk backwards until matching tag is found
+            current = @tag(j)
+            if current == close
+                pushed++
+            else if current == open
+                if pushed
+                    pushed--
+                else if pushed == 0 # matching bracket found
+                    return index:j
+            else if check? and not check current 
+                break
+
+        index:-1
+        
     #  0000000  000   000   0000000   00000000   000000000   0000000  000   000  000000000   0000000  
     # 000       000   000  000   000  000   000     000     000       000   000     000     000       
     # 0000000   000000000  000   000  0000000       000     000       000   000     000     0000000   
@@ -130,51 +142,32 @@ class Rewriter
 
             if hasFeature @opts, 'constructor_shortcut'
                 
-                if @check i-1, '@', i, ':', i+1, ['->', 'PARAM_START', 'IDENTIFIER']
+                if @check i-1, '@', i, ':', i+1, ['->' 'PARAM_START' 'IDENTIFIER']
                     tokens[i-1][0] = 'PROPERTY'
                     tokens[i-1][1] = 'constructor'
                     return 1
                    
             if hasFeature @opts, 'console_shortcut'
             
-                if @check i, [{IDENTIFIER:'log'}, {IDENTIFIER:'warn'}, {IDENTIFIER:'error'}], i+1, ['NUMBER', 'IDENTIFIER', 'PROPERTY', 'STRING', 'STRING_START', 'CALL_START', '[', '(', '{', '@']
+                if @check i, [{IDENTIFIER:'log'} {IDENTIFIER:'warn'} {IDENTIFIER:'error'}], i+1, ['NUMBER' 'IDENTIFIER' 'PROPERTY' 'STRING' 'STRING_START' 'CALL_START' '[' '(' '{' '@']
                     token[0] = 'PROPERTY'
                     tokens.splice i, 0, @generate('IDENTIFIER', 'console', token), @generate('.', '.', token)
                     return 3
                     
             if hasFeature @opts, 'optional_commata'
                 
-                if @check i, ['NUMBER', 'STRING', 'STRING_END', '}'], i+1, ['NUMBER', 'STRING', 'STRING_START', 'IDENTIFIER', 'PROPERTY', '{', '(', '[']  
+                if @check i, ['NUMBER' 'STRING' 'NULL' 'UNDEFINED' 'BOOL' 'STRING_END', '}'], i+1, ['NUMBER' 'STRING' 'NULL' 'UNDEFINED' 'BOOL' 'STRING_START' 'IDENTIFIER' 'PROPERTY' '{' '(' '[']  
                     tokens.splice i+1, 0, @generate ',', ','
                     return 2
                     
-                if @tag(i) in [']'] and tokens[i].spaced and @tag(i+1) in ['NUMBER', 'STRING', 'STRING_START', 'IDENTIFIER', 'PROPERTY', '{', '(', '[']  
-                    open = '['
-                    close = ']'
-                    pushed = 0
-                    j = i
-                    while j-- # walk backwards until matching bracket is found
-                        current = @tag(j)
-                        if current == close
-                            pushed++
-                        else if current == open
-                            if pushed
-                                pushed--
-                            if pushed == 0 # matching bracket found
-                                # if matching bracket is not preceded by identifier than insert comma
-                                if j == 0 or @tag(j-1) not in ['IDENTIFIER', 'CALL_END'] 
-                                    tokens.splice i+1, 0, @generate ',', ','
-                                    break
-                                        
-                        else if current not in ['NUMBER', 'STRING', 'PROPERTY', ':', ',']
-                            # bail if identifier or other non POD is found
-                            break
+                if @tag(i) in [']'] and tokens[i].spaced and @tag(i+1) in ['NUMBER' 'STRING' 'STRING_START' 'IDENTIFIER' 'PROPERTY' '{' '(' '[']  
+                    match = @findMatchingTagBackwards @tag(i), i, (tag) -> tag in ['NUMBER' 'STRING' 'PROPERTY' ':' ',']
+                    if match.index >= 0
+                        # insert comma if matching bracket is not preceded by identifier or end of call
+                        if match.index == 0 or @tag(match.index-1) not in ['IDENTIFIER' 'CALL_END'] 
+                            tokens.splice i+1, 0, @generate ',', ','
+                            return 2
             1
-
-    findMatchingTokenBackwards: (token, i, tokens) -> 
-        
-        match = index:-1
-        match
     
     negativeIndex: ->
 
@@ -184,7 +177,7 @@ class Rewriter
                 if @tag(i-2) == 'IDENTIFIER'
                     tokens.splice i, 0, @generate(tokens[i-2][0], tokens[i-2][1]), @generate('.', '.'), @generate('PROPERTY', 'length')                    
                     return 5
-                if @tag(i-2) in ['STRING', 'STRING_END', ']', ')']
+                if @tag(i-2) in ['STRING' 'STRING_END' ']' ')']
                     tokens.splice i+2, 0, @generate('..', '..'), @generate(tokens[i][0], tokens[i][1]), @generate(tokens[i+1][0], tokens[i+1][1])
                     if @tag(i-2) in [']', ')']
                         tokens.splice i+6, 0, @generate('INDEX_START', '['), @generate('NUMBER', '0'), @generate('INDEX_END', ']')
@@ -194,6 +187,62 @@ class Rewriter
                     log @tag(i-2)
             1
         
+    #  0000000   0000000   000   000  00000000  000   0000000   00000000    0000000   00000000    0000000   00     00   0000000  
+    # 000       000   000  0000  000  000       000  000        000   000  000   000  000   000  000   000  000   000  000       
+    # 000       000   000  000 0 000  000000    000  000  0000  00000000   000000000  0000000    000000000  000000000  0000000   
+    # 000       000   000  000  0000  000       000  000   000  000        000   000  000   000  000   000  000 0 000       000  
+    #  0000000   0000000   000   000  000       000   0000000   000        000   000  000   000  000   000  000   000  0000000   
+    
+    configParameters: ->
+        
+        dictParamStart = 0
+        dictParamEnd   = 0
+        stackCount     = 0
+        
+        isInside = -> dictParamStart and not stackCount
+        
+        @scanTokens (token, i, tokens) ->
+
+            [tag]     = token
+            [prevTag] = prevToken = if i > 0 then tokens[i - 1] else []
+            [nextTag] = if i < tokens.length - 1 then tokens[i + 1] else []
+            
+            if tag is '{'
+                
+                if prevTag == 'PARAM_START' or prevTag not in ['[', '{'] and @findMatchingTagBackwards('PARAM_END', i).index >= 0
+                    if not dictParamStart
+                        dictParamStart = i
+                    else
+                        stackCount++
+                else if dictParamStart
+                    stackCount++
+            else if tag is '}'
+                if dictParamStart 
+                    if not stackCount
+                        dictParamEnd = i
+                        dictParamStart = 0
+                    else
+                        stackCount--
+            else 
+                if isInside()
+                    if tag == ':'
+                        if nextTag not in ['IDENTIFIER' '@']
+                            val = tokens[i-1][1] # copy value from property token
+                            if @tag(i-2) == '@'
+                                [thisToken] = tokens.splice i-2, 1 # pull the @ out
+                                tokens.splice i,   0, thisToken    # insert it after :
+                                tokens.splice i+1, 0, @generate '=', '='
+                                tokens.splice i+1, 0, @generate 'PROPERTY', val
+                            else
+                                tokens.splice i+1, 0, @generate '=', '='
+                                tokens.splice i+1, 0, @generate 'IDENTIFIER', val
+                            return 2
+                    if tag == '='
+                        if nextTag in [',', '}']
+                            tokens.splice i+1, 0, @generate 'NULL', 'null'
+                            return 2
+            1
+                 
     # The lexer has tagged the opening parenthesis of a method call. Match it with
     # its paired close. We have the mis-nested outdent case included here for
     # calls that close on the same line, just before their outdent.
@@ -201,7 +250,7 @@ class Rewriter
     closeOpenCalls: ->
         
         condition = (token, i) ->
-            token[0] in [')', 'CALL_END'] or
+            token[0] in [')' 'CALL_END'] or
             token[0] is 'OUTDENT' and @tag(i - 1) is ')'
 
         action = (token, i) ->
@@ -217,7 +266,7 @@ class Rewriter
     closeOpenIndexes: ->
         
         condition = (token, i) ->
-            token[0] in [']', 'INDEX_END']
+            token[0] in [']' 'INDEX_END']
 
         action = (token, i) ->
             token[0] = 'INDEX_END'
@@ -329,8 +378,7 @@ class Rewriter
                 i += 1
 
             # Don't end an implicit call on next indent if any of these are in an argument
-            if inImplicitCall() and tag in ['IF', 'TRY', 'FINALLY', 'CATCH',
-                'CLASS', 'SWITCH']
+            if inImplicitCall() and tag in ['IF' 'TRY' 'FINALLY' 'CATCH' 'CLASS' 'SWITCH']
                 stack.push ['CONTROL', i, ours: yes]
                 return forward(1)
 
@@ -341,7 +389,7 @@ class Rewriter
                 #    1. We have seen a `CONTROL` argument on the line.
                 #    2. The last token before the indent is part of the list below
                 #
-                if prevTag not in ['=>', '->', '[', '(', ',', '{', 'TRY', 'ELSE', '=']
+                if prevTag not in ['=>' '->' '[' '(' ',' '{' 'TRY' 'ELSE' '=']
                     endImplicitCall() while inImplicitCall()
                 stack.pop() if inImplicitControl()
                 stack.push [tag, i]
@@ -401,8 +449,7 @@ class Rewriter
             
             if tag in IMPLICIT_FUNC and
                  @indexOfTag(i + 1, 'INDENT') > -1 and @looksObjectish(i + 2) and
-                 not @findTagsBackwards(i, ['CLASS', 'EXTENDS', 'IF', 'CATCH',
-                    'SWITCH', 'LEADING_WHEN', 'FOR', 'WHILE', 'UNTIL'])
+                 not @findTagsBackwards(i, ['CLASS' 'EXTENDS' 'IF' 'CATCH' 'SWITCH' 'LEADING_WHEN' 'FOR' 'WHILE' 'UNTIL'])
                 startImplicitCall i + 1
                 stack.push ['INDENT', i + 2]
                 return forward(3)
@@ -499,62 +546,7 @@ class Rewriter
                 while inImplicitObject()
                     endImplicitObject i + offset
             return forward(1)
-
-    #  0000000   0000000   000   000  00000000  000   0000000   00000000    0000000   00000000    0000000   00     00   0000000  
-    # 000       000   000  0000  000  000       000  000        000   000  000   000  000   000  000   000  000   000  000       
-    # 000       000   000  000 0 000  000000    000  000  0000  00000000   000000000  0000000    000000000  000000000  0000000   
-    # 000       000   000  000  0000  000       000  000   000  000        000   000  000   000  000   000  000 0 000       000  
-    #  0000000   0000000   000   000  000       000   0000000   000        000   000  000   000  000   000  000   000  0000000   
-    
-    configParameters: ->
-        
-        dictParamStart = 0
-        dictParamEnd   = 0
-        stackCount     = 0
-        
-        isInside = -> dictParamStart and not stackCount
-        
-        @scanTokens (token, i, tokens) ->
-
-            [tag]     = token
-            [prevTag] = prevToken = if i > 0 then tokens[i - 1] else []
-            [nextTag] = if i < tokens.length - 1 then tokens[i + 1] else []
-            
-            if tag is '{'
-                if prevTag is 'PARAM_START' 
-                    if not dictParamStart
-                        dictParamStart = i
-                    else
-                        stackCount++
-                else if dictParamStart
-                    stackCount++
-            else if tag is '}'
-                if dictParamStart 
-                    if not stackCount
-                        dictParamEnd = i
-                        dictParamStart = 0
-                    else
-                        stackCount--
-            else 
-                if isInside()
-                    if tag == ':'
-                        if nextTag not in ['IDENTIFIER', '@']
-                            val = tokens[i-1][1] # copy value from property token
-                            if @tag(i-2) == '@'
-                                [thisToken] = tokens.splice i-2, 1 # pull the @ out
-                                tokens.splice i,   0, thisToken    # insert it after :
-                                tokens.splice i+1, 0, @generate '=', '='
-                                tokens.splice i+1, 0, @generate 'PROPERTY', val
-                            else
-                                tokens.splice i+1, 0, @generate '=', '='
-                                tokens.splice i+1, 0, @generate 'IDENTIFIER', val
-                            return 2
-                    if tag == '='
-                        if nextTag in [',', '}']
-                            tokens.splice i+1, 0, @generate 'NULL', 'null'
-                            return 2
-            1
-                        
+       
     # 000       0000000    0000000   0000000   000000000  000   0000000   000   000  
     # 000      000   000  000       000   000     000     000  000   000  0000  000  
     # 000      000   000  000       000000000     000     000  000   000  000 0 000  
@@ -615,7 +607,7 @@ class Rewriter
             token[1] != ';' and token[0] in SINGLE_CLOSERS and
             not (token[0] is 'TERMINATOR' and @tag(i + 1) in EXPRESSION_CLOSE) and
             not (token[0] is 'ELSE' and starter != 'THEN') and
-            not (token[0] in ['CATCH', 'FINALLY'] and starter in ['->', '=>']) or
+            not (token[0] in ['CATCH' 'FINALLY'] and starter in ['->', '=>']) or
             token[0] in CALL_CLOSERS and
             (@tokens[i - 1].newLine or @tokens[i - 1][0] is 'OUTDENT')
 
@@ -632,7 +624,7 @@ class Rewriter
                     tokens.splice i, 1
                     return 0
             if tag is 'CATCH'
-                for j in [1..2] when @tag(i + j) in ['OUTDENT', 'TERMINATOR', 'FINALLY']
+                for j in [1..2] when @tag(i + j) in ['OUTDENT' 'TERMINATOR' 'FINALLY']
                     tokens.splice i + j, 0, @indentation()...
                     return 2 + j
             if tag in SINGLE_LINERS and @tag(i + 1) != 'INDENT' and
@@ -708,15 +700,15 @@ class Rewriter
 # List of the token pairs that must be balanced.
 
 BALANCED_PAIRS = [
-    ['(', ')']
-    ['[', ']']
-    ['{', '}']
-    ['INDENT', 'OUTDENT'],
-    ['CALL_START', 'CALL_END']
-    ['PARAM_START', 'PARAM_END']
-    ['INDEX_START', 'INDEX_END']
-    ['STRING_START', 'STRING_END']
-    ['REGEX_START', 'REGEX_END']
+    ['('')']
+    ['['']']
+    ['{''}']
+    ['INDENT''OUTDENT'],
+    ['CALL_START''CALL_END']
+    ['PARAM_START''PARAM_END']
+    ['INDEX_START''INDEX_END']
+    ['STRING_START''STRING_END']
+    ['REGEX_START''REGEX_END']
 ]
 
 # The inverse mappings of `BALANCED_PAIRS` we're trying to fix up, so we can look things up from either end.
@@ -733,34 +725,33 @@ for [left, rite] in BALANCED_PAIRS
     EXPRESSION_END  .push INVERSES[left] = rite
 
 # Tokens that indicate the close of a clause of an expression.
-EXPRESSION_CLOSE = ['CATCH', 'THEN', 'ELSE', 'FINALLY'].concat EXPRESSION_END
+EXPRESSION_CLOSE = ['CATCH' 'THEN' 'ELSE' 'FINALLY'].concat EXPRESSION_END
 
 # Tokens that, if followed by an `IMPLICIT_CALL`, indicate a function invocation.
-IMPLICIT_FUNC = ['IDENTIFIER', 'PROPERTY', 'SUPER', ')', 'CALL_END', ']', 'INDEX_END', '@', 'THIS']
+IMPLICIT_FUNC = ['IDENTIFIER' 'PROPERTY' 'SUPER' ')' 'CALL_END' ']' 'INDEX_END' '@' 'THIS']
 
 # If preceded by an `IMPLICIT_FUNC`, indicates a function invocation.
 IMPLICIT_CALL = [
-    'IDENTIFIER', 'PROPERTY', 'NUMBER', 'INFINITY', 'NAN'
-    'STRING', 'STRING_START', 'REGEX', 'REGEX_START', 'JS'
-    'NEW', 'PARAM_START', 'CLASS', 'IF', 'TRY', 'SWITCH', 'THIS'
-    'UNDEFINED', 'NULL', 'BOOL'
-    'UNARY', 'YIELD', 'UNARY_MATH', 'SUPER', 'THROW'
-    '@', '->', '=>', '[', '(', '{', '--', '++'
+    'IDENTIFIER' 'PROPERTY' 'NUMBER' 'INFINITY' 'NAN'
+    'STRING' 'STRING_START' 'REGEX' 'REGEX_START' 'JS'
+    'NEW' 'PARAM_START' 'CLASS' 'IF' 'TRY' 'SWITCH' 'THIS'
+    'UNDEFINED' 'NULL' 'BOOL'
+    'UNARY' 'YIELD' 'UNARY_MATH' 'SUPER' 'THROW'
+    '@' '->' '=>' '[' '(' '{' '--' '++'
 ]
 
-IMPLICIT_UNSPACED_CALL = ['+', '-']
+IMPLICIT_UNSPACED_CALL = ['+' '-']
 
 # Tokens that always mark the end of an implicit call for single-liners.
-IMPLICIT_END         = ['POST_IF', 'FOR', 'WHILE', 'UNTIL', 'WHEN', 'BY',
-    'LOOP', 'TERMINATOR']
+IMPLICIT_END = ['POST_IF' 'FOR' 'WHILE' 'UNTIL' 'WHEN' 'BY' 'LOOP' 'TERMINATOR']
 
 # Single-line flavors of block expressions that have unclosed endings.
 # The grammar can't disambiguate them, so we insert the implicit indentation.
-SINGLE_LINERS        = ['ELSE', '->', '=>', 'TRY', 'FINALLY', 'THEN']
-SINGLE_CLOSERS   = ['TERMINATOR', 'CATCH', 'FINALLY', 'ELSE', 'OUTDENT', 'LEADING_WHEN']
+SINGLE_LINERS  = ['ELSE' '->' '=>' 'TRY' 'FINALLY' 'THEN']
+SINGLE_CLOSERS = ['TERMINATOR' 'CATCH' 'FINALLY' 'ELSE' 'OUTDENT' 'LEADING_WHEN']
 
 # Tokens that end a line.
-LINEBREAKS           = ['TERMINATOR', 'INDENT', 'OUTDENT']
+LINEBREAKS = ['TERMINATOR' 'INDENT' 'OUTDENT']
 
 # Tokens that close open calls when they follow a newline.
-CALL_CLOSERS         = ['.', '?.', '::', '?::']
+CALL_CLOSERS = ['.' '?.' '::' '?::']

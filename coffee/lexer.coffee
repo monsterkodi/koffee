@@ -119,6 +119,7 @@ class Lexer
     # though `is` means `===` otherwise.
     
     identifierToken: ->
+        
         return 0 unless match = IDENTIFIER.exec @chunk
         [input, id, colon] = match
 
@@ -137,13 +138,13 @@ class Lexer
                 @tokens[@tokens.length - 1][0] = 'IMPORT_ALL'
             else if @value() in COFFEE_KEYWORDS
                 @tokens[@tokens.length - 1][0] = 'IDENTIFIER'
-            if @tag() in ['DEFAULT', 'IMPORT_ALL', 'IDENTIFIER']
+            if @tag() in ['DEFAULT' 'IMPORT_ALL' 'IDENTIFIER']
                 @token 'AS', id
                 return id.length
-        if id is 'as' and @seenExport and @tag() in ['IDENTIFIER', 'DEFAULT']
+        if id is 'as' and @seenExport and @tag() in ['IDENTIFIER' 'DEFAULT']
             @token 'AS', id
             return id.length
-        if id is 'default' and @seenExport and @tag() in ['EXPORT', 'AS']
+        if id is 'default' and @seenExport and @tag() in ['EXPORT' 'AS']
             @token 'DEFAULT', id
             return id.length
 
@@ -151,7 +152,7 @@ class Lexer
 
         tag =
             if colon or prev? and
-                 (prev[0] in ['.', '?.', '::', '?::'] or
+                 (prev[0] in ['.' '?.' '::' '?::'] or
                  not prev.spaced and prev[0] is '@')
                 'PROPERTY'
             else
@@ -194,12 +195,11 @@ class Lexer
                 alias = id
                 id = COFFEE_ALIAS_MAP[id]
             tag = switch id
-                when '!'                                 then 'UNARY'
-                when '==', '!='                  then 'COMPARE'
-                when 'true', 'false'         then 'BOOL'
-                when 'break', 'continue', \
-                         'debugger'                  then 'STATEMENT'
-                when '&&', '||'                  then id
+                when '!'                    then 'UNARY'
+                when '==', '!='             then 'COMPARE'
+                when 'true', 'false'        then 'BOOL'
+                when '&&', '||'             then id
+                when 'break', 'continue', 'debugger' then 'STATEMENT'
                 else    tag
 
         tagToken = @token tag, id, 0, idLength
@@ -937,13 +937,13 @@ class Lexer
         body = body.replace regex, (match, backslash, nul, delimiter, lf, cr, ls, ps, other) -> switch
             # Ignore escaped backslashes.
             when backslash then (if options.double then backslash + backslash else backslash)
-            when nul             then '\\x00'
+            when nul       then '\\x00'
             when delimiter then "\\#{delimiter}"
-            when lf              then '\\n'
-            when cr              then '\\r'
-            when ls              then '\\u2028'
-            when ps              then '\\u2029'
-            when other       then (if options.double then "\\#{other}" else other)
+            when lf        then '\\n'
+            when cr        then '\\r'
+            when ls        then '\\u2028'
+            when ps        then '\\u2029'
+            when other     then (if options.double then "\\#{other}" else other)
         "#{options.delimiter}#{body}#{options.delimiter}"
 
     # Throws an error at either a given offset from the current chunk or at the location of a token (`token[2]`).
@@ -992,7 +992,7 @@ isForFrom = (prev) ->
     else if prev[0] is 'FOR'
         no
     # `for {from}…`, `for [from]…`, `for {a, from}…`, `for {a: from}…`
-    else if prev[1] in ['{', '[', ',', ':']
+    else if prev[1] in ['{''['','':']
         no
     else
         yes
@@ -1008,18 +1008,15 @@ isForFrom = (prev) ->
 # Keywords that we share in common with JavaScript.
 
 JS_KEYWORDS = [
-    'true', 'false', 'null', 'this'
-    'new', 'delete', 'typeof', 'in', 'instanceof'
-    'return', 'throw', 'break', 'continue', 'debugger', 'yield'
-    'if', 'else', 'switch', 'for', 'while', 'do', 'try', 'catch', 'finally'
-    'class', 'extends', 'super'
-    'import', 'export', 'default'
+    'true' 'false' 'null' 'this'
+    'new' 'delete' 'typeof' 'in' 'instanceof'
+    'return' 'throw' 'break' 'continue' 'debugger' 'yield'
+    'if' 'else' 'switch' 'for' 'while' 'do' 'try' 'catch' 'finally'
+    'class' 'extends' 'super'
+    'import' 'export' 'default'
 ]
 
-COFFEE_KEYWORDS = [
-    'undefined', 'Infinity', 'NaN'
-    'then', 'unless', 'until', 'loop', 'of', 'by', 'when'
-]
+COFFEE_KEYWORDS = [ 'undefined' 'Infinity' 'NaN' 'then' 'unless' 'until' 'loop' 'of' 'by' 'when' ]
 
 COFFEE_ALIAS_MAP =
     and  : '&&'
@@ -1039,12 +1036,12 @@ COFFEE_KEYWORDS = COFFEE_KEYWORDS.concat COFFEE_ALIASES
 # We throw an error when these are encountered, to avoid having a JavaScript error at runtime.
 
 RESERVED = [
-    'case', 'function', 'var', 'void', 'with', 'const', 'let', 'enum'
-    'native', 'implements', 'interface', 'package', 'private'
-    'protected', 'public', 'static'
+    'case' 'function' 'var' 'void' 'with' 'const' 'let' 'enum'
+    'native' 'implements' 'interface' 'package' 'private'
+    'protected' 'public' 'static'
 ]
 
-STRICT_PROSCRIBED = ['arguments', 'eval']
+STRICT_PROSCRIBED = ['arguments' 'eval']
 
 # The superset of both JavaScript keywords and reserved words, none of which may
 # be used as identifiers or properties.
@@ -1169,32 +1166,32 @@ TRAILING_SPACES     = /\s+$/
 
 # Compound assignment tokens.
 COMPOUND_ASSIGN = [
-    '-=', '+=', '/=', '*=', '%=', '||=', '&&=', '?=', '<<=', '>>=', '>>>='
-    '&=', '^=', '|=', '**=', '//=', '%%='
+    '-=' '+=' '/=' '*=' '%=' '||=' '&&=' '?=' '<<=' '>>=' '>>>='
+    '&=' '^=' '|=' '**=' '//=' '%%='
 ]
 
-UNARY = ['NEW', 'TYPEOF', 'DELETE', 'DO']
+UNARY = ['NEW' 'TYPEOF' 'DELETE' 'DO']
 
-UNARY_MATH = ['!', '~']
+UNARY_MATH = ['!' '~']
 
-SHIFT = ['<<', '>>', '>>>']
+SHIFT = ['<<' '>>' '>>>']
 
-COMPARE = ['==', '!=', '<', '>', '<=', '>=']
+COMPARE = ['==' '!=' '<' '>' '<=' '>=']
 
-MATH = ['*', '/', '%', '//', '%%']
+MATH = ['*' '/' '%' '//' '%%']
 
-RELATION = ['IN', 'OF', 'INSTANCEOF'] # Relational tokens that are negatable with `not` prefix.
+RELATION = ['IN' 'OF' 'INSTANCEOF'] # Relational tokens that are negatable with `not` prefix.
 
-BOOL = ['TRUE', 'FALSE']
+BOOL = ['TRUE' 'FALSE']
 
 # Tokens which could legitimately be invoked or indexed. An opening
 # parentheses or bracket following these tokens will be recorded as the start
 # of a function invocation or indexing operation.
 
-CALLABLE  = ['IDENTIFIER', 'PROPERTY', ')', ']', '?', '@', 'THIS', 'SUPER']
+CALLABLE  = ['IDENTIFIER' 'PROPERTY' ')' ']' '?' '@' 'THIS' 'SUPER']
 INDEXABLE = CALLABLE.concat [
-    'NUMBER', 'INFINITY', 'NAN', 'STRING', 'STRING_END', 'REGEX', 'REGEX_END'
-    'BOOL', 'NULL', 'UNDEFINED', '}', '::'
+    'NUMBER' 'INFINITY' 'NAN' 'STRING' 'STRING_END' 'REGEX' 'REGEX_END'
+    'BOOL' 'NULL' 'UNDEFINED' '}' '::'
 ]
 
 # Tokens which a regular expression will never immediately follow (except spaced
@@ -1202,22 +1199,22 @@ INDEXABLE = CALLABLE.concat [
 #
 # See: http://www-archive.mozilla.org/js/language/js20-2002-04/rationale/syntax.html#regular-expressions
 
-NOT_REGEX = INDEXABLE.concat ['++', '--']
+NOT_REGEX = INDEXABLE.concat ['++' '--']
 
 # Tokens that, when immediately preceding a `WHEN`, indicate that the `WHEN`
 # occurs at the start of a line. We disambiguate these from trailing whens to
 # avoid an ambiguity in the grammar.
 
-LINE_BREAK = ['INDENT', 'OUTDENT', 'TERMINATOR']
+LINE_BREAK = ['INDENT' 'OUTDENT' 'TERMINATOR']
 
 # Additional indent in front of these is ignored.
 
-INDENTABLE_CLOSERS = [')', '}', ']']
+INDENTABLE_CLOSERS = [')' '}' ']']
 
 # Tokens that, when appearing at the end of a line, suppress a following TERMINATOR/INDENT token
 
-UNFINISHED = ['\\', '.', '?.', '?::', 'UNARY', 'MATH', 'UNARY_MATH', '+', '-',
-              '**', 'SHIFT', 'RELATION', 'COMPARE', '&', '^', '|', '&&', '||',
-              'BIN?', 'THROW', 'EXTENDS']
+UNFINISHED = ['\\' '.' '?.' '?::' 'UNARY' 'MATH' 'UNARY_MATH' '+' '-'
+              '**' 'SHIFT' 'RELATION' 'COMPARE' '&' '^' '|' '&&' '||'
+              'BIN?' 'THROW' 'EXTENDS']
               
 COMMENT    = /^###([^#][\s\S]*?)(?:###[^\n\S]*|###$)|^(?:\s*#(?!##[^#]).*)+/              

@@ -308,6 +308,48 @@ test "config parameters shortcut", ->
         eq a, 1
         eq b, 3
     ) b:3
+
+    ((a:false, b:2) ->
+        eq a, false
+        eq b, 3
+    ) b:3
+
+    ((a:yes, b:2) ->
+        eq a, true
+        eq b, 3
+    ) b:3
+
+    ((a, b:no) ->
+        eq a, 1
+        eq b, false
+    ) 1, {}
+    
+test "config parameters mixed", ->    
+
+    ((c, a:1, b:2) ->
+        eq c, 0
+        eq a, 1
+        eq b, 2
+    ) 0, {}
+
+    ((c, a:1, b:2) ->
+        eq b, 3
+    ) 0, b:3
+
+    ((c, a:1, b:2, d=3) ->
+        eq c, 0
+        eq a, 1
+        eq b, 2
+        eq d, 3
+    ) 0, {}
+
+    ((a:1, b:2, c, d:3, e:4) ->
+        eq c, 'c'
+        eq a, 1
+        eq b, 2
+        eq d, 3
+        eq e, 4
+    ) {}, 'c', {}
     
 # 0000000    00000000  00000000   0000000   000   000  000      000000000   0000000  
 # 000   000  000       000       000   000  000   000  000         000     000       
@@ -395,17 +437,7 @@ test "config parameters collections", ->
 # 000000000  000  0000000   000       
 # 000 0 000  000       000  000       
 # 000   000  000  0000000    0000000  
-    
-test "config parameters invalid", ->    
-
-    throws -> Koffee.compile "(c, a:1, b:2) ->"
-    throws -> Koffee.compile "F = (c, a:1, b:2) ->"
-    throws -> Koffee.compile "(one, two, {three, four: five}, key:1) ->"
-    throws -> Koffee.compile "
-        class A
-            @: ( arg, a:1, b:2 ) ->
-        "
-        
+            
 test "config parameters side effect", -> 
 
     # in CS1 these would have thrown compile errors ...

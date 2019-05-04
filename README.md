@@ -58,7 +58,7 @@ setting a flag in the options when calling module methods:
     koffee.compile code, feature:console_shortcut:false
 ```
 
-## Optional Commata
+## Optional commata
 
 Coffeescript has a very nice way of initializing arrays:
 

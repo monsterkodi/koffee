@@ -225,30 +225,30 @@ findDirectoryIndex = (source) ->
 # Compile a single source script, containing the given code, according to the requested options. 
 # If evaluating the script directly sets `__filename`, `__dirname` and `module.filename` to be correct relative to the script's path.
 
-compileScript = (input, file = null) ->
+compileScript = (code, source = null) ->
     
     o = opts
-    options = compileOptions file
+    options = compileOptions source
     
     try
-        t = task = {file, input, options}
+        t = task = {source, code, options}
         Koffee.emit 'compile', task
         if o.tokens
-            printTokens Koffee.tokens t.input, t.options
+            printTokens Koffee.tokens t.code, t.options
         else if o.parse
-            printLine Koffee.nodes(t.input, t.options).toString().trim()
+            printLine Koffee.nodes(t.code, t.options).toString().trim()
         else if o.run
             Koffee.register()
             Koffee.eval opts.prelude, t.options if opts.prelude
-            # log "Command.compileScript Koffee.run input:", t.input if opts.Debug
+            # log "Command.compileScript Koffee.run code:", t.code if opts.Debug
             t.options.filename ?= options.source
             # log "Command.compileScript Koffee.run options:", t.options if opts.Debug
             # log "Command.compileScript Koffee.run task:", t if opts.Debug
-            if opts.noop then log "noop run #{file}"
+            if opts.noop then log "noop run #{source}"
             else
-                Koffee.run t.input, t.options
+                Koffee.run t.code, t.options
         else
-            compiled = Koffee.compile t.input, t.options
+            compiled = Koffee.compile t.code, t.options
             t.output = compiled
             if o.map
                 t.output = compiled.js
@@ -257,13 +257,13 @@ compileScript = (input, file = null) ->
             Koffee.emit 'success', task
             
             if o.js
-                if opts.noop then log "noop js #{file}"
+                if opts.noop then log "noop js #{source}"
                 else 
                     printLine t.output.trim()
             else if o.compile or o.map
                 if opts.noop then log "noop write #{options.jsPath}"
                 else
-                    writeJs t.file, t.output, options.jsPath, t.sourceMap
+                    writeJs t.source, t.output, options.jsPath, t.sourceMap
     catch err
         
         Koffee.emit 'failure', err, task

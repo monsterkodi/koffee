@@ -252,24 +252,24 @@
         return process.exit(1);
     };
 
-    compileScript = function(input, file) {
+    compileScript = function(code, source) {
         var base, compiled, err, message, o, options, t, task;
-        if (file == null) {
-            file = null;
+        if (source == null) {
+            source = null;
         }
         o = opts;
-        options = compileOptions(file);
+        options = compileOptions(source);
         try {
             t = task = {
-                file: file,
-                input: input,
+                source: source,
+                code: code,
                 options: options
             };
             Koffee.emit('compile', task);
             if (o.tokens) {
-                return printTokens(Koffee.tokens(t.input, t.options));
+                return printTokens(Koffee.tokens(t.code, t.options));
             } else if (o.parse) {
-                return printLine(Koffee.nodes(t.input, t.options).toString().trim());
+                return printLine(Koffee.nodes(t.code, t.options).toString().trim());
             } else if (o.run) {
                 Koffee.register();
                 if (opts.prelude) {
@@ -279,12 +279,12 @@
                     base.filename = options.source;
                 }
                 if (opts.noop) {
-                    return console.log("noop run " + file);
+                    return console.log("noop run " + source);
                 } else {
-                    return Koffee.run(t.input, t.options);
+                    return Koffee.run(t.code, t.options);
                 }
             } else {
-                compiled = Koffee.compile(t.input, t.options);
+                compiled = Koffee.compile(t.code, t.options);
                 t.output = compiled;
                 if (o.map) {
                     t.output = compiled.js;
@@ -293,7 +293,7 @@
                 Koffee.emit('success', task);
                 if (o.js) {
                     if (opts.noop) {
-                        return console.log("noop js " + file);
+                        return console.log("noop js " + source);
                     } else {
                         return printLine(t.output.trim());
                     }
@@ -301,7 +301,7 @@
                     if (opts.noop) {
                         return console.log("noop write " + options.jsPath);
                     } else {
-                        return writeJs(t.file, t.output, options.jsPath, t.sourceMap);
+                        return writeJs(t.source, t.output, options.jsPath, t.sourceMap);
                     }
                 }
             }

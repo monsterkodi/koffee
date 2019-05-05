@@ -2941,16 +2941,24 @@ exports.MetaIf = class MetaIf extends Base
     
     compileNode: (o) ->
               
-        # log 'MetaIf compileStatement @condition\n'#, stringify @condition
+        log 'MetaIf compileStatement @condition\n', stringify @condition
         
         info = reduce:true
         
-        if @condition.base.value == 'this'
+        if @condition.base?.value == 'this' 
             metaKey = @condition.properties?[0]?.name?.value
             if typeof o.meta[metaKey] == 'function'
                 info = o.meta[metaKey] o, @
                 log "meta #{metaKey} info:", info
-
+        else if @condition.variable?.base?.value == 'this'
+            metaKey = @condition.variable.properties?[0]?.name?.value
+            log 'call with args', metaKey
+            if typeof o.meta[metaKey] == 'function'
+                args = @condition.args.map (a) -> a.base.value
+                log "meta #{metaKey} args:", args
+                info = o.meta[metaKey] options:o, node:@, args:args
+                log "meta #{metaKey} info:", info
+            
         if not info.code
             conditionFragments = @condition.compileToFragments o, LEVEL_PAREN
             info.code = fragmentsToText conditionFragments
@@ -2970,11 +2978,11 @@ exports.MetaIf = class MetaIf extends Base
                     return @elseBody.compileToFragments o
             return code: ''
         else
-            child  = del o, 'chainChild'
+            # child  = del o, 'chainChild'
             indent = o.indent + TAB
             body   = @ensureBlock(@body).compileToFragments merge o, {indent}
             ifPart = [].concat @makeCode("if ("), code:info.code, @makeCode(") {\n"), body, @makeCode("\n#{@tab}}")
-            ifPart.unshift @makeCode @tab if not child
+            # ifPart.unshift @makeCode @tab if not child
             return ifPart unless @elseBody
             answer = ifPart.concat @makeCode(' else ')
             if @isChain

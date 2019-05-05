@@ -6,14 +6,14 @@
 000   000  00000000     000     000   000  
 ###
 
-randMeta    = -> code:'Math.random() < 0.5' reduce:false
-codeMeta    = -> 
-testMeta    = -> 
-tokenMeta   = -> 
-parseMeta   = -> 
-debugMeta   = -> 
-assertMeta  = -> 
-profileMeta = -> 
+randMeta    = (o) -> code:"Math.random() < #{o.args?[0] ? 0.5}" reduce:false
+codeMeta     = () -> 
+testMeta     = () -> 
+tokenMeta    = () -> 
+parseMeta    = () -> 
+debugMeta    = () -> 
+assertMeta   = () -> 
+profileMeta  = () -> 
 
 META = [
     { key: 'token'   desc: 'tokenized expression' meta:tokenMeta   }

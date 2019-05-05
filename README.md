@@ -24,19 +24,15 @@ class C
 s = "abcde"
 
 s[-1]        # -> 'e'
-
 "abcde"[-2]  # -> 'd'
-
 ('cde')[-3]  # -> 'c'
-
 [1,2,3][-2]  # -> 2
 
 a = -2
-"abcde"[a]   # -> undefined
+s[a]         # -> undefined
 ```
 
-`v[-n]` is a shortcut for `v[-n..-n][0]` for number literals `n`.
-
+`v[-n]` is a shortcut for `v[-n..-n][0]` for number literals `n`. 
 Passing variables with negative values still returns *undefined*.
 
 ## Console shortcuts

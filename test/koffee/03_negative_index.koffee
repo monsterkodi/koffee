@@ -47,4 +47,9 @@ test "negative index", ->
     eq "a" + "b"[-1], 'ab'
     eq "a" + s[-1], 'af'
     
+    class A then @:(@t) -> 
+        deepEqual (@t)[-1], [2]
+        deepEqual @t[-1], [2]
+    new A [[1] [2]]
+    
     

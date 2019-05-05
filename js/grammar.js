@@ -699,6 +699,13 @@
                 return [[$2, $3]];
             })
         ],
+        MetaIfBlock: [
+            o('META_IF Expression Block', function() {
+                return new MetaIf($2, $3, {
+                    type: $1
+                });
+            })
+        ],
         IfBlock: [
             o('IF Expression Block', function() {
                 return new If($2, $3, {

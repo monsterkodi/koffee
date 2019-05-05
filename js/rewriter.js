@@ -209,19 +209,12 @@
 
         Rewriter.prototype.negativeIndex = function() {
             return this.scanTokens(function(token, i, tokens) {
-                var ref, ref1;
+                var ref;
                 if (this.check(i - 1, 'INDEX_START', i, '-', i + 1, 'NUMBER', i + 2, 'INDEX_END')) {
-                    if (this.tag(i - 2) === 'IDENTIFIER') {
-                        tokens.splice(i, 0, this.generate(tokens[i - 2][0], tokens[i - 2][1]), this.generate('.', '.'), this.generate('PROPERTY', 'length'));
-                        return 5;
-                    }
-                    if ((ref = this.tag(i - 2)) === 'STRING' || ref === 'STRING_END' || ref === ']' || ref === ')') {
+                    if ((ref = this.tag(i - 2)) === 'IDENTIFIER' || ref === 'PROPERTY' || ref === 'STRING' || ref === 'STRING_END' || ref === ']' || ref === ')') {
                         tokens.splice(i + 2, 0, this.generate('..', '..'), this.generate(tokens[i][0], tokens[i][1]), this.generate(tokens[i + 1][0], tokens[i + 1][1]));
-                        if ((ref1 = this.tag(i - 2)) === ']' || ref1 === ')') {
-                            tokens.splice(i + 6, 0, this.generate('INDEX_START', '['), this.generate('NUMBER', '0'), this.generate('INDEX_END', ']'));
-                            return 7;
-                        }
-                        return 4;
+                        tokens.splice(i + 6, 0, this.generate('INDEX_START', '['), this.generate('NUMBER', '0'), this.generate('INDEX_END', ']'));
+                        return 7;
                     } else {
                         console.log(this.tag(i - 2));
                     }

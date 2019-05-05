@@ -623,6 +623,10 @@ grammar =
 
     # The most basic form of *if* is a condition and an action. 
     # The following if-related rules are broken up along these lines in order to avoid ambiguity.
+
+    MetaIfBlock: [
+        o 'META_IF Expression Block',                                                      -> new MetaIf $2, $3, type: $1
+    ]
     
     IfBlock: [
         o 'IF Expression Block',                                                           -> new If $2, $3, type: $1

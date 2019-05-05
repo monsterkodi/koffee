@@ -5,46 +5,46 @@ is a clone of [Coffeescript](http://coffeescript.org) (Version 1) with a few enh
 ## Constructor shortcut
 
 ```coffeescript
-    class C
-    
-        @: ->           
+class C
+
+    @: ->           
 ```
 
 ... is an *optional* shortcut for ...
 
 ```coffeescript
-    class C          
-        
-        constructor: -> 
+class C          
+    
+    constructor: -> 
 ```
 
 ## Negative indexing
 
 ```coffeescript
-    s = "abcde"
-    
-    s[-1]        # -> 'e'
-    
-    "abcde"[-2]  # -> 'd'
-    
-    ('cde')[-3]  # -> 'c'
-    
-    [1,2,3][-2]  # -> 2
+s = "abcde"
+
+s[-1]        # -> 'e'
+
+"abcde"[-2]  # -> 'd'
+
+('cde')[-3]  # -> 'c'
+
+[1,2,3][-2]  # -> 2
+
+a = -2
+"abcde"[a]   # -> undefined
 ```
 
-`v[-n]` is a shortcut for
-- `v[-n..-n]`     for strings 
-- `v[v.length-n]` for identifiers
-- `v[-n..-n][0]`  for arrays and scopes
+`v[-n]` is a shortcut for `v[-n..-n][0]` for number literals `n`.
 
-`n` has to be a literal number. Passing variables with negative values still returns *undefined*.
+Passing variables with negative values still returns *undefined*.
 
 ## Console shortcuts
 
 ```coffeescript
-    log 'hello'  # -> hello
-    warn 'world' # -> world
-    error '!'    # -> !
+log 'hello'  # -> hello
+warn 'world' # -> world
+error '!'    # -> !
 ```
 
 Simple shortcuts for `log`, `warn` and `error` methods of `console`.
@@ -54,8 +54,8 @@ E.g., this one can be deactivated by passing the commandline flag `--no-console-
 setting a flag in the options when calling module methods:
 
 ```coffeescript
-    koffee = require 'koffee'
-    koffee.compile code, feature:console_shortcut:false
+koffee = require 'koffee'
+koffee.compile code, feature:console_shortcut:false
 ```
 
 ## Optional commata
@@ -63,11 +63,11 @@ setting a flag in the options when calling module methods:
 Coffeescript has a very nice way of initializing arrays:
 
 ```coffeescript
-     a = [
-        1
-        2
-        3
-     ]
+a = [
+   1
+   2
+   3
+]
 ```
 
 If you decide to join these into a single line, you have a problem: for each of the lines a comma must be inserted.
@@ -77,12 +77,12 @@ In **koffee**, you don't need to insert commata after number or string primitive
 Those are all valid expressions:
 
 ```
-     a = [ 1 2 3 ]           
-     a = { b:1 c:2 d:3 }   
-     a =   b:1 c:2 d:3
-     a =   b:[ c:2 'd' 3 ]  
-     a = [ [1 2] [d:3] ]
-     log 'a:' a , 'd:' 3      
+a = [ 1 2 3 ]           
+a = { b:1 c:2 d:3 }   
+a =   b:1 c:2 d:3
+a =   b:[ c:2 'd' 3 ]  
+a = [ [1 2] [d:3] ]
+log 'a:' a , 'd:' 3      
 ```
 
 We are probably reaching the limits of minimalism here :)
@@ -98,16 +98,16 @@ Let's also assume that the configuration will probably grow or change a lot over
 It makes sense to use a config dictionary as the argument:
 
 ```coffeescript
-    f = (cfg = a:1, b:2) -> log cfg
+f = (cfg = a:1, b:2) -> log cfg
 ```    
 The default values are nicely visible, let's use it:
 
 ```coffeescript
-    f()           # -> { a: 1, b: 2 }        
-    f a:4, b:8    # -> { a: 4, b: 8 }        All good so far.
-    f b:8, a:4    # -> { b: 8, a: 4 }        We can even change the order, nice!
-                                             
-    f b:8         # -> { b: 8 }              Oops!
+f()           # -> { a: 1, b: 2 }        
+f a:4, b:8    # -> { a: 4, b: 8 }        All good so far.
+f b:8, a:4    # -> { b: 8, a: 4 }        We can even change the order, nice!
+                                         
+f b:8         # -> { b: 8 }              Oops!
 ```
 
 Crap! We have to provide all the arguments? That sucks!
@@ -115,17 +115,17 @@ Crap! We have to provide all the arguments? That sucks!
 We need a better solution. Let's use the *[destructuring feature](http://coffeescript.org/#destructuring)* of Coffeescript:
 
 ```coffeescript
-    f = ({a=1, b=2}) -> log {a, b}   
+f = ({a=1, b=2}) -> log {a, b}   
 ```
 
 The arguments look a bit ugly, and we need to provide an empty dictionary for the default behavior. 
 But hey, we got nice variable names inside `f` now and it works as intended:
 
 ```coffeescript    
-    f {}          # -> { a: 1, b: 2 }  
-    f a:4, b:8    # -> { a: 4, b: 8 }  
-    f      b:8    # -> { a: 1, b: 8 }  
-    f a:8         # -> { a: 8, b: 2 }
+f {}          # -> { a: 1, b: 2 }  
+f a:4, b:8    # -> { a: 4, b: 8 }  
+f      b:8    # -> { a: 1, b: 8 }  
+f a:8         # -> { a: 8, b: 2 }
 ```    
 
 ### Shortcut
@@ -133,16 +133,16 @@ But hey, we got nice variable names inside `f` now and it works as intended:
 **koffee** provides a nifty shortcut for this use case:
 
 ```coffeescript
-    f = (a:1, b:2) -> log {a, b}  # Look, ma! The uglyness is gone :-)
+f = (a:1, b:2) -> log {a, b}  # Look, ma! The uglyness is gone :-)
 ```
 
 The default values can be omitted:
 
 ```coffeescript
-    f = (a:1, b:) -> log {a, b}
-    
-    f {}          # -> { a: 1, b: null }
-    f b:2         # -> { a: 1, b: 2 }
+f = (a:1, b:) -> log {a, b}
+
+f {}          # -> { a: 1, b: null }
+f b:2         # -> { a: 1, b: 2 }
 ```
 
 ### Inheritance and *super*
@@ -150,13 +150,13 @@ The default values can be omitted:
 Let's see what happens if we use this feature for method arguments.
 
 ```coffeescript
-    class Base
-        @: (@a:'Base') -> log @
+class Base
+    @: (@a:'Base') -> log @
 
-    class A extends Base
-        @: (@a:'A') -> super
+class A extends Base
+    @: (@a:'A') -> super
 
-    new A {}      # -> A { a: 'A' }
+new A {}      # -> A { a: 'A' }
 ```
 
 Note that the default value of `a` in `A` is **not** overridden by the one in `Base`. 

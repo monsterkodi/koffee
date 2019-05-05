@@ -3693,7 +3693,7 @@
             var block, conds, j, jumpNode, len1, ref3, ref4, ref5;
             if (o == null) {
                 o = {
-                    block: block = true
+                    block: true
                 };
             }
             ref3 = this.cases;

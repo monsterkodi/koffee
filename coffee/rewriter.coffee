@@ -175,15 +175,10 @@ class Rewriter
         @scanTokens (token, i, tokens) ->
             
             if @check i-1, 'INDEX_START', i, '-', i+1, 'NUMBER', i+2, 'INDEX_END'
-                if @tag(i-2) == 'IDENTIFIER'
-                    tokens.splice i, 0, @generate(tokens[i-2][0], tokens[i-2][1]), @generate('.', '.'), @generate('PROPERTY', 'length')                    
-                    return 5
-                if @tag(i-2) in ['STRING' 'STRING_END' ']' ')']
+                if @tag(i-2) in ['IDENTIFIER', 'PROPERTY', 'STRING' 'STRING_END' ']' ')']
                     tokens.splice i+2, 0, @generate('..', '..'), @generate(tokens[i][0], tokens[i][1]), @generate(tokens[i+1][0], tokens[i+1][1])
-                    if @tag(i-2) in [']', ')']
-                        tokens.splice i+6, 0, @generate('INDEX_START', '['), @generate('NUMBER', '0'), @generate('INDEX_END', ']')
-                        return 7
-                    return 4
+                    tokens.splice i+6, 0, @generate('INDEX_START', '['), @generate('NUMBER', '0'), @generate('INDEX_END', ']')
+                    return 7
                 else
                     log @tag(i-2)
             1

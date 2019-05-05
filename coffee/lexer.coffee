@@ -112,19 +112,17 @@ class Lexer
     # 000  0000000    00000000  000   000     000     000  000       000  00000000  000   000
 
     # Matches identifying literals: variables, keywords, method names, etc.
-    # Check to ensure that JavaScript reserved words aren't being used as
-    # identifiers. Because Koffee reserves a handful of keywords that are
-    # allowed in JavaScript, we're careful not to tag them as keywords when
-    # referenced as property names here, so you can still do `jQuery.is()` even
-    # though `is` means `===` otherwise.
+    # Check to ensure that JavaScript reserved words aren't being used as identifiers. 
+    # Because Koffee reserves a handful of keywords that are allowed in JavaScript, 
+    # we're careful not to tag them as keywords when referenced as property names here, 
+    # so you can still do `jQuery.is()` even though `is` means `===` otherwise.
     
     identifierToken: ->
         
         return 0 unless match = IDENTIFIER.exec @chunk
         [input, id, colon] = match
 
-        # Preserve length of id for location data
-        idLength = id.length
+        idLength = id.length # Preserve length of id for location data
         poppedToken = undefined
 
         if id is 'own' and @tag() is 'FOR'
@@ -151,15 +149,18 @@ class Lexer
         [..., prev] = @tokens
 
         tag =
-            if colon or prev? and
-                 (prev[0] in ['.' '?.' '::' '?::'] or
-                 not prev.spaced and prev[0] is '@')
+            if colon or prev? and (prev[0] in ['.' '?.' '::' '?::'] or not prev.spaced and prev[0] is '@')
                 'PROPERTY'
             else
                 'IDENTIFIER'
 
-        if tag is 'IDENTIFIER' and (id in JS_KEYWORDS or id in COFFEE_KEYWORDS) and
-             not (@exportSpecifierList and id in COFFEE_KEYWORDS)
+        if tag is 'PROPERTY' and prev?[0] is '@' and id in META_KEYWORDS
+            log '@PROPERTY', id, @tokens[-1..-1], (@tokens)[-1], @tokens.length
+            @tokens.pop() # remove @
+            # tag = 'META_' + id.toUpperCase()
+#             
+        # else
+        if tag is 'IDENTIFIER' and (id in JS_KEYWORDS or id in COFFEE_KEYWORDS) and not (@exportSpecifierList and id in COFFEE_KEYWORDS)
             tag = id.toUpperCase()
             if tag is 'WHEN' and @tag() in LINE_BREAK
                 tag = 'LEADING_WHEN'
@@ -182,8 +183,7 @@ class Lexer
                     if @value() is '!'
                         poppedToken = @tokens.pop()
                         id = '!' + id
-        else if tag is 'IDENTIFIER' and @seenFor and id is 'from' and
-             isForFrom(prev)
+        else if tag is 'IDENTIFIER' and @seenFor and id is 'from' and isForFrom(prev)
             tag = 'FORFROM'
             @seenFor = no
 
@@ -1007,6 +1007,8 @@ isForFrom = (prev) ->
 
 # Keywords that we share in common with JavaScript.
 
+META_KEYWORDS = [ 'if' 'then' 'else' 'elif' ]
+
 JS_KEYWORDS = [
     'true' 'false' 'null' 'this'
     'new' 'delete' 'typeof' 'in' 'instanceof'
@@ -1083,16 +1085,16 @@ CODE       = /^[-=]>/
 
 MULTI_DENT = /^(?:\n[^\n\S]*)+/
 
-JSTOKEN      = ///^ `(?!``) ((?: [^`\\] | \\[\s\S]                   )*) `   ///
+JSTOKEN      = ///^ `(?!``) ((?: [^`\\] | \\[\s\S]               )*) `   ///
 HERE_JSTOKEN = ///^ ```         ((?: [^`\\] | \\[\s\S] | `(?!``) )*) ``` ///
 
 # String-matching-regexes.
 
 STRING_START   = /^(?:'''|"""|'|")/
 
-STRING_SINGLE  = /// ^(?: [^\\']  | \\[\s\S]                                          )* ///
-STRING_DOUBLE  = /// ^(?: [^\\"#] | \\[\s\S] |                     \#(?!\{) )* ///
-HEREDOC_SINGLE = /// ^(?: [^\\']    | \\[\s\S] | '(?!'')                        )* ///
+STRING_SINGLE  = /// ^(?: [^\\']  | \\[\s\S]                      )* ///
+STRING_DOUBLE  = /// ^(?: [^\\"#] | \\[\s\S] |           \#(?!\{) )* ///
+HEREDOC_SINGLE = /// ^(?: [^\\']    | \\[\s\S] | '(?!'')          )* ///
 HEREDOC_DOUBLE = /// ^(?: [^\\"#] | \\[\s\S] | "(?!"") | \#(?!\{) )* ///
 
 STRING_OMIT    = ///
@@ -1119,7 +1121,7 @@ VALID_FLAGS  = /^(?!.*(.).*\1)[imguy]*$/
 HEREGEX      = /// ^(?: [^\\/#] | \\[\s\S] | /(?!//) | \#(?!\{) )* ///
 
 HEREGEX_OMIT = ///
-        ((?:\\\\)+)         # consume (and preserve) an even number of backslashes
+      ((?:\\\\)+)           # consume (and preserve) an even number of backslashes
     | \\(\s)                # preserve escaped whitespace
     | \s+(?:#.*)?           # remove whitespace and comments
 ///g
@@ -1135,64 +1137,48 @@ HERECOMMENT_ILLEGAL = /\*\//
 LINE_CONTINUER          = /// ^ \s* (?: , | \??\.(?![.\d]) | :: ) ///
 
 STRING_INVALID_ESCAPE = ///
-    ( (?:^|[^\\]) (?:\\\\)* )                # make sure the escape isn’t escaped
-    \\ (
-         ?: (0[0-7]|[1-7])                       # octal escape
-            | (x(?![\da-fA-F]{2}).{0,2}) # hex escape
+    ( (?:^|[^\\]) (?:\\\\)* )                   # make sure the escape isn’t escaped
+    \\ (   
+         ?: (0[0-7]|[1-7])                      # octal escape
+            | (x(?![\da-fA-F]{2}).{0,2})        # hex escape
             | (u\{(?![\da-fA-F]{1,}\})[^}]*\}?) # unicode code point escape
-            | (u(?!\{|[\da-fA-F]{4}).{0,4}) # unicode escape
+            | (u(?!\{|[\da-fA-F]{4}).{0,4})     # unicode escape
     )
 ///
 REGEX_INVALID_ESCAPE = ///
-    ( (?:^|[^\\]) (?:\\\\)* )                # make sure the escape isn’t escaped
-    \\ (
-         ?: (0[0-7])                                     # octal escape
-            | (x(?![\da-fA-F]{2}).{0,2}) # hex escape
+    ( (?:^|[^\\]) (?:\\\\)* )                   # make sure the escape isn’t escaped
+    \\ (   
+         ?: (0[0-7])                            # octal escape
+            | (x(?![\da-fA-F]{2}).{0,2})        # hex escape
             | (u\{(?![\da-fA-F]{1,}\})[^}]*\}?) # unicode code point escape
-            | (u(?!\{|[\da-fA-F]{4}).{0,4}) # unicode escape
+            | (u(?!\{|[\da-fA-F]{4}).{0,4})     # unicode escape
     )
 ///
 
 UNICODE_CODE_POINT_ESCAPE = ///
-    ( \\\\ )                # make sure the escape isn’t escaped
+    ( \\\\ )                                    # make sure the escape isn’t escaped
     |
     \\u\{ ( [\da-fA-F]+ ) \}
 ///g
 
 LEADING_BLANK_LINE  = /^[^\n\S]*\n/
 TRAILING_BLANK_LINE = /\n[^\n\S]*$/
-
 TRAILING_SPACES     = /\s+$/
-
-# Compound assignment tokens.
-COMPOUND_ASSIGN = [
-    '-=' '+=' '/=' '*=' '%=' '||=' '&&=' '?=' '<<=' '>>=' '>>>='
-    '&=' '^=' '|=' '**=' '//=' '%%='
-]
-
-UNARY = ['NEW' 'TYPEOF' 'DELETE' 'DO']
-
-UNARY_MATH = ['!' '~']
-
-SHIFT = ['<<' '>>' '>>>']
-
-COMPARE = ['==' '!=' '<' '>' '<=' '>=']
-
-MATH = ['*' '/' '%' '//' '%%']
-
-RELATION = ['IN' 'OF' 'INSTANCEOF'] # Relational tokens that are negatable with `not` prefix.
-
-BOOL = ['TRUE' 'FALSE']
+COMPOUND_ASSIGN     = [ '-=' '+=' '/=' '*=' '%=' '||=' '&&=' '?=' '<<=' '>>=' '>>>=' '&=' '^=' '|=' '**=' '//=' '%%=' ]
+UNARY               = ['NEW' 'TYPEOF' 'DELETE' 'DO']
+UNARY_MATH          = ['!' '~']
+SHIFT               = ['<<' '>>' '>>>']
+COMPARE             = ['==' '!=' '<' '>' '<=' '>=']
+MATH                = ['*' '/' '%' '//' '%%']
+RELATION            = ['IN' 'OF' 'INSTANCEOF'] # Relational tokens that are negatable with `not` prefix.
+BOOL                = ['TRUE' 'FALSE']
 
 # Tokens which could legitimately be invoked or indexed. An opening
 # parentheses or bracket following these tokens will be recorded as the start
 # of a function invocation or indexing operation.
 
 CALLABLE  = ['IDENTIFIER' 'PROPERTY' ')' ']' '?' '@' 'THIS' 'SUPER']
-INDEXABLE = CALLABLE.concat [
-    'NUMBER' 'INFINITY' 'NAN' 'STRING' 'STRING_END' 'REGEX' 'REGEX_END'
-    'BOOL' 'NULL' 'UNDEFINED' '}' '::'
-]
+INDEXABLE = CALLABLE.concat [ 'NUMBER' 'INFINITY' 'NAN' 'STRING' 'STRING_END' 'REGEX' 'REGEX_END' 'BOOL' 'NULL' 'UNDEFINED' '}' '::' ]
 
 # Tokens which a regular expression will never immediately follow (except spaced
 # CALLABLEs in some cases), but which a division operator can.

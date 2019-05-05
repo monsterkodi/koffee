@@ -17,7 +17,7 @@
 
 {Rewriter, INVERSES} = require './rewriter'
 
-{ count, starts, compact, repeat, locationDataToString, throwSyntaxError, injectFeature, hasFeature } = require './helpers'
+{ count, starts, compact, repeat, locationDataToString, throwSyntaxError, injectMeta, injectFeature, hasFeature } = require './helpers'
 
 # The Lexer class reads a string and divvies it up into tagged tokens. 
 # Some potential ambiguity in the grammar has been avoided by pushing some extra smarts into the Lexer.
@@ -42,6 +42,7 @@ class Lexer
     tokenize: (code, opts) ->
         
         opts = injectFeature opts
+        opts = injectMeta    opts  # will be needed to shortcut metas, e.g. @token -> @if @token ...
         
         @indent     = 0            # The current indentation level.
         @baseIndent = 0            # The overall minimum indentation level

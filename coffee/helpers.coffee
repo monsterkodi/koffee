@@ -12,9 +12,11 @@
 # Peek at the beginning of a given string to see if it matches a sequence.
 
 features = require './features'
+meta     = require './meta'
 
 exports.injectFeature = features.injectFeature
-exports.hasFeature = features.hasFeature
+exports.hasFeature    = features.hasFeature
+exports.injectMeta    = meta.injectMeta
 
 exports.starts = (string, literal, start) ->
     literal is string.substr start, literal.length

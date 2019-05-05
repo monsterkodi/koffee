@@ -88,7 +88,8 @@ parseOptions = ->
     FEATURES.map (f) -> o.feature[f.key] = o[f.flag] ? true; delete o[f.flag]
     
     if o.Debug
-        delete o.argv
+        # delete o.argv
+        log stringify process.argv
         log stringify o
 
 # 00000000   000   000  000   000  
@@ -116,7 +117,8 @@ run = ->
         return
     return startRepl()    if not opts.arguments.length
     
-    literals = if opts.run then opts.arguments.splice 1 else []
+    # literals = if opts.run then opts.arguments.splice 1 else []
+    literals = if not opts.watch then opts.arguments.splice 1 else []
     
     process.argv = process.argv[0..1].concat literals
     process.argv[0] = 'koffee'

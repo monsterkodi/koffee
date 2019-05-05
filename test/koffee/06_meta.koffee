@@ -9,8 +9,14 @@ test "meta if", ->
         if -1 == js.indexOf p
             eq js, p
             
-    check "@if true then yes @else no", 'if (true)'
-    check "@if true @then yes @else no", 'if (true)'
+    check "@if true then yes @else no", 'true;'
+    check "@if 1 @then yes @else no", 'true;'
+    check """
+        @if 'a'
+            'hello'
+        @else 
+            'world'""", "'hello'"
+    # check "@if @debug @then yes @else no", 'if (this.debug)'
     
 test "broken stuff", ->
 

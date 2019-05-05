@@ -27,30 +27,25 @@ replDefaults =
     historyMaxInputSize: 10240
     
     eval: (input, context, filename, cb) ->
-        # XXX: multiline hack.
-        input = input.replace /\uFF00/g, '\n'
-        # Node's REPL sends the input ending with a newline and then wrapped in
-        # parens. Unwrap all that.
-        input = input.replace /^\(([\s\S]*)\n\)$/m, '$1'
-        # Node's REPL v6.9.1+ sends the input wrapped in a try/catch statement.
-        # Unwrap that too.
-        input = input.replace /^\s*try\s*{([\s\S]*)}\s*catch.*$/m, '$1'
+        
+        input = input.replace /\uFF00/g, '\n' # XXX: multiline hack.
+        input = input.replace /^\(([\s\S]*)\n\)$/m, '$1' # Node's REPL sends the input ending with a newline and then wrapped in parens. Unwrap all that.
+        input = input.replace /^\s*try\s*{([\s\S]*)}\s*catch.*$/m, '$1' # Node's REPL v6.9.1+ sends the input wrapped in a try/catch statement. Unwrap that too.
 
-        # Require AST nodes to do some AST manipulation.
-        {Block, Assign, Value, Literal} = require './nodes'
+        { Block, Assign, Value, Literal } = require './nodes'
 
         try
-            # Tokenize the clean input.
             tokens = Koffee.tokens input
-            # Collect referenced variable names just like in `Koffee.compile`.
             referencedVars = ( token[1] for token in tokens when token[0] is 'IDENTIFIER' )
-            # Generate the AST of the tokens.
             ast = Koffee.nodes tokens
-            # Add assignment to `_` variable to force the input to be an expression.
-            ast = new Block [
-                new Assign (new Value new Literal '__'), ast, '='
-            ]
-            js = ast.compile {bare: yes, locals: Object.keys(context), referencedVars}
+            # ast = new Block [ # Add assignment to `_` variable to force the input to be an expression.
+                # new Assign (new Value new Literal '__'), ast, '='
+            # ]
+            js = ast.compile 
+                bare:           yes
+                locals:         Object.keys context
+                referencedVars: referencedVars
+            # log js
             cb null, runInContext js, context, filename
         catch err
             # AST's `compile` does not add source code information to syntax errors.
@@ -87,9 +82,12 @@ addMultilineHandler = (repl) ->
             nodeLineListener cmd
         return
 
-    # Handle Ctrl-v
+    # Handle Ctrl-v (multiline)
+    
     inputStream.on 'keypress', (char, key) ->
+        
         return unless key and key.ctrl and not key.meta and not key.shift and key.name is 'v'
+        
         if multiline.enabled
             # allow arbitrarily switching between modes any time before multiple lines are entered
             unless multiline.buffer.match /\n/
@@ -115,8 +113,8 @@ addMultilineHandler = (repl) ->
             rli.prompt true
         return
 
-# Store and load command history from a file
 addHistory = (repl, filename, maxSize) ->
+    
     lastLine = null
     try
         # Get file info and at most maxSize of command history
@@ -153,11 +151,12 @@ addHistory = (repl, filename, maxSize) ->
             repl.displayPrompt()
 
 getCommandId = (repl, commandName) ->
-    # Node 0.11 changed API, a command such as '.help' is now stored as 'help'
+
     commandsHaveLeadingDot = repl.commands['.help']?
     if commandsHaveLeadingDot then ".#{commandName}" else commandName
 
 module.exports =
+    
     start: (opts = {}) ->
         [major, minor, build] = process.versions.node.split('.').map (n) -> parseInt(n, 10)
 

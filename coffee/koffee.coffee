@@ -22,7 +22,7 @@ exports.FILE_EXTENSIONS = FILE_EXTENSIONS = ['.coffee' '.koffee']
 
 exports.helpers = helpers
 
-{ injectFeature, updateSyntaxError, nameWhitespaceCharacter, throwSyntaxError, isCoffee, count, hasFeature } = helpers
+{ injectFeature, injectMeta, updateSyntaxError, nameWhitespaceCharacter, throwSyntaxError, isCoffee, count, hasFeature } = helpers
 
 base64encode = (src) ->
     
@@ -83,6 +83,7 @@ exports.compile = compile = withPrettyErrors (code, options) ->
     { merge, extend } = helpers
     
     options = injectFeature options
+    options = injectMeta    options
         
     # Always generate a source map if no filename is passed in, since without a
     # a filename we have no way to retrieve this source later in the event that

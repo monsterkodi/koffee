@@ -16,13 +16,12 @@ Error.stackTraceLimit = Infinity
 { Scope } = require './scope'
 { isUnassignable, JS_FORBIDDEN } = require './lexer'
 
-{ compact, flatten, extend, merge, del, starts, ends, some, injectFeature, hasFeature, 
+{ compact, flatten, extend, merge, del, starts, ends, some, injectFeature, hasFeature, injectMeta,
   addLocationDataFn, locationDataToString, throwSyntaxError, stringify } = require './helpers'
 
 exports.extend = extend
 exports.addLocationDataFn = addLocationDataFn
 
-# Constant functions for nodes that don't need customization.
 YES     = -> yes
 NO      = -> no
 THIS    = -> this
@@ -73,19 +72,16 @@ fragmentsToText = (fragments) -> # Convert an array of CodeFragments into a stri
 
 exports.Base = class Base
 
-    compile: (o, lvl) ->
-        fragmentsToText @compileToFragments o, lvl
+    compile: (o, lvl) -> fragmentsToText @compileToFragments o, lvl
 
-    # Common logic for determining whether to wrap this node in a closure before
-    # compiling it, or to compile directly. We need to wrap if this node is a
-    # *statement*, and it's not a *pureStatement*, and we're not at
-    # the top level of a block (which would be unnecessary), and we haven't
-    # already been asked to return the result (because statements know how to
-    # return results).
+    # Common logic for determining whether to wrap this node in a closure before compiling it, or to compile directly. 
+    # We need to wrap if this node is a statement, and it's not a pureStatement, and we're not at the top level of a block (which would be unnecessary), 
+    # and we haven't already been asked to return the result (because statements know how to return results).
     
     compileToFragments: (o, lvl) ->
         
         o = injectFeature o
+        o = injectMeta    o
         # log 'compileToFragments', o.level
         o.level  = lvl if lvl
         node     = @unfoldSoak(o) or this
@@ -1455,7 +1451,7 @@ exports.ModuleDeclaration = class ModuleDeclaration extends Base
     children: ['clause', 'source']
 
     isStatement: YES
-    jumps:           THIS
+    jumps:       THIS
     makeReturn:  THIS
 
     checkSource: ->
@@ -2914,31 +2910,24 @@ exports.If = class If extends Base
 exports.MetaIf = class MetaIf extends Base
     
     @: (@condition, @body, options = {}) ->
-        log 'MetaIf condition\n', stringify @condition
-        log 'MetaIf body\n', stringify @body
-        log 'MetaIf options\n', stringify options
-        @elseBody  = null
-        @isChain   = false
-        {@soak}    = options
+
+        @elseBody = null
+        @isChain  = false
+        { @soak } = options
 
     children: ['condition', 'body', 'elseBody']
-
-    bodyNode:     -> @body?.unwrap()
-    elseBodyNode: -> @elseBody?.unwrap()
 
     # Rewrite a chain of Ifs to add a default case as the final else.
     
     addElse: (elseBody) ->
         
         if @isChain
-            @elseBodyNode().addElse elseBody
+            @elseBody?.unwrap().addElse elseBody
         else
             @isChain  = elseBody instanceof MetaIf
             @elseBody = @ensureBlock elseBody
             @elseBody.updateLocationDataIfMissing elseBody.locationData
         this
-
-    jumps: (o) -> @body.jumps(o) or @elseBody?.jumps(o)
 
     makeReturn: (res) ->
         
@@ -2946,46 +2935,58 @@ exports.MetaIf = class MetaIf extends Base
         @body     and= new Block [@body.makeReturn res]
         @elseBody and= new Block [@elseBody.makeReturn res]
         this
-
-    ensureBlock: (node) ->
-        
-        if node instanceof Block then node else new Block [node]
     
     # The If only compiles into a statement if either of its bodies needs
     # to be a statement. Otherwise a conditional operator is safe.
     
-    compileNode: (o) -> if @isStatement o then @compileStatement o else @compileExpression o
+    compileNode: (o) ->
+              
+        # log 'MetaIf compileStatement @condition\n'#, stringify @condition
         
-    isStatement: (o) -> o?.level is LEVEL_TOP or @bodyNode().isStatement(o) or @elseBodyNode()?.isStatement(o)
+        info = reduce:true
+        
+        if @condition.base.value == 'this'
+            metaKey = @condition.properties?[0]?.name?.value
+            if typeof o.meta[metaKey] == 'function'
+                info = o.meta[metaKey] o, @
+                log "meta #{metaKey} info:", info
 
-    compileStatement: (o) -> # Compile as a regular *if-else* statement. Flattened chains force inner *else* bodies into statement form.
-        
-        child = del o, 'chainChild'
-        indent = o.indent + TAB
-        cond   = @condition.compileToFragments o, LEVEL_PAREN
-        body   = @ensureBlock(@body).compileToFragments merge o, {indent}
-        ifPart = [].concat @makeCode("if ("), cond, @makeCode(") {\n"), body, @makeCode("\n#{@tab}}")
-        ifPart.unshift @makeCode @tab unless child
-        return ifPart unless @elseBody
-        answer = ifPart.concat @makeCode(' else ')
-        if @isChain
-            o.chainChild = yes
-            answer = answer.concat @elseBody.unwrap().compileToFragments o, LEVEL_TOP
+        if not info.code
+            conditionFragments = @condition.compileToFragments o, LEVEL_PAREN
+            info.code = fragmentsToText conditionFragments
+            try
+                info.body = eval info.code
+                log 'EVAL:' info.code, info.body
+            catch err
+                error err
+            
+        if info.reduce
+            if info.body
+                return @ensureBlock(@body).compileToFragments o
+            else if @elseBody
+                if @isChain
+                    return @elseBody.unwrap().compileToFragments o
+                else
+                    return @elseBody.compileToFragments o
+            return code: ''
         else
-            answer = answer.concat @makeCode("{\n"), @elseBody.compileToFragments(merge(o, {indent}), LEVEL_TOP), @makeCode("\n#{@tab}}")
-        answer
+            child  = del o, 'chainChild'
+            indent = o.indent + TAB
+            body   = @ensureBlock(@body).compileToFragments merge o, {indent}
+            ifPart = [].concat @makeCode("if ("), code:info.code, @makeCode(") {\n"), body, @makeCode("\n#{@tab}}")
+            ifPart.unshift @makeCode @tab if not child
+            return ifPart unless @elseBody
+            answer = ifPart.concat @makeCode(' else ')
+            if @isChain
+                o.chainChild = yes
+                answer = answer.concat @elseBody.unwrap().compileToFragments o, LEVEL_TOP
+            else
+                answer = answer.concat @makeCode("{\n"), @elseBody.compileToFragments(merge(o, {indent}), LEVEL_TOP), @makeCode("\n#{@tab}}")
+            return answer
 
-    compileExpression: (o) -> # Compile as a conditional ? : operator.
-        
-        cond = @condition.compileToFragments o, LEVEL_COND
-        body = @bodyNode().compileToFragments o, LEVEL_LIST
-        alt  = if @elseBodyNode() then @elseBodyNode().compileToFragments(o, LEVEL_LIST) else [@makeCode('void 0')]
-        fragments = cond.concat @makeCode(" ? "), body, @makeCode(" : "), alt
-        if o.level >= LEVEL_COND then @wrapInBraces fragments else fragments
-
-    unfoldSoak: ->
-        
-        @soak and this
+    ensureBlock: (node) -> if node instanceof Block then node else new Block [node]
+    unfoldSoak: -> @soak and this
+    jumps: (o) -> @body.jumps(o) or @elseBody?.jumps(o)
         
 #  0000000   0000000   000   000   0000000  000000000   0000000   000   000  000000000   0000000  
 # 000       000   000  0000  000  000          000     000   000  0000  000     000     000       
@@ -3085,6 +3086,7 @@ isLiteralThis = (node) ->
 isComplexOrAssignable = (node) -> node.isComplex() or node.isAssignable?()
 
 # Unfold a node's child if soak, then tuck the node under created `If`
+
 unfoldSoak = (o, parent, name) ->
     return unless ifn = parent[name].unfoldSoak o
     parent[name] = ifn.body

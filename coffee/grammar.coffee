@@ -627,7 +627,7 @@ grammar =
 
     MetaIfBlock: [
         o 'META_IF Expression Block',                                                      -> new MetaIf $2, $3, type: $1
-        o 'MetaIfBlock META_ELSE META_IF Expression Block',                                -> $1.addElse LOC(3,5) new If $4, $5, type: $3
+        o 'MetaIfBlock META_ELSE META_IF Expression Block',                                -> $1.addElse LOC(3,5) new MetaIf $4, $5, type: $3
     ]
 
     MetaIf: [
@@ -722,15 +722,13 @@ operators = [
     ['right'    'YIELD']
     ['right'    '=' ':' 'COMPOUND_ASSIGN' 'RETURN' 'THROW' 'EXTENDS']
     ['right'    'FORIN' 'FOROF' 'FORFROM' 'BY' 'WHEN']
-    ['right'    'IF' 'ELSE' 'FOR' 'WHILE' 'UNTIL' 'LOOP' 'SUPER' 'CLASS' 'IMPORT' 'EXPORT']
-    ['left'     'POST_IF']
-    ['right'    'META_IF', 'META_ELSE']
-    ['left'     'POST_META_IF']
+    ['right'    'IF' 'META_IF' 'ELSE' 'META_ELSE' 'FOR' 'WHILE' 'UNTIL' 'LOOP' 'SUPER' 'CLASS' 'IMPORT' 'EXPORT']
+    ['left'     'POST_IF' 'POST_META_IF']
 ]
 
 # Wrapping Up
 # -----------
-# Finally, now that we have our **grammar** and our **operators**, we can create our **Jison.Parser**. 
+# Finally, now that we have our grammar and our operators, we can create our Jison.Parser. 
 # We do this by processing all of our rules, recording all terminals (every symbol which does not appear as the name of a rule above) as "tokens".
 
 tokens = []
@@ -741,7 +739,7 @@ for name, alternatives of grammar
         alt[1] = "return #{alt[1]}" if name is 'Root'
         alt
 
-# Initialize the **Parser** with our list of terminal **tokens**, our **grammar** rules, and the name of the root. 
+# Initialize the Parser with our list of terminal tokens, our grammar rules, and the name of the root. 
 # Reverse the operators because Jison orders precedence from low to high, and we have it high to low (as in [Yacc](http://dinosaur.compilertools.net/yacc/index.html)).
 
 exports.parser = new Parser

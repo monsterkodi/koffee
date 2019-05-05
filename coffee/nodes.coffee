@@ -902,8 +902,12 @@ exports.SuperCall = class SuperCall extends Call
 
         a = param.objects.map (obj) -> 
             n = obj.variable.base.value
-            t = obj.value.variable.this and 'this.' or ''
-            "#{n}:#{t+n}"
+            if n == 'this'
+                n = obj.variable.properties?[0].name.value
+                "#{n}:this.#{n}"
+            else
+                t = obj.value.variable.this and 'this.' or ''
+                "#{n}:#{t+n}"
             
         "arguments[0] = _.defaults({#{a.join ','}}, arguments[0]); "
 

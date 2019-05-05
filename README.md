@@ -115,7 +115,7 @@ Crap! We have to provide all the arguments? That sucks!
 We need a better solution. Let's use the *[destructuring feature](http://coffeescript.org/#destructuring)* of Coffeescript:
 
 ```coffeescript
-    f = ({a:a=1, b:b=2}) -> log {a, b}   
+    f = ({a=1, b=2}) -> log {a, b}   
 ```
 
 The arguments look a bit ugly, and we need to provide an empty dictionary for the default behavior. 

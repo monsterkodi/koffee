@@ -31,6 +31,8 @@ helpers.extend Koffee, new EventEmitter # Allow emitting Node events
 
 { baseFileName, isCoffee, stringify, merge, pad } = helpers
 
+{ gray, dim, bold, yellow, white } = require 'colorette'
+
 error     = console.error
 print     = (line) -> process.stdout.write line
 printLine = (line) -> process.stdout.write line + '\n' # ???
@@ -51,7 +53,7 @@ SWITCHES = [
     ['-M' '--inline-map'        'generate source map and include it directly in output' Boolean        ]
     ['-n' '--noop'              'does nothing, for debugging purposes'                  Boolean        ]
     ['-o' '--output [DIR]'      'set the output directory for compiled JavaScript'      String         ]
-    ['-p' '--parse'             'print out the parse tree that the parser produces'     Boolean        ]
+    ['-P' '--parse'             'print out the parse tree that the parser produces'     Boolean        ]
     ['-r' '--require [MODULE]'  'require the given module before eval or REPL'         [String, Array] ]
     ['-s' '--stdio'             'listen for and compile scripts over stdio'             Boolean        ]
     ['-t' '--tokens'            'print out the tokens that the lexer/rewriter produce'  Boolean        ]
@@ -71,6 +73,7 @@ parseOptions = ->
 
     known = {Debug:Boolean}
     short = {D:'--Debug'}
+    short = {p:'--js'}
     SWITCHES.map (s) -> l = s[1].split(' ')[0][2..]; known[l] = s[3] if s[3]; short[s[0][1]] = "--#{l}" if s[0]!=''
     FEATURES.map (f) -> known[f.lag] = Boolean
     
@@ -471,27 +474,26 @@ timeLog = (message) -> log "#{(new Date).toLocaleTimeString()} - #{message}"
 #    000      0000000   000   000  00000000  000   000  0000000   
 
 printTokens = (tokens) ->
-    # strings = for token in tokens
-        # tag = token[0]
-        # value = token[1].toString().replace(/\n/, '\\n')
-        # "[#{tag} #{value}]"
-    # printLine strings.join(' ')
+
     for index in [0...tokens.length]
-        token = tokens[index]
-        tag   = token[0]
-        value = token[1].toString().replace(/\n/, '\\n')
+        token  = tokens[index]
+        tag    = token[0]
+        value  = token[1].toString().replace(/\n/, '\\n')
+        ctag   = gray tag
+        cvalue = bold yellow value
+        index  = gray dim index
         if tag == 'TERMINATOR'
             print '\n\n'
         else if tag == 'INDENT'
-            print 'IND '
+            print gray dim 'IND '
         else if tag == 'OUTDENT'
-            print 'OUT '
+            print gray dim 'OUT '
         else if tag in ['CLASS' 'PARAM_START' 'PARAM_END' 'NULL']
-            print "#{index} #{tag} "
+            print "#{index}#{ctag} "
         else if tag is value
-            print "#{index} #{tag} "
+            print "#{index}#{cvalue} "
         else
-            print "#{index} #{tag}=#{value} "
+            print "#{index}#{ctag}=#{cvalue} "
         
 version = -> printLine "#{Koffee.VERSION}"
 usage   = -> 

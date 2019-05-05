@@ -23,6 +23,7 @@ test "optional commata", ->
     check "a = ( a, b=1 c=2 ) ->",  "a = function(a, b, c)"
     check "a = ( a:1 b:2 ) ->",     "a = function(arg)"
     check "a = ['a' 'b' 'c']",      "a = ['a', 'b', 'c']"
+    check "a = ['a''b''c']",        "a = ['a', 'b', 'c']"
     check 'log "#{a+1}", "#{a}"',   'log("" + (a + 1), "" + a)'
     check 'log "#{a+1}" "#{a}"',    'log("" + (a + 1), "" + a)'
     check 'log "hello" 1 "world"',  'log("hello", 1, "world")'
@@ -67,8 +68,7 @@ test "optional commata", ->
         ];"""
         
     check "undefined", "void 0" # wtf?
-    check "a = [undefined, undefined]", "a = [void 0, void 0]" # wtf?
-    check "a = ['a' null undefined true false]", "a = ['a', null, void 0, true, false]"
+    check "a = ['a' 1 2.3 null undefined true false yes no on off]", "a = ['a', 1, 2.3, null, void 0, true, false, true, false, true, false]"
         
     throws -> compile "[[][]]"
     check "a = [ [] [] ]", "a = [[], []];"

@@ -1,6 +1,6 @@
 require('../../js/helpers').initTest() if not global.test
 
-test "named function parameters", ->
+test "desctructured function parameters", ->
     
     (({a:x=666, b:y=777}) ->
         eq x, 1
@@ -12,6 +12,11 @@ test "named function parameters", ->
         eq b, 2
     ) b:2
 
+    (({a=666, b=777}) ->
+        eq a, 666
+        eq b, 2
+    ) b:2
+    
     (({a:a, b:b=777}) ->
         eq a, undefined
         eq b, 3
@@ -26,8 +31,13 @@ test "named function parameters", ->
         eq a, undefined
         eq b, 3
     ) b:3
+
+    (({a, b}) ->
+        eq a, undefined
+        eq b, 3
+    ) b:3
     
-test "named method parameters", ->
+test "desctructured method parameters", ->
     
     class A
         @: ({a:a = 666, b:b = 777}) ->

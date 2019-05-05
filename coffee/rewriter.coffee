@@ -113,7 +113,8 @@ class Rewriter
         
     findMatchingTagBackwards: (close, i, check) -> 
         
-        open = {']':'[', PARAM_END:'PARAM_START'}[close]
+        open = { PARAM_END:'PARAM_START', ']':'[', '}':'{' }[close]
+        warn "cant match #{close}" if not open
         pushed = 0
         j = i
         while j-- # walk backwards until matching tag is found
@@ -225,22 +226,14 @@ class Rewriter
                         stackCount--
             else 
                 if isInside()
-                    if tag == ':'
-                        if nextTag not in ['IDENTIFIER' '@']
-                            val = tokens[i-1][1] # copy value from property token
-                            if @tag(i-2) == '@'
-                                [thisToken] = tokens.splice i-2, 1 # pull the @ out
-                                tokens.splice i,   0, thisToken    # insert it after :
-                                tokens.splice i+1, 0, @generate '=', '='
-                                tokens.splice i+1, 0, @generate 'PROPERTY', val
-                            else
-                                tokens.splice i+1, 0, @generate '=', '='
-                                tokens.splice i+1, 0, @generate 'IDENTIFIER', val
-                            return 2
-                    if tag == '='
-                        if nextTag in [',', '}']
-                            tokens.splice i+1, 0, @generate 'NULL', 'null'
-                            return 2
+                    if tag == ':' and nextTag not in ['IDENTIFIER' '@']
+                        open = @findMatchingTagBackwards '}', i
+                        if open.index >= 0
+                            if @tag(open.index-1) not in ['=']
+                                tokens.splice i, 1, @generate '=', '=' 
+                                if nextTag in [',', '}']
+                                    tokens.splice i+1, 0, @generate 'NULL', 'null'
+                                    return 2
             1
                  
     # The lexer has tagged the opening parenthesis of a method call. Match it with

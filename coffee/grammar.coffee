@@ -105,6 +105,7 @@ grammar =
         o 'Operation'
         o 'Assign'
         o 'If'
+        o 'MetaIf'
         o 'Try'
         o 'While'
         o 'For'
@@ -626,6 +627,14 @@ grammar =
 
     MetaIfBlock: [
         o 'META_IF Expression Block',                                                      -> new MetaIf $2, $3, type: $1
+        o 'MetaIfBlock META_ELSE META_IF Expression Block',                                -> $1.addElse LOC(3,5) new If $4, $5, type: $3
+    ]
+
+    MetaIf: [
+        o 'MetaIfBlock'
+        o 'MetaIfBlock META_ELSE Block',                                                   -> $1.addElse $3
+        o 'Statement POST_META_IF Expression',                                             -> new MetaIf $3, LOC(1)(Block.wrap [$1]), type: $2, statement: true
+        o 'Expression POST_META_IF Expression',                                            -> new MetaIf $3, LOC(1)(Block.wrap [$1]), type: $2, statement: true
     ]
     
     IfBlock: [
@@ -715,6 +724,8 @@ operators = [
     ['right'    'FORIN' 'FOROF' 'FORFROM' 'BY' 'WHEN']
     ['right'    'IF' 'ELSE' 'FOR' 'WHILE' 'UNTIL' 'LOOP' 'SUPER' 'CLASS' 'IMPORT' 'EXPORT']
     ['left'     'POST_IF']
+    ['right'    'META_IF', 'META_ELSE']
+    ['left'     'POST_META_IF']
 ]
 
 # Wrapping Up

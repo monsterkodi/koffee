@@ -56,7 +56,7 @@
                 return new StatementLiteral($1);
             }), o('Import'), o('Export')
         ],
-        Expression: [o('Value'), o('Invocation'), o('Code'), o('Operation'), o('Assign'), o('If'), o('Try'), o('While'), o('For'), o('Switch'), o('Class'), o('Throw'), o('Yield')],
+        Expression: [o('Value'), o('Invocation'), o('Code'), o('Operation'), o('Assign'), o('If'), o('MetaIf'), o('Try'), o('While'), o('For'), o('Switch'), o('Class'), o('Throw'), o('Yield')],
         Yield: [
             o('YIELD', function() {
                 return new Op($1, new Value(new Literal('')));
@@ -704,6 +704,25 @@
                 return new MetaIf($2, $3, {
                     type: $1
                 });
+            }), o('MetaIfBlock META_ELSE META_IF Expression Block', function() {
+                return $1.addElse(LOC(3, 5)(new If($4, $5, {
+                    type: $3
+                })));
+            })
+        ],
+        MetaIf: [
+            o('MetaIfBlock'), o('MetaIfBlock META_ELSE Block', function() {
+                return $1.addElse($3);
+            }), o('Statement POST_META_IF Expression', function() {
+                return new MetaIf($3, LOC(1)(Block.wrap([$1])), {
+                    type: $2,
+                    statement: true
+                });
+            }), o('Expression POST_META_IF Expression', function() {
+                return new MetaIf($3, LOC(1)(Block.wrap([$1])), {
+                    type: $2,
+                    statement: true
+                });
             })
         ],
         IfBlock: [
@@ -797,7 +816,7 @@
         ]
     };
 
-    operators = [['left', '.', '?.', '::', '?::'], ['left', 'CALL_START', 'CALL_END'], ['nonassoc', '++', '--'], ['left', '?'], ['right', 'UNARY'], ['right', '**'], ['right', 'UNARY_MATH'], ['left', 'MATH'], ['left', '+', '-'], ['left', 'SHIFT'], ['left', 'RELATION'], ['left', 'COMPARE'], ['left', '&'], ['left', '^'], ['left', '|'], ['left', '&&'], ['left', '||'], ['left', 'BIN?'], ['nonassoc', 'INDENT', 'OUTDENT'], ['right', 'YIELD'], ['right', '=', ':', 'COMPOUND_ASSIGN', 'RETURN', 'THROW', 'EXTENDS'], ['right', 'FORIN', 'FOROF', 'FORFROM', 'BY', 'WHEN'], ['right', 'IF', 'ELSE', 'FOR', 'WHILE', 'UNTIL', 'LOOP', 'SUPER', 'CLASS', 'IMPORT', 'EXPORT'], ['left', 'POST_IF']];
+    operators = [['left', '.', '?.', '::', '?::'], ['left', 'CALL_START', 'CALL_END'], ['nonassoc', '++', '--'], ['left', '?'], ['right', 'UNARY'], ['right', '**'], ['right', 'UNARY_MATH'], ['left', 'MATH'], ['left', '+', '-'], ['left', 'SHIFT'], ['left', 'RELATION'], ['left', 'COMPARE'], ['left', '&'], ['left', '^'], ['left', '|'], ['left', '&&'], ['left', '||'], ['left', 'BIN?'], ['nonassoc', 'INDENT', 'OUTDENT'], ['right', 'YIELD'], ['right', '=', ':', 'COMPOUND_ASSIGN', 'RETURN', 'THROW', 'EXTENDS'], ['right', 'FORIN', 'FOROF', 'FORFROM', 'BY', 'WHEN'], ['right', 'IF', 'ELSE', 'FOR', 'WHILE', 'UNTIL', 'LOOP', 'SUPER', 'CLASS', 'IMPORT', 'EXPORT'], ['left', 'POST_IF'], ['right', 'META_IF', 'META_ELSE'], ['left', 'POST_META_IF']];
 
     tokens = [];
 

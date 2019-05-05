@@ -169,13 +169,13 @@ test "if-else indented within an assignment", ->
 test "suppressed indentation via assignment", ->
     nonce = {}
     result =
-        if          false then undefined
-        else if no      then undefined
-        else if 0           then undefined
+        if   false    then undefined
+        else if no    then undefined
+        else if 0     then undefined
         else if 1 < 0 then undefined
-        else                             id(
+        else id(
                  if false then undefined
-                 else                    nonce
+                 else          nonce
         )
     eq nonce, result
 

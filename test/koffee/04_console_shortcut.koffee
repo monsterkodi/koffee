@@ -4,7 +4,11 @@ compile = (s) -> Koffee.compile s, bare:true
 
 test "console shortcut works", ->
 
-    check = (c,p) -> notEqual -1, compile(c).indexOf p
+    # check = (c,p) -> notEqual -1, compile(c).indexOf p
+    check = (c,p) -> 
+        js = compile(c)
+        if -1 == js.indexOf p
+            eq js, p
 
     check '(s) -> log s', 'console.log(s);'
     check '(s) -> warn s', 'console.warn(s);'
@@ -35,6 +39,7 @@ test "console shortcut works", ->
     check 'error "1#{a}"', 'console.error("1'
     check 'log @variable', 'console.log(this.variable)'
     check 'log b:1', 'console.log({'
+    check 'log if true then yes else no', 'console.log('
     
 test "console shortcut keep non calls", ->
 

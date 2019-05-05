@@ -17,7 +17,7 @@ Error.stackTraceLimit = Infinity
 { isUnassignable, JS_FORBIDDEN } = require './lexer'
 
 { compact, flatten, extend, merge, del, starts, ends, some, injectFeature, hasFeature, 
-  addLocationDataFn, locationDataToString, throwSyntaxError } = require './helpers'
+  addLocationDataFn, locationDataToString, throwSyntaxError, stringify } = require './helpers'
 
 exports.extend = extend
 exports.addLocationDataFn = addLocationDataFn
@@ -2821,7 +2821,7 @@ exports.Switch = class Switch extends Base
 # 000  000       
 # 000  000       
 
-# *If/else* statements. Acts as an expression by pushing down requested returns to the last line of each clause.
+# If/else statements. Acts as an expression by pushing down requested returns to the last line of each clause.
 #
 # Single-expression **Ifs** are compiled into conditional operators if possible,
 # because ternaries are already proper expressions, and don't need conversion.
@@ -2874,10 +2874,11 @@ exports.If = class If extends Base
     # Compile the `If` as a regular *if-else* statement. Flattened chains force inner *else* bodies into statement form.
     compileStatement: (o) ->
         child = del o, 'chainChild'
-        exeq  = del o, 'isExistentialEquals'
-
-        if exeq
-            return new If(@condition.invert(), @elseBodyNode(), type: 'if').compileToFragments o
+        
+        # commenting this out doesn't break any tests: what was this supposed to achieve? ...
+        # exeq  = del o, 'isExistentialEquals'
+        # if exeq
+        #     return new If(@condition.invert(), @elseBodyNode(), type: 'if').compileToFragments o
 
         indent = o.indent + TAB
         cond   = @condition.compileToFragments o, LEVEL_PAREN
@@ -2904,6 +2905,88 @@ exports.If = class If extends Base
     unfoldSoak: ->
         @soak and this
 
+# 00     00  00000000  000000000   0000000   
+# 000   000  000          000     000   000  
+# 000000000  0000000      000     000000000  
+# 000 0 000  000          000     000   000  
+# 000   000  00000000     000     000   000  
+
+exports.MetaIf = class MetaIf extends Base
+    
+    @: (@condition, @body, options = {}) ->
+        log 'MetaIf condition\n', stringify @condition
+        log 'MetaIf body\n', stringify @body
+        log 'MetaIf options\n', stringify options
+        @elseBody  = null
+        @isChain   = false
+        {@soak}    = options
+
+    children: ['condition', 'body', 'elseBody']
+
+    bodyNode:     -> @body?.unwrap()
+    elseBodyNode: -> @elseBody?.unwrap()
+
+    # Rewrite a chain of Ifs to add a default case as the final else.
+    
+    addElse: (elseBody) ->
+        
+        if @isChain
+            @elseBodyNode().addElse elseBody
+        else
+            @isChain  = elseBody instanceof MetaIf
+            @elseBody = @ensureBlock elseBody
+            @elseBody.updateLocationDataIfMissing elseBody.locationData
+        this
+
+    jumps: (o) -> @body.jumps(o) or @elseBody?.jumps(o)
+
+    makeReturn: (res) ->
+        
+        @elseBody  or= new Block [new Literal 'void 0'] if res
+        @body     and= new Block [@body.makeReturn res]
+        @elseBody and= new Block [@elseBody.makeReturn res]
+        this
+
+    ensureBlock: (node) ->
+        
+        if node instanceof Block then node else new Block [node]
+    
+    # The If only compiles into a statement if either of its bodies needs
+    # to be a statement. Otherwise a conditional operator is safe.
+    
+    compileNode: (o) -> if @isStatement o then @compileStatement o else @compileExpression o
+        
+    isStatement: (o) -> o?.level is LEVEL_TOP or @bodyNode().isStatement(o) or @elseBodyNode()?.isStatement(o)
+
+    compileStatement: (o) -> # Compile as a regular *if-else* statement. Flattened chains force inner *else* bodies into statement form.
+        
+        child = del o, 'chainChild'
+        indent = o.indent + TAB
+        cond   = @condition.compileToFragments o, LEVEL_PAREN
+        body   = @ensureBlock(@body).compileToFragments merge o, {indent}
+        ifPart = [].concat @makeCode("if ("), cond, @makeCode(") {\n"), body, @makeCode("\n#{@tab}}")
+        ifPart.unshift @makeCode @tab unless child
+        return ifPart unless @elseBody
+        answer = ifPart.concat @makeCode(' else ')
+        if @isChain
+            o.chainChild = yes
+            answer = answer.concat @elseBody.unwrap().compileToFragments o, LEVEL_TOP
+        else
+            answer = answer.concat @makeCode("{\n"), @elseBody.compileToFragments(merge(o, {indent}), LEVEL_TOP), @makeCode("\n#{@tab}}")
+        answer
+
+    compileExpression: (o) -> # Compile as a conditional ? : operator.
+        
+        cond = @condition.compileToFragments o, LEVEL_COND
+        body = @bodyNode().compileToFragments o, LEVEL_LIST
+        alt  = if @elseBodyNode() then @elseBodyNode().compileToFragments(o, LEVEL_LIST) else [@makeCode('void 0')]
+        fragments = cond.concat @makeCode(" ? "), body, @makeCode(" : "), alt
+        if o.level >= LEVEL_COND then @wrapInBraces fragments else fragments
+
+    unfoldSoak: ->
+        
+        @soak and this
+        
 #  0000000   0000000   000   000   0000000  000000000   0000000   000   000  000000000   0000000  
 # 000       000   000  0000  000  000          000     000   000  0000  000     000     000       
 # 000       000   000  000 0 000  0000000      000     000000000  000 0 000     000     0000000   

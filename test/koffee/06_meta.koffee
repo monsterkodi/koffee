@@ -1,0 +1,32 @@
+require('../../js/helpers').initTest() if not global.test
+
+compile = (s) -> Koffee.compile s, bare:true
+
+test "meta if", ->
+
+    check = (c,p) -> 
+        js = compile(c)
+        if -1 == js.indexOf p
+            eq js, p
+            
+    check "@if true then yes @else no", 'if (true)'
+    check "@if true @then yes @else no", 'if (true)'
+    
+test "broken stuff", ->
+
+    throws -> compile """
+        class A
+            @if: -> 'if'
+    """
+
+    throws -> compile """
+        class A
+            @: -> @if() == 'if'
+            @if: -> 'if'
+    """
+    
+    throws -> compile """
+        class A
+            @: -> @if?
+    """
+    

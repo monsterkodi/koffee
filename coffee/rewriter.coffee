@@ -150,7 +150,7 @@ class Rewriter
                    
             if hasFeature @opts, 'console_shortcut'
             
-                if @check i, [{IDENTIFIER:'log'} {IDENTIFIER:'warn'} {IDENTIFIER:'error'}], i+1, ['NUMBER' 'IDENTIFIER' 'PROPERTY' 'STRING' 'STRING_START' 'CALL_START' '[' '(' '{' '@']
+                if @check i, [{IDENTIFIER:'log'} {IDENTIFIER:'warn'} {IDENTIFIER:'error'}], i+1, ['NUMBER' 'IDENTIFIER' 'PROPERTY' 'STRING' 'STRING_START' 'CALL_START' 'IF' 'META_IF' '[' '(' '{' '@']
                     token[0] = 'PROPERTY'
                     tokens.splice i, 0, @generate('IDENTIFIER', 'console', token), @generate('.', '.', token)
                     return 3
@@ -366,7 +366,7 @@ class Rewriter
                 i += 1
 
             # Don't end an implicit call on next indent if any of these are in an argument
-            if inImplicitCall() and tag in ['IF' 'TRY' 'FINALLY' 'CATCH' 'CLASS' 'SWITCH']
+            if inImplicitCall() and tag in ['IF' 'META_IF', 'TRY' 'FINALLY' 'CATCH' 'CLASS' 'SWITCH']
                 stack.push ['CONTROL', i, ours: yes]
                 return forward(1)
 
@@ -377,7 +377,7 @@ class Rewriter
                 #    1. We have seen a `CONTROL` argument on the line.
                 #    2. The last token before the indent is part of the list below
                 #
-                if prevTag not in ['=>' '->' '[' '(' ',' '{' 'TRY' 'ELSE' '=']
+                if prevTag not in ['=>' '->' '[' '(' ',' '{' 'TRY' 'ELSE', 'META_ELSE' '=']
                     endImplicitCall() while inImplicitCall()
                 stack.pop() if inImplicitControl()
                 stack.push [tag, i]
@@ -437,7 +437,7 @@ class Rewriter
             
             if tag in IMPLICIT_FUNC and
                  @indexOfTag(i + 1, 'INDENT') > -1 and @looksObjectish(i + 2) and
-                 not @findTagsBackwards(i, ['CLASS' 'EXTENDS' 'IF' 'CATCH' 'SWITCH' 'LEADING_WHEN' 'FOR' 'WHILE' 'UNTIL'])
+                 not @findTagsBackwards(i, ['CLASS' 'EXTENDS' 'IF' 'META_IF' 'CATCH' 'SWITCH' 'LEADING_WHEN' 'FOR' 'WHILE' 'UNTIL'])
                 startImplicitCall i + 1
                 stack.push ['INDENT', i + 2]
                 return forward(3)
@@ -594,7 +594,7 @@ class Rewriter
         condition = (token, i) ->
             token[1] != ';' and token[0] in SINGLE_CLOSERS and
             not (token[0] is 'TERMINATOR' and @tag(i + 1) in EXPRESSION_CLOSE) and
-            not (token[0] is 'ELSE' and starter != 'THEN') and
+            not (token[0] in ['ELSE', 'META_ELSE'] and starter != 'THEN') and
             not (token[0] in ['CATCH' 'FINALLY'] and starter in ['->', '=>']) or
             token[0] in CALL_CLOSERS and
             (@tokens[i - 1].newLine or @tokens[i - 1][0] is 'OUTDENT')
@@ -605,7 +605,7 @@ class Rewriter
         @scanTokens (token, i, tokens) ->
             [tag] = token
             if tag is 'TERMINATOR'
-                if @tag(i + 1) is 'ELSE' and @tag(i - 1) != 'OUTDENT'
+                if @tag(i + 1) in ['ELSE', 'META_ELSE'] and @tag(i - 1) != 'OUTDENT'
                     tokens.splice i, 1, @indentation()...
                     return 1
                 if @tag(i + 1) in EXPRESSION_CLOSE
@@ -615,11 +615,10 @@ class Rewriter
                 for j in [1..2] when @tag(i + j) in ['OUTDENT' 'TERMINATOR' 'FINALLY']
                     tokens.splice i + j, 0, @indentation()...
                     return 2 + j
-            if tag in SINGLE_LINERS and @tag(i + 1) != 'INDENT' and
-                 not (tag is 'ELSE' and @tag(i + 1) is 'IF')
+            if tag in SINGLE_LINERS and @tag(i + 1) != 'INDENT' and not (tag is 'ELSE' and @tag(i + 1) is 'IF') and not (tag is 'META_ELSE' and @tag(i + 1) is 'META_IF')
                 starter = tag
                 [indent, outdent] = @indentation tokens[i]
-                indent.fromThen     = true if starter is 'THEN'
+                indent.fromThen   = true if starter is 'THEN'
                 tokens.splice i + 1, 0, indent
                 @detectEnd i + 2, condition, action
                 tokens.splice i, 1 if tag is 'THEN'
@@ -649,7 +648,7 @@ class Rewriter
                 original[0] = 'POST_' + original[0]
 
         @scanTokens (token, i) ->
-            return 1 unless token[0] is 'IF'
+            return 1 unless token[0] in ['IF', 'META_IF']
             original = token
             @detectEnd i + 1, condition, action
             return 1
@@ -713,7 +712,7 @@ for [left, rite] in BALANCED_PAIRS
     EXPRESSION_END  .push INVERSES[left] = rite
 
 # Tokens that indicate the close of a clause of an expression.
-EXPRESSION_CLOSE = ['CATCH' 'THEN' 'ELSE' 'FINALLY'].concat EXPRESSION_END
+EXPRESSION_CLOSE = ['CATCH' 'THEN' 'ELSE' 'META_ELSE' 'FINALLY'].concat EXPRESSION_END
 
 # Tokens that, if followed by an `IMPLICIT_CALL`, indicate a function invocation.
 IMPLICIT_FUNC = ['IDENTIFIER' 'PROPERTY' 'SUPER' ')' 'CALL_END' ']' 'INDEX_END' '@' 'THIS']
@@ -722,7 +721,7 @@ IMPLICIT_FUNC = ['IDENTIFIER' 'PROPERTY' 'SUPER' ')' 'CALL_END' ']' 'INDEX_END' 
 IMPLICIT_CALL = [
     'IDENTIFIER' 'PROPERTY' 'NUMBER' 'INFINITY' 'NAN'
     'STRING' 'STRING_START' 'REGEX' 'REGEX_START' 'JS'
-    'NEW' 'PARAM_START' 'CLASS' 'IF' 'TRY' 'SWITCH' 'THIS'
+    'NEW' 'PARAM_START' 'CLASS' 'IF' 'META_IF', 'TRY' 'SWITCH' 'THIS'
     'UNDEFINED' 'NULL' 'BOOL'
     'UNARY' 'YIELD' 'UNARY_MATH' 'SUPER' 'THROW'
     '@' '->' '=>' '[' '(' '{' '--' '++'
@@ -731,12 +730,12 @@ IMPLICIT_CALL = [
 IMPLICIT_UNSPACED_CALL = ['+' '-']
 
 # Tokens that always mark the end of an implicit call for single-liners.
-IMPLICIT_END = ['POST_IF' 'FOR' 'WHILE' 'UNTIL' 'WHEN' 'BY' 'LOOP' 'TERMINATOR']
+IMPLICIT_END = ['POST_IF' 'POST_META_IF' 'FOR' 'WHILE' 'UNTIL' 'WHEN' 'BY' 'LOOP' 'TERMINATOR']
 
 # Single-line flavors of block expressions that have unclosed endings.
 # The grammar can't disambiguate them, so we insert the implicit indentation.
-SINGLE_LINERS  = ['ELSE' '->' '=>' 'TRY' 'FINALLY' 'THEN']
-SINGLE_CLOSERS = ['TERMINATOR' 'CATCH' 'FINALLY' 'ELSE' 'OUTDENT' 'LEADING_WHEN']
+SINGLE_LINERS  = ['ELSE' 'META_ELSE' '->' '=>' 'TRY' 'FINALLY' 'THEN']
+SINGLE_CLOSERS = ['TERMINATOR' 'CATCH' 'FINALLY' 'ELSE' 'META_ELSE' 'OUTDENT' 'LEADING_WHEN']
 
 # Tokens that end a line.
 LINEBREAKS = ['TERMINATOR' 'INDENT' 'OUTDENT']

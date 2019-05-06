@@ -52,10 +52,10 @@ exports.compact = (array) ->
 
 # Count the number of occurrences of a string in a string.
 
-exports.count = (string, substr) ->
+exports.count = (s, substr) ->
     num = pos = 0
     return 1/0 unless substr.length
-    num++ while pos = 1 + string.indexOf substr, pos
+    num++ while pos = 1 + s.indexOf substr, pos
     num
 
 # Merge objects, returning a fresh copy with attributes from both sides.

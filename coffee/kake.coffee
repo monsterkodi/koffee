@@ -15,6 +15,8 @@ nopt     = require 'nopt'
 helpers  = require './helpers'
 Koffee   = require './koffee'
 
+{ gray, white, yellow } = require 'colorette'
+
 tasks    = {}
 
 Koffee.register() 
@@ -65,11 +67,12 @@ printTasks = ->
     
     relative = path.relative or path.resolve
     cakefilePath = path.join relative(__originalDirname, process.cwd()), 'kake.coffee'
-    log "\n#{cakefilePath} tasks:\n"
+    # log "\n#{cakefilePath} tasks:\n"
+    log yellow "\nTasks:\n"
     for name, task of tasks
         desc = if task.description then "#{task.description}" else ''
         name = helpers.pad name
-        log '    ' + name + desc
+        log '    ' + white(name) + gray(desc)
     log ''
 
 kakefileDirectory = (dir) -> # Search in the current and all parent directories to find the relevant kakefile.

@@ -7,17 +7,7 @@ childp  = require 'child_process'
 Koffee  = require './js/koffee'
 helpers = require './js/helpers'
 
-reset  = '\x1B[0m'
-bold   = '\x1B[0;1m'
-
-cLog   = (color,args) -> console.log.apply console.log, [color].concat [].slice.call(args,0), [reset]
-
-yellow = -> cLog '\x1B[0;93m', arguments
-red    = -> cLog '\x1B[0;31m', arguments
-green  = -> cLog '\x1B[0;32m', arguments
-blue   = -> cLog '\x1B[0;94m', arguments
-white  = -> cLog '\x1B[0;37m', arguments
-gray   = -> cLog '\x1B[0;90m', arguments
+{ white, green, blueBright, yellow, gray, bold } = require 'colorette'
 
 # 000   000   0000000   0000000    00000000  
 # 0000  000  000   000  000   000  000       
@@ -27,15 +17,11 @@ gray   = -> cLog '\x1B[0;90m', arguments
 
 node = (args, output='stderr', callback) ->
     
-    relayOutput = (buffer) -> process.stdout.write buffer.toString()
-    proc = childp.spawn 'node', args, cwd:process.cwd()
-    proc.stdout.on 'data', relayOutput if output is 'both' or output is 'stdout'
-    proc.stderr.on 'data', relayOutput if output is 'both' or output is 'stderr'
+    proc = childp.spawn 'node', args, cwd:process.cwd(), stdio:'inherit'
     proc.on 'exit', (status) -> callback(status) if typeof callback is 'function'
 
 run = (args, callback) ->
-    
-    node ['bin/koffee'].concat(args), 'stderr', (status) ->
+    node ['bin/koffee'].concat(args), 'both', (status) ->
         process.exit(1) if status != 0
         callback() if typeof callback is 'function'
 
@@ -47,7 +33,7 @@ run = (args, callback) ->
 
 buildParser = ->
     
-    blue 'parser'
+    log blueBright 'parser'
     helpers.extend global, require 'util'
     require 'jison'
     parser = require('./js/grammar').parser.generate()
@@ -55,10 +41,10 @@ buildParser = ->
 
 buildCompiler = (callback) ->
     
-    blue 'compiler' 
+    log blueBright 'compiler' 
     files = fs.readdirSync 'coffee'
     files = ('coffee/' + file for file in files when file.match(/\.[ck]offee$/))
-    run ['-co', 'js'].concat(files), callback
+    run ['-co' 'js'].concat(files), callback
     
 build = (callback) ->
     
@@ -105,21 +91,21 @@ task 'watch', 'rebuild and/or test on file changes', ->
         fs.watch filename, {interval: 200, recursive:yes}, (event, file) ->
             if event is 'change' then cb event, file
     
-    blue 'watching ...'
+    log blueBright 'watching ...'
     watch 'coffee/', (event,file) ->
-        blue "coffee/#{file} changed"
+        log blueBright "coffee/#{file} changed"
         buildAndTest file is 'grammar.coffee'
             
     watch 'test/coffee/', (event,file) ->
-        yellow "test/coffee/#{file} changed"
+        log yellow "test/coffee/#{file} changed"
         spawnTest 'coffee'
             
     watch 'test/koffee', (event,file) ->
-        yellow "test/koffee/#{file} changed"
+        log yellow "test/koffee/#{file} changed"
         spawnTest 'koffee'
   
     watch 'kake.coffee', ->
-        blue "kake.coffee changed!"
+        log blueBright "kake.coffee changed!"
         childp.execSync 'bin/kake watch', stdio: 'inherit', shell: true, cwd:process.cwd()
         process.exit 0
             
@@ -133,22 +119,23 @@ task 'watch', 'rebuild and/or test on file changes', ->
 
 task 'bench', 'benchmark of compilation time', ->
     
-    {Rewriter}  = require './js/rewriter'
-    sources     = ['koffee' 'grammar' 'helpers' 'lexer' 'nodes' 'rewriter' 'scope']
-    coffee      = sources.map((name) -> fs.readFileSync "coffee/#{name}.coffee").join '\n'
-    fmt         = (ms) -> " #{bold}#{ "     #{ms}".slice -4 }#{reset} ms"
-    total       = 0
-    now         = Date.now()
-    time        = -> total += ms = -(now - now = Date.now()); fmt ms
-    tokens      = Koffee.tokens coffee, feature: rewrite: no
-    gray "Lex    #{time()} (#{tokens.length} tokens)"
-    tokens      = new Rewriter().rewrite tokens
-    gray "Rewrite#{time()} (#{tokens.length} tokens)"
-    nodes       = Koffee.nodes tokens
-    gray "Parse  #{time()}"
-    js          = nodes.compile bare: yes
-    gray "Compile#{time()} (#{js.length} chars)"
-    white "Total  #{ fmt total }"
+    @if @profile
+        Rewriter  = require './js/rewriter'
+        sources   = ['koffee' 'grammar' 'helpers' 'lexer' 'nodes' 'rewriter' 'scope']
+        coffee    = sources.map((name) -> fs.readFileSync "coffee/#{name}.coffee").join '\n'
+        fmt       = (ms) -> " #{bold "     #{ms}".slice -4 } ms"
+        total     = 0
+        now       = Date.now()
+        time      = -> total += ms = -(now - now = Date.now()); fmt ms
+        tokens    = Koffee.tokens coffee, feature: rewrite: no
+        log gray  "Lex    #{time()} (#{tokens.length} tokens)"
+        tokens    = new Rewriter().rewrite tokens
+        log gray  "Rewrite#{time()} (#{tokens.length} tokens)"
+        nodes     = Koffee.nodes tokens
+        log gray  "Parse  #{time()}"
+        js        = nodes.compile bare: yes
+        log gray  "Compile#{time()} (#{js.length} chars)"
+        log white "Total  #{ fmt total }"
 
 # 000000000  00000000   0000000  000000000   0000000  
 #    000     000       000          000     000       
@@ -183,7 +170,7 @@ runTests = (testsets) ->
     for testset in testsets
         files = files.concat fs.readdirSync("test/#{testset}").map (f) -> [testset, f]
         
-    green "#{files.length} test files ..."
+    log green "#{files.length} test files ..."
         
     for [testset,file] in files when helpers.isCoffee file
         
@@ -195,25 +182,25 @@ runTests = (testsets) ->
             failures.push {filename, err}
             
         if failures.length
-            red path.basename(filename, '.coffee')
+            log red path.basename(filename, '.coffee')
             for fail in failures
                 {error, filename, description, source} = fail
-                white ''
-                green  "    #{description}" if description
-                yellow "    #{error?.message}"
-                gray   "    #{filename}"
+                log white ''
+                log green  "    #{description}" if description
+                log yellow "    #{error?.message}"
+                log gray   "    #{filename}"
                 if source
-                    white  "    #{source}" 
+                    log white  "    #{source}" 
                 else
-                    red    "    #{error}"
+                    log red    "    #{error}"
         failures = []
             
     time = ((Date.now() - startTime) / 1000).toFixed(2)
-    message = "#{passedTests} passed tests in #{time} seconds"
+    message = green "#{passedTests} passed tests in #{time} seconds"
     if not failedTests
-        green message
+        log message
     else
-        red "#{failedTests} failed and #{message}"
+        log red "#{failedTests} failed and #{message}"
     
     return failedTests
 

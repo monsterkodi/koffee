@@ -7,13 +7,17 @@
 ###
 
 randMeta    = (o) -> code:"Math.random() < #{o.args?[0] ? 0.5}" reduce:false
-codeMeta     = () -> 
-testMeta     = () -> 
-tokenMeta    = () -> 
-parseMeta    = () -> 
-debugMeta    = () -> 
-assertMeta   = () -> 
-profileMeta  = () -> 
+codeMeta    = (o) -> 
+testMeta    = (o) -> reduce:true
+tokenMeta   = (o) -> reduce:true
+parseMeta   = (o) -> reduce:true
+debugMeta   = (o) -> reduce:true
+assertMeta  = (o) -> reduce:true
+profileMeta = (o) -> 
+    before: "\nkoffeeProfile = require('perf_hooks').performance; koffeeProfileStart = koffeeProfile.now();\n"
+    after:  "\nkoffeeProfileEnd = koffeeProfile.now(); console.log('#{o.args.join(' ')}', koffeeProfileEnd - koffeeProfileStart);\n"
+    body:   true
+    reduce: true
 
 META = [
     { key: 'token'   desc: 'tokenized expression' meta:tokenMeta   }

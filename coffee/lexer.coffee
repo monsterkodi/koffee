@@ -15,7 +15,7 @@
 # where locationData is {first_line, first_column, last_line, last_column}, 
 # which is a format that can be fed directly into Jison via the `parser.lexer` function defined in koffee.coffee.
 
-{Rewriter, INVERSES} = require './rewriter'
+Rewriter = require './rewriter'
 
 { count, starts, compact, repeat, locationDataToString, throwSyntaxError, injectMeta, injectFeature, hasFeature } = require './helpers'
 
@@ -590,7 +590,7 @@ class Lexer
                     when '?'    then prev[0] = 'INDEX_SOAK'
         token = @makeToken tag, value
         switch value
-            when '(', '{', '[' then @ends.push {tag: INVERSES[value], origin: token}
+            when '(', '{', '[' then @ends.push {tag: Rewriter.INVERSES[value], origin: token}
             when ')', '}', ']' then @pair value
         @tokens.push token
         value.length

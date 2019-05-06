@@ -139,8 +139,7 @@ exports.Base = class Base
         [fragmentsToText(cacheValues[0]), fragmentsToText(cacheValues[1])]
 
     # Construct a node that returns the current node's result.
-    # Note that this is overridden for smarter behavior for
-    # many statement nodes (e.g. If, For)...
+    # This is overridden for smarter behavior for many statement nodes (e.g. If, For)...
     
     makeReturn: (res) ->
         me = @unwrapAll()
@@ -304,19 +303,19 @@ exports.Block = class Block extends Base
                 break
         this
 
-    # A **Block** is the only node that can serve as the root.
+    # A Block is the only node that can serve as the root.
     
     compileToFragments: (o = {}, level) ->
         if o.scope then super o, level else @compileRoot o
 
-    # Compile all expressions within the **Block** body. If we need to
-    # return the result, and it's an expression, simply return it. 
+    # Compile all expressions within the Block body. 
+    # If we need to return the result, and it's an expression, simply return it. 
     # If it's a statement, ask the statement to do so.
     
     compileNode: (o) ->
         
-        @tab    = o.indent
-        top     = o.level is LEVEL_TOP
+        @tab = o.indent
+        top  = o.level is LEVEL_TOP
         compiledNodes = []
 
         for node, index in @expressions
@@ -324,8 +323,8 @@ exports.Block = class Block extends Base
             node = node.unwrapAll()
             node = (node.unfoldSoak(o) or node)
             if node instanceof Block
-                # This is a nested block. We don't do anything special here like enclose
-                # it in a new scope; we just compile the statements in this block along with our own
+                # This is a nested block. We don't do anything special here like enclose it in a new scope.
+                # We just compile the statements in this block along with our own
                 compiledNodes.push node.compileNode o
             else if top
                 node.front = true
@@ -1870,10 +1869,10 @@ exports.Assign = class Assign extends Base
 #  0000000   0000000   0000000    00000000  
 
 # A function definition. This is the only node that creates a new Scope.
-# When for the purposes of walking the contents of a function body, the Code
-# has no *children* -- they're within the inner scope.
+# When for the purposes of walking the contents of a function body, the Code has no *children* -- they're within the inner scope.
 
 exports.Code = class Code extends Base
+    
     @: (params, body, tag) ->
         @params = params or []
         @body   = body or new Block
@@ -1889,11 +1888,9 @@ exports.Code = class Code extends Base
 
     makeScope: (parentScope) -> new Scope parentScope, @body, this
 
-    # Compilation creates a new scope unless explicitly asked to share with the
-    # outer scope. Handles splat parameters in the parameter list by peeking at
-    # the JavaScript `arguments` object. If the function is bound with the `=>`
-    # arrow, generates a wrapper that saves the current value of `this` through
-    # a closure.
+    # Compilation creates a new scope unless explicitly asked to share with the outer scope. 
+    # Handles splat parameters in the parameter list by peeking at the JavaScript `arguments` object. 
+    # If the function is bound with the `=>` arrow, generates a wrapper that saves the current value of `this` through a closure.
     
     compileNode: (o) ->
 
@@ -1945,7 +1942,7 @@ exports.Code = class Code extends Base
         @eachParamName (name, node) ->
             node.error "multiple parameters named #{name}" if name in uniqs
             uniqs.push name
-            
+        
         @body.makeReturn() unless wasEmpty or @noReturn
         code = 'function'
         code += '*' if @isGenerator
@@ -1967,8 +1964,7 @@ exports.Code = class Code extends Base
     eachParamName: (iterator) ->
         param.eachName iterator for param in @params
 
-    # Short-circuit `traverseChildren` method to prevent it from crossing scope boundaries
-    # unless `crossScope` is `true`.
+    # Short-circuit `traverseChildren` method to prevent it from crossing scope boundaries unless `crossScope` is `true`.
     
     traverseChildren: (crossScope, func) ->
         
@@ -2910,7 +2906,7 @@ exports.If = class If extends Base
 exports.MetaIf = class MetaIf extends Base
     
     @: (@condition, @body, options = {}) ->
-
+        
         @elseBody = null
         @isChain  = false
         { @soak } = options
@@ -2932,7 +2928,7 @@ exports.MetaIf = class MetaIf extends Base
     makeReturn: (res) ->
         
         @elseBody  or= new Block [new Literal 'void 0'] if res
-        @body     and= new Block [@body.makeReturn res]
+        # @body     and= new Block [@body.makeReturn res]
         @elseBody and= new Block [@elseBody.makeReturn res]
         this
     
@@ -2950,7 +2946,7 @@ exports.MetaIf = class MetaIf extends Base
             metaKey = @condition.properties?[0]?.name?.value
             if typeof o.meta[metaKey] == 'function'
                 info = o.meta[metaKey] options:o, node:@, args:[]
-                # log "meta #{metaKey} info:", info
+                log "meta #{metaKey} info:", info
                 
         else if @condition.variable?.base?.value == 'this'
             
@@ -2962,37 +2958,53 @@ exports.MetaIf = class MetaIf extends Base
                 info = o.meta[metaKey] options:o, node:@, args:args
                 # log "meta #{metaKey} info:", info
             
-        if not info.code
+        if not info.code? and not info.body?
+            # log '????', stringify info
             fragments = @condition.compileToFragments o, LEVEL_PAREN
             info.code = fragmentsToText fragments
             try
                 info.body = eval info.code
-                log 'EVAL:' info.code, info.body
+                # log 'EVAL:' info.code, info.body
             catch err
                 error err
             
         if info.reduce
+            fragments = []
+            if info.before
+                fragments.push @makeCode info.before
             if info.body
-                return @ensureBlock(@body).compileToFragments o
+                body = @ensureBlock(@body)
+                # log stringify body.expressions[0].expressions[-1..-1]
+                # log stringify body.expressions[0].compileToFragments o
+                # if body.expressions[body.expressions.length-1] typeof Return
+                    # log 'RETURN'
+                bodyFragments = body.compileToFragments o
+                # log 'bodyFragments', fragmentsToText bodyFragments
+                # log 'body.expressions', @body.expressions
+                fragments = fragments.concat bodyFragments
             else if @elseBody
                 if @isChain
-                    return @elseBody.unwrap().compileToFragments o
+                    fragments = fragments.concat @elseBody.unwrap().compileToFragments o
                 else
-                    return @elseBody.compileToFragments o
-            return code: ''
+                    fragments = fragments.concat @elseBody.compileToFragments o
+            # else
+                # return @makeCode ''
+            if info.after
+                fragments.push @makeCode info.after
+                
+            fragments.push @makeCode '' if not fragments.length
+            return fragments
         else
-            # child  = del o, 'chainChild'
             indent = o.indent + TAB
             body   = @ensureBlock(@body).compileToFragments merge o, {indent}
-            ifPart = [].concat @makeCode("if ("), code:info.code, @makeCode(") {\n"), body, @makeCode("\n#{@tab}}")
-            # ifPart.unshift @makeCode @tab if not child
+            ifPart = [].concat @makeCode("if ("), @makeCode(info.code), @makeCode(") {\n"), body, @makeCode("\n#{@tab}}")
             return ifPart unless @elseBody
             answer = ifPart.concat @makeCode(' else ')
             if @isChain
                 o.chainChild = yes
                 answer = answer.concat @elseBody.unwrap().compileToFragments o, LEVEL_TOP
             else
-                answer = answer.concat @makeCode("{\n"), @elseBody.compileToFragments(merge(o, {indent}), LEVEL_TOP), @makeCode("\n#{@tab}}")
+                answer = answer.concat @makeCode("{\n"), @elseBody.compileToFragments(merge(o, {indent}), LEVEL_TOP), @makeCode("\n#{@tab}}")            
             return answer
 
     ensureBlock: (node) -> if node instanceof Block then node else new Block [node]

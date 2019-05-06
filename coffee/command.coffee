@@ -42,9 +42,9 @@ hidden    = (file) -> /^\.|~$/.test file
 SWITCHES = [
     ['-b' '--bare'              'compile without a top-level function wrapper'          Boolean        ]
     ['-c' '--compile'           'compile to JavaScript and save as .js files'           Boolean        ]
-    ['-e' '--eval STRING'       'pass a string from the command line as input'         [String, Array] ]
+    ['-e' '--eval STRING'       'evaluate a string and print the result'               [String, Array] ]
     ['-f' '--features'          'list available features'                               Boolean        ]
-    [''   '--no-`feature`'      'disable a `feature`, e.g. --no-negative-index'         null           ]
+    [''   '--no-`feature'       'disable a feature, e.g. --no-negative-index'           null           ]
     ['-h' '--help'              'display this help message'                             Boolean        ]
     ['-j' '--js'                'print out the compiled JavaScript'                     Boolean        ]
     ['-m' '--map'               'generate source map and save as .js.map files'         Boolean        ]
@@ -69,9 +69,8 @@ opts = {}
 
 parseOptions = ->
 
-    known = {Debug:Boolean}
-    short = {D:'--Debug'}
-    short = {p:'--js'}
+    known = Debug:Boolean
+    short = D:'--Debug' p:'--js'
     SWITCHES.map (s) -> l = s[1].split(' ')[0][2..]; known[l] = s[3] if s[3]; short[s[0][1]] = "--#{l}" if s[0]!=''
     FEATURES.map (f) -> known[f.lag] = Boolean
     
@@ -79,6 +78,7 @@ parseOptions = ->
         
     o.compile  or= !!o.output
     o.arguments  = o.argv.remain
+    o.prelude    = makePrelude o.require if o.require
     o.run        = not (o.compile or o.js or o.map or o.tokens or o.parse)
     o.js         = !!(o.js or o.eval or o.stdio and o.compile) # js output is passed to eval and stdio compile
     
@@ -86,8 +86,7 @@ parseOptions = ->
     FEATURES.map (f) -> o.feature[f.key] = o[f.flag] ? true; delete o[f.flag]
     
     if o.Debug
-        # delete o.argv
-        log stringify process.argv
+        delete o.argv
         log stringify o
 
 # 00000000   000   000  000   000  
@@ -95,10 +94,6 @@ parseOptions = ->
 # 0000000    000   000  000 0 000  
 # 000   000  000   000  000  0000  
 # 000   000   0000000   000   000  
-
-# Run `coffee` by parsing passed options and determining what action to take.
-# Many flags cause us to divert before compiling anything. 
-# Flags passed after `--` will be passed verbatim in `process.argv`
 
 run = ->
     
@@ -115,8 +110,7 @@ run = ->
         return
     return startRepl()    if not opts.arguments.length
     
-    # literals = if opts.run then opts.arguments.splice 1 else []
-    literals = if not opts.watch then opts.arguments.splice 1 else []
+    literals = if not opts.watch and not opts.compile then opts.arguments.splice 1 else []
     
     process.argv = process.argv[0..1].concat literals
     process.argv[0] = 'koffee'
@@ -127,7 +121,7 @@ run = ->
         
         if opts.watch
             watchPath source
-        else
+        else     
             compilePath source, topLevel:yes
 
 exports.run = run
@@ -138,8 +132,10 @@ startRepl = ->
     #   (a) be consistent with the `node` REPL and, therefore, 
     #   (b) make packages that modify native prototypes (such as 'colors' and 'sugar') work as expected.
     
+    log 'START REPL'
     replCliOpts = useGlobal: yes
-    opts.prelude = makePrelude opts.require if opts.require
+    # opts.prelude = makePrelude opts.require if opts.require
+    # log opts.prelude, opts.require
     replCliOpts.prelude = opts.prelude
     require('./repl').start replCliOpts
 

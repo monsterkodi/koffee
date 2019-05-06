@@ -22,7 +22,7 @@ exports.FILE_EXTENSIONS = FILE_EXTENSIONS = ['.coffee' '.koffee']
 
 exports.helpers = helpers
 
-{ injectFeature, injectMeta, updateSyntaxError, nameWhitespaceCharacter, throwSyntaxError, isCoffee, count, hasFeature } = helpers
+{ injectFeature, injectMeta, updateSyntaxError, nameWhitespaceCharacter, throwSyntaxError, isCoffee, count, hasFeature, stringify } = helpers
 
 base64encode = (src) ->
     
@@ -116,6 +116,8 @@ exports.compile = compile = withPrettyErrors (code, options) ->
     currentColumn = 0
     js = ""
     
+    # log 'fragments', stringify fragments
+    
     for fragment in fragments
         # Update the sourcemap with data from each fragment.
         if generateSourceMap
@@ -125,6 +127,8 @@ exports.compile = compile = withPrettyErrors (code, options) ->
                     [fragment.locationData.first_line, fragment.locationData.first_column]
                     [currentLine, currentColumn]
                     {noReplace: true})
+            if not fragment.code?
+                log 'generateSourceMap', stringify fragment
             newLines = count fragment.code, "\n"
             currentLine += newLines
             if newLines

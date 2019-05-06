@@ -700,17 +700,19 @@ BALANCED_PAIRS = [
 
 # The inverse mappings of `BALANCED_PAIRS` we're trying to fix up, so we can look things up from either end.
 
-exports.INVERSES = INVERSES = {}
-exports.Rewriter = Rewriter
+module.exports = Rewriter
 
 # The tokens that signal the start/end of a balanced pair.
 EXPRESSION_START = []
 EXPRESSION_END   = []
 
+INVERSES = {}
 for [left, rite] in BALANCED_PAIRS
     EXPRESSION_START.push INVERSES[rite] = left
     EXPRESSION_END  .push INVERSES[left] = rite
 
+Rewriter.INVERSES = INVERSES
+    
 # Tokens that indicate the close of a clause of an expression.
 EXPRESSION_CLOSE = ['CATCH' 'THEN' 'ELSE' 'META_ELSE' 'FINALLY'].concat EXPRESSION_END
 

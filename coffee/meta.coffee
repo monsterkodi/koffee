@@ -14,10 +14,14 @@ parseMeta   = (o) -> reduce:true
 debugMeta   = (o) -> reduce:true
 assertMeta  = (o) -> reduce:true
 profileMeta = (o) -> 
-    before: "\nkoffeeProfile = require('perf_hooks').performance; koffeeProfileStart = koffeeProfile.now();\n"
-    after:  "\nkoffeeProfileEnd = koffeeProfile.now(); console.log('#{o.args.join(' ')}', koffeeProfileEnd - koffeeProfileStart);\n"
-    body:   true
-    reduce: true
+    id = "#{o.node.condition.locationData.first_line+1}_#{o.node.condition.locationData.first_column}"
+    if o.args[0]
+        name = o.args[0]
+    else
+        name = id
+    after:  "console.log('#{name}', require('pretty-time')(process.hrtime(koffee_#{id})));" #Number.parseFloat().toFixed(6));"
+    code:   "koffee_#{id} = process.hrtime()"
+    reduce: false
 
 META = [
     { key: 'token'   desc: 'tokenized expression' meta:tokenMeta   }

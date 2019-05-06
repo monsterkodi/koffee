@@ -3933,7 +3933,6 @@
                         node: this,
                         args: []
                     });
-                    console.log("meta " + metaKey + " info:", info);
                 }
             } else if (((ref7 = this.condition.variable) != null ? (ref8 = ref7.base) != null ? ref8.value : void 0 : void 0) === 'this') {
                 metaKey = (ref9 = this.condition.variable.properties) != null ? (ref10 = ref9[0]) != null ? (ref11 = ref10.name) != null ? ref11.value : void 0 : void 0 : void 0;
@@ -3987,6 +3986,9 @@
                 body = this.ensureBlock(this.body).compileToFragments(merge(o, {
                     indent: indent
                 }));
+                if (info.after) {
+                    body.push(this.makeCode('\n' + indent + info.after));
+                }
                 ifPart = [].concat(this.makeCode("if ("), this.makeCode(info.code), this.makeCode(") {\n"), body, this.makeCode("\n" + this.tab + "}"));
                 if (!this.elseBody) {
                     return ifPart;

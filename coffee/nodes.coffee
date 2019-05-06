@@ -2941,30 +2941,25 @@ exports.MetaIf = class MetaIf extends Base
         
         info = reduce:true
         
-        if @condition.base?.value == 'this' 
+        if @condition.base?.value == 'this'
             
             metaKey = @condition.properties?[0]?.name?.value
             if typeof o.meta[metaKey] == 'function'
                 info = o.meta[metaKey] options:o, node:@, args:[]
-                log "meta #{metaKey} info:", info
                 
         else if @condition.variable?.base?.value == 'this'
             
             metaKey = @condition.variable.properties?[0]?.name?.value
-            # log 'call with args', metaKey
             if typeof o.meta[metaKey] == 'function'
-                args = @condition.args.map (a) -> a.base?.value
-                # log "meta #{metaKey} args:", args
+                args = @condition.args.map (a) -> 
+                    a.base?.value
                 info = o.meta[metaKey] options:o, node:@, args:args
-                # log "meta #{metaKey} info:", info
             
         if not info.code? and not info.body?
-            # log '????', stringify info
             fragments = @condition.compileToFragments o, LEVEL_PAREN
             info.code = fragmentsToText fragments
             try
                 info.body = eval info.code
-                # log 'EVAL:' info.code, info.body
             catch err
                 error err
             
@@ -2974,21 +2969,13 @@ exports.MetaIf = class MetaIf extends Base
                 fragments.push @makeCode info.before
             if info.body
                 body = @ensureBlock(@body)
-                # log stringify body.expressions[0].expressions[-1..-1]
-                # log stringify body.expressions[0].compileToFragments o
-                # if body.expressions[body.expressions.length-1] typeof Return
-                    # log 'RETURN'
                 bodyFragments = body.compileToFragments o
-                # log 'bodyFragments', fragmentsToText bodyFragments
-                # log 'body.expressions', @body.expressions
                 fragments = fragments.concat bodyFragments
             else if @elseBody
                 if @isChain
                     fragments = fragments.concat @elseBody.unwrap().compileToFragments o
                 else
                     fragments = fragments.concat @elseBody.compileToFragments o
-            # else
-                # return @makeCode ''
             if info.after
                 fragments.push @makeCode info.after
                 
@@ -2997,6 +2984,8 @@ exports.MetaIf = class MetaIf extends Base
         else
             indent = o.indent + TAB
             body   = @ensureBlock(@body).compileToFragments merge o, {indent}
+            if info.after
+                body.push @makeCode '\n' + indent + info.after
             ifPart = [].concat @makeCode("if ("), @makeCode(info.code), @makeCode(") {\n"), body, @makeCode("\n#{@tab}}")
             return ifPart unless @elseBody
             answer = ifPart.concat @makeCode(' else ')

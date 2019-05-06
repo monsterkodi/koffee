@@ -52,11 +52,17 @@
     };
 
     profileMeta = function(o) {
+        var id, name;
+        id = (o.node.condition.locationData.first_line + 1) + "_" + o.node.condition.locationData.first_column;
+        if (o.args[0]) {
+            name = o.args[0];
+        } else {
+            name = id;
+        }
         return {
-            before: "\nkoffeeProfile = require('perf_hooks').performance; koffeeProfileStart = koffeeProfile.now();\n",
-            after: "\nkoffeeProfileEnd = koffeeProfile.now(); console.log('" + (o.args.join(' ')) + "', koffeeProfileEnd - koffeeProfileStart);\n",
-            body: true,
-            reduce: true
+            after: "console.log('" + name + "', require('pretty-time')(process.hrtime(koffee_" + id + ")));",
+            code: "koffee_" + id + " = process.hrtime()",
+            reduce: false
         };
     };
 

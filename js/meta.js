@@ -7,132 +7,91 @@
 000 0 000  000          000     000   000  
 000   000  00000000     000     000   000
  */
+var META, injectMeta, logMetas;
 
-(function() {
-    var META, assertMeta, codeMeta, debugMeta, injectMeta, logMetas, parseMeta, profileMeta, randMeta, testMeta, tokenMeta;
-
-    randMeta = function(o) {
-        var ref, ref1;
-        return {
-            code: "Math.random() < " + ((ref = (ref1 = o.args) != null ? ref1[0] : void 0) != null ? ref : 0.5),
-            reduce: false
-        };
-    };
-
-    codeMeta = function(o) {};
-
-    testMeta = function(o) {
-        return {
-            reduce: true
-        };
-    };
-
-    tokenMeta = function(o) {
-        return {
-            reduce: true
-        };
-    };
-
-    parseMeta = function(o) {
-        return {
-            reduce: true
-        };
-    };
-
-    debugMeta = function(o) {
-        return {
-            reduce: true
-        };
-    };
-
-    assertMeta = function(o) {
-        return {
-            reduce: true
-        };
-    };
-
-    profileMeta = function(o) {
-        var id, name;
-        id = (o.node.condition.locationData.first_line + 1) + "_" + o.node.condition.locationData.first_column;
-        if (o.args[0]) {
-            name = o.args[0];
-        } else {
-            name = id;
+META = [
+    {
+        key: 'profile',
+        meta: function(o) {
+            var id, name;
+            id = (o.node.condition.locationData.first_line + 1) + "_" + o.node.condition.locationData.first_column;
+            if (o.args[0]) {
+                name = o.args[0];
+            } else {
+                name = id;
+            }
+            return {
+                after: "console.log('" + name + "', require('pretty-time')(process.hrtime(koffee_" + id + ")));",
+                code: "koffee_" + id + " = process.hrtime()",
+                reduce: false
+            };
         }
-        return {
-            after: "console.log('" + name + "', require('pretty-time')(process.hrtime(koffee_" + id + ")));",
-            code: "koffee_" + id + " = process.hrtime()",
-            reduce: false
-        };
-    };
-
-    META = [
-        {
-            key: 'token',
-            desc: 'tokenized expression',
-            meta: tokenMeta
-        }, {
-            key: 'parse',
-            desc: 'parsed    expression',
-            meta: parseMeta
-        }, {
-            key: 'code',
-            desc: 'compiled  expression',
-            meta: codeMeta
-        }, {
-            key: 'test',
-            desc: 'test',
-            meta: testMeta
-        }, {
-            key: 'assert',
-            desc: 'assert',
-            meta: assertMeta
-        }, {
-            key: 'profile',
-            desc: 'profile',
-            meta: profileMeta
-        }, {
-            key: 'dbg',
-            desc: 'debug',
-            meta: debugMeta
-        }, {
-            key: 'rand',
-            desc: 'rand',
-            meta: randMeta
+    }, {
+        key: 'start',
+        meta: function(o) {
+            var id, ref;
+            id = (ref = o.args[0]) != null ? ref : 'start_end';
+            return {
+                before: "koffee_" + id + " = process.hrtime()",
+                reduce: true,
+                body: false
+            };
         }
-    ];
-
-    injectMeta = function(options) {
-        var defaultMeta, extend, meta, ref;
-        if (options != null) {
-            options;
-        } else {
-            options = {};
+    }, {
+        key: 'end',
+        meta: function(o) {
+            var id, ref;
+            id = (ref = o.args[0]) != null ? ref : 'start_end';
+            return {
+                before: "console.log('" + id + "', require('pretty-time')(process.hrtime(koffee_" + id + ")))",
+                reduce: true,
+                body: false
+            };
         }
-        extend = require('./helpers').extend;
-        defaultMeta = {};
-        META.map(function(m) {
-            return defaultMeta[m.key] = m.meta;
-        });
-        meta = extend(defaultMeta, (ref = options.meta) != null ? ref : {});
-        options = extend({
-            meta: meta
-        }, options);
-        return options;
-    };
+    }, {
+        key: 'rand',
+        meta: function(o) {
+            var ref, ref1;
+            return {
+                code: "Math.random() < " + ((ref = (ref1 = o.args) != null ? ref1[0] : void 0) != null ? ref : 0.5),
+                reduce: false
+            };
+        }
+    }
+];
 
-    logMetas = function() {
-        var pad;
-        pad = require('./helpers').pad;
-        return console.log("\nMetas:\n\n" + (META.map(function(f) {
-            return "    " + (pad(f.key)) + f.desc;
-        }).join('\n')) + "\n");
-    };
+injectMeta = function(options) {
+    var defaultMeta, extend, meta, ref;
+    if (options != null) {
+        options;
+    } else {
+        options = {};
+    }
+    extend = require('./helpers').extend;
+    defaultMeta = {};
+    META.map(function(m) {
+        return defaultMeta[m.key] = m.meta;
+    });
+    meta = extend(defaultMeta, (ref = options.meta) != null ? ref : {});
+    options = extend({
+        meta: meta
+    }, options);
+    return options;
+};
 
-    module.exports = {
-        META: META,
-        injectMeta: injectMeta,
-        logMetas: logMetas
-    };
+logMetas = function() {
+    var pad;
+    pad = require('./helpers').pad;
+    return console.log("\nMetas:\n\n" + (META.map(function(f) {
+        return "    " + (pad(f.key)) + f.desc;
+    }).join('\n')) + "\n");
+};
 
-}).call(this);
+module.exports = {
+    META: META,
+    injectMeta: injectMeta,
+    logMetas: logMetas
+};
+
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoibWV0YS5qcyIsInNvdXJjZVJvb3QiOiIuIiwic291cmNlcyI6WyIiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6Ijs7QUFBQTs7Ozs7OztBQUFBLElBQUE7O0FBUUEsSUFBQSxHQUFPO0lBQ0g7UUFBQSxHQUFBLEVBQUssU0FBTDtRQUNBLElBQUEsRUFBTSxTQUFDLENBQUQ7QUFDRixnQkFBQTtZQUFBLEVBQUEsR0FBTyxDQUFDLENBQUMsQ0FBQyxJQUFJLENBQUMsU0FBUyxDQUFDLFlBQVksQ0FBQyxVQUE5QixHQUF5QyxDQUExQyxDQUFBLEdBQTRDLEdBQTVDLEdBQStDLENBQUMsQ0FBQyxJQUFJLENBQUMsU0FBUyxDQUFDLFlBQVksQ0FBQztZQUNwRixJQUFHLENBQUMsQ0FBQyxJQUFLLENBQUEsQ0FBQSxDQUFWO2dCQUNJLElBQUEsR0FBTyxDQUFDLENBQUMsSUFBSyxDQUFBLENBQUEsRUFEbEI7YUFBQSxNQUFBO2dCQUdJLElBQUEsR0FBTyxHQUhYOzttQkFJQTtnQkFBQSxLQUFBLEVBQVEsZUFBQSxHQUFnQixJQUFoQixHQUFxQixrREFBckIsR0FBdUUsRUFBdkUsR0FBMEUsTUFBbEY7Z0JBQ0EsSUFBQSxFQUFRLFNBQUEsR0FBVSxFQUFWLEdBQWEscUJBRHJCO2dCQUVBLE1BQUEsRUFBUSxLQUZSOztRQU5FLENBRE47S0FERyxFQVlIO1FBQUEsR0FBQSxFQUFLLE9BQUw7UUFDQSxJQUFBLEVBQU0sU0FBQyxDQUFEO0FBQ0YsZ0JBQUE7WUFBQSxFQUFBLHFDQUFpQjttQkFDakI7Z0JBQUEsTUFBQSxFQUFRLFNBQUEsR0FBVSxFQUFWLEdBQWEscUJBQXJCO2dCQUNBLE1BQUEsRUFBUSxJQURSO2dCQUVBLElBQUEsRUFBUSxLQUZSOztRQUZFLENBRE47S0FaRyxFQW1CSDtRQUFBLEdBQUEsRUFBSyxLQUFMO1FBQ0EsSUFBQSxFQUFNLFNBQUMsQ0FBRDtBQUNGLGdCQUFBO1lBQUEsRUFBQSxxQ0FBaUI7bUJBQ2pCO2dCQUFBLE1BQUEsRUFBUSxlQUFBLEdBQWdCLEVBQWhCLEdBQW1CLGtEQUFuQixHQUFxRSxFQUFyRSxHQUF3RSxLQUFoRjtnQkFDQSxNQUFBLEVBQVEsSUFEUjtnQkFFQSxJQUFBLEVBQVEsS0FGUjs7UUFGRSxDQUROO0tBbkJHLEVBMEJIO1FBQUEsR0FBQSxFQUFLLE1BQUw7UUFDQSxJQUFBLEVBQU0sU0FBQyxDQUFEO0FBQU8sZ0JBQUE7bUJBQUE7Z0JBQUEsSUFBQSxFQUFLLGtCQUFBLEdBQWtCLG9FQUFjLEdBQWQsQ0FBdkI7Z0JBQTJDLE1BQUEsRUFBTyxLQUFsRDs7UUFBUCxDQUROO0tBMUJHOzs7QUFvQ1AsVUFBQSxHQUFhLFNBQUMsT0FBRDtBQUVULFFBQUE7O1FBQUE7O1FBQUEsVUFBVzs7SUFFVCxTQUFXLE9BQUEsQ0FBUSxXQUFSO0lBRWIsV0FBQSxHQUFjO0lBQ2QsSUFBSSxDQUFDLEdBQUwsQ0FBUyxTQUFDLENBQUQ7ZUFBTyxXQUFZLENBQUEsQ0FBQyxDQUFDLEdBQUYsQ0FBWixHQUFxQixDQUFDLENBQUM7SUFBOUIsQ0FBVDtJQUVBLElBQUEsR0FBVSxNQUFBLENBQU8sV0FBUCx1Q0FBbUMsRUFBbkM7SUFDVixPQUFBLEdBQVUsTUFBQSxDQUFPO1FBQUUsSUFBQSxFQUFNLElBQVI7S0FBUCxFQUF1QixPQUF2QjtXQUNWO0FBWFM7O0FBYWIsUUFBQSxHQUFXLFNBQUE7QUFFUCxRQUFBO0lBQUUsTUFBUSxPQUFBLENBQVEsV0FBUjtXQUFtQixPQUFBLENBQzdCLEdBRDZCLENBQ3pCLGNBQUEsR0FBYyxDQUFFLElBQUksQ0FBQyxHQUFMLENBQVMsU0FBQyxDQUFEO2VBQU8sTUFBQSxHQUFNLENBQUMsR0FBQSxDQUFJLENBQUMsQ0FBQyxHQUFOLENBQUQsQ0FBTixHQUFtQixDQUFDLENBQUM7SUFBNUIsQ0FBVCxDQUE0QyxDQUFDLElBQTdDLENBQWtELElBQWxELENBQUYsQ0FBZCxHQUF5RSxJQURoRDtBQUZ0Qjs7QUFLWCxNQUFNLENBQUMsT0FBUCxHQUFpQjtJQUFFLE1BQUEsSUFBRjtJQUFRLFlBQUEsVUFBUjtJQUFvQixVQUFBLFFBQXBCIiwic291cmNlc0NvbnRlbnQiOlsiIyMjXG4wMCAgICAgMDAgIDAwMDAwMDAwICAwMDAwMDAwMDAgICAwMDAwMDAwICAgXG4wMDAgICAwMDAgIDAwMCAgICAgICAgICAwMDAgICAgIDAwMCAgIDAwMCAgXG4wMDAwMDAwMDAgIDAwMDAwMDAgICAgICAwMDAgICAgIDAwMDAwMDAwMCAgXG4wMDAgMCAwMDAgIDAwMCAgICAgICAgICAwMDAgICAgIDAwMCAgIDAwMCAgXG4wMDAgICAwMDAgIDAwMDAwMDAwICAgICAwMDAgICAgIDAwMCAgIDAwMCAgXG4jIyNcblxuTUVUQSA9IFtcbiAgICBrZXk6ICdwcm9maWxlJyAgIFxuICAgIG1ldGE6IChvKSAtPiBcbiAgICAgICAgaWQgPSBcIiN7by5ub2RlLmNvbmRpdGlvbi5sb2NhdGlvbkRhdGEuZmlyc3RfbGluZSsxfV8je28ubm9kZS5jb25kaXRpb24ubG9jYXRpb25EYXRhLmZpcnN0X2NvbHVtbn1cIlxuICAgICAgICBpZiBvLmFyZ3NbMF1cbiAgICAgICAgICAgIG5hbWUgPSBvLmFyZ3NbMF1cbiAgICAgICAgZWxzZVxuICAgICAgICAgICAgbmFtZSA9IGlkXG4gICAgICAgIGFmdGVyOiAgXCJjb25zb2xlLmxvZygnI3tuYW1lfScsIHJlcXVpcmUoJ3ByZXR0eS10aW1lJykocHJvY2Vzcy5ocnRpbWUoa29mZmVlXyN7aWR9KSkpO1wiXG4gICAgICAgIGNvZGU6ICAgXCJrb2ZmZWVfI3tpZH0gPSBwcm9jZXNzLmhydGltZSgpXCJcbiAgICAgICAgcmVkdWNlOiBmYWxzZVxuLFxuICAgIGtleTogJ3N0YXJ0JyAgIFxuICAgIG1ldGE6IChvKSAtPiBcbiAgICAgICAgaWQgPSBvLmFyZ3NbMF0gPyAnc3RhcnRfZW5kJ1xuICAgICAgICBiZWZvcmU6IFwia29mZmVlXyN7aWR9ID0gcHJvY2Vzcy5ocnRpbWUoKVwiXG4gICAgICAgIHJlZHVjZTogdHJ1ZVxuICAgICAgICBib2R5OiAgIGZhbHNlXG4sXG4gICAga2V5OiAnZW5kJyAgICAgXG4gICAgbWV0YTogKG8pIC0+IFxuICAgICAgICBpZCA9IG8uYXJnc1swXSA/ICdzdGFydF9lbmQnXG4gICAgICAgIGJlZm9yZTogXCJjb25zb2xlLmxvZygnI3tpZH0nLCByZXF1aXJlKCdwcmV0dHktdGltZScpKHByb2Nlc3MuaHJ0aW1lKGtvZmZlZV8je2lkfSkpKVwiXG4gICAgICAgIHJlZHVjZTogdHJ1ZVxuICAgICAgICBib2R5OiAgIGZhbHNlXG4sICAgICAgICBcbiAgICBrZXk6ICdyYW5kJyAgICBcbiAgICBtZXRhOiAobykgLT4gY29kZTpcIk1hdGgucmFuZG9tKCkgPCAje28uYXJncz9bMF0gPyAwLjV9XCIgcmVkdWNlOmZhbHNlICAgXG4gICAgIyBrZXk6ICd0b2tlbicgICBcbiAgICAjIGtleTogJ3BhcnNlJyAgIFxuICAgICMga2V5OiAnY29kZScgICAgXG4gICAgIyBrZXk6ICd0ZXN0JyAgICBcbiAgICAjIGtleTogJ2Fzc2VydCcgIFxuICAgICMga2V5OiAnZGJnJyAgICAgXG5dXG5cbmluamVjdE1ldGEgPSAob3B0aW9ucykgLT4gIyBtYWtlIHN1cmUgdGhhdCBvcHRpb25zIGhhcyBhIG1ldGEgc2V0XG4gICAgXG4gICAgb3B0aW9ucyA/PSB7fVxuICAgIFxuICAgIHsgZXh0ZW5kIH0gPSByZXF1aXJlICcuL2hlbHBlcnMnXG4gICAgXG4gICAgZGVmYXVsdE1ldGEgPSB7fVxuICAgIE1FVEEubWFwIChtKSAtPiBkZWZhdWx0TWV0YVttLmtleV0gPSBtLm1ldGFcbiAgICBcbiAgICBtZXRhICAgID0gZXh0ZW5kIGRlZmF1bHRNZXRhLCBvcHRpb25zLm1ldGEgPyB7fVxuICAgIG9wdGlvbnMgPSBleHRlbmQgeyBtZXRhOiBtZXRhIH0sIG9wdGlvbnNcbiAgICBvcHRpb25zXG5cbmxvZ01ldGFzID0gLT5cbiAgICBcbiAgICB7IHBhZCB9ID0gcmVxdWlyZSAnLi9oZWxwZXJzJ1xuICAgIGxvZyBcIlxcbk1ldGFzOlxcblxcbiN7IE1FVEEubWFwKChmKSAtPiBcIiAgICAje3BhZCBmLmtleX0je2YuZGVzY31cIikuam9pbignXFxuJykgfVxcblwiXG4gICAgXG5tb2R1bGUuZXhwb3J0cyA9IHsgTUVUQSwgaW5qZWN0TWV0YSwgbG9nTWV0YXMgfVxuIl19
+//# sourceURL=../coffee/meta.coffee

@@ -40,7 +40,7 @@ class Lexer
     #    000      0000000   000   000  00000000  000   000  000  0000000  00000000  
             
     tokenize: (code, opts) ->
-        
+        # @if @start tokenize then
         opts = injectFeature opts
         opts = injectMeta    opts  # will be needed to shortcut metas, e.g. @token -> @if @token ...
         
@@ -93,7 +93,7 @@ class Lexer
             (new Rewriter).rewrite @tokens, opts
         else
             warn 'skipping rewrite!'# , opts
-        
+        # @if @end tokenize then
         @tokens
 
     # Preprocess the code to remove leading and trailing whitespace, carriage returns, etc. 
@@ -277,8 +277,8 @@ class Lexer
             @tokens[@tokens.length - 1][0] = 'FROM'
 
         regex = switch quote
-            when "'"     then STRING_SINGLE
-            when '"'     then STRING_DOUBLE
+            when "'"   then STRING_SINGLE
+            when '"'   then STRING_DOUBLE
             when "'''" then HEREDOC_SINGLE
             when '"""' then HEREDOC_DOUBLE
         heredoc = quote.length is 3

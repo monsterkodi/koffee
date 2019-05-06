@@ -2941,27 +2941,30 @@ exports.MetaIf = class MetaIf extends Base
     
     compileNode: (o) ->
               
-        log 'MetaIf compileStatement @condition\n', stringify @condition
+        # log 'MetaIf compileStatement @condition\n', stringify @condition
         
         info = reduce:true
         
         if @condition.base?.value == 'this' 
+            
             metaKey = @condition.properties?[0]?.name?.value
             if typeof o.meta[metaKey] == 'function'
-                info = o.meta[metaKey] o, @
-                log "meta #{metaKey} info:", info
+                info = o.meta[metaKey] options:o, node:@, args:[]
+                # log "meta #{metaKey} info:", info
+                
         else if @condition.variable?.base?.value == 'this'
+            
             metaKey = @condition.variable.properties?[0]?.name?.value
-            log 'call with args', metaKey
+            # log 'call with args', metaKey
             if typeof o.meta[metaKey] == 'function'
-                args = @condition.args.map (a) -> a.base.value
-                log "meta #{metaKey} args:", args
+                args = @condition.args.map (a) -> a.base?.value
+                # log "meta #{metaKey} args:", args
                 info = o.meta[metaKey] options:o, node:@, args:args
-                log "meta #{metaKey} info:", info
+                # log "meta #{metaKey} info:", info
             
         if not info.code
-            conditionFragments = @condition.compileToFragments o, LEVEL_PAREN
-            info.code = fragmentsToText conditionFragments
+            fragments = @condition.compileToFragments o, LEVEL_PAREN
+            info.code = fragmentsToText fragments
             try
                 info.body = eval info.code
                 log 'EVAL:' info.code, info.body

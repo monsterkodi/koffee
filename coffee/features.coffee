@@ -35,6 +35,7 @@ injectFeature = (options) -> # make sure that options has a feature set
 logFeatures = ->
     
     { pad } = require './helpers'
-    log "\nFeatures:\n\n#{ FEATURES.map((f) -> "    #{pad f.flag}#{f.desc}").join('\n') }\n"
+    { gray } = require 'colorette'
+    log "\n#{gray 'Features:'}\n\n#{ FEATURES.map((f) -> "    #{pad f.flag}#{gray f.desc}").join('\n') }\n"
     
 module.exports = { FEATURES, injectFeature, logFeatures, hasFeature }

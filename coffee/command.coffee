@@ -31,7 +31,7 @@ helpers.extend Koffee, new EventEmitter # Allow emitting Node events
 
 { baseFileName, isCoffee, stringify, merge, pad } = helpers
 
-{ gray, dim, bold, yellow, white } = require 'colorette'
+{ gray, dim, bold, yellow, green, whiteBright, white, blueBright, blue } = require 'colorette'
 
 error     = console.error
 print     = (line) -> process.stdout.write line
@@ -39,22 +39,20 @@ printLine = (line) -> process.stdout.write line + '\n' # ???
 printWarn = (line) -> process.stderr.write line + '\n' # ???
 hidden    = (file) -> /^\.|~$/.test file
 
-BANNER = "Usage: koffee [options] path/to/script -- [args]"
-
 SWITCHES = [
     ['-b' '--bare'              'compile without a top-level function wrapper'          Boolean        ]
     ['-c' '--compile'           'compile to JavaScript and save as .js files'           Boolean        ]
-    ['-e' '--eval [STRING]'     'pass a string from the command line as input'         [String, Array] ]
+    ['-e' '--eval STRING'       'pass a string from the command line as input'         [String, Array] ]
     ['-f' '--features'          'list available features'                               Boolean        ]
-    [''   '--no-[feature]'      'disable a feature, e.g. --no-negative-index',          null           ]
+    [''   '--no-`feature`'      'disable a `feature`, e.g. --no-negative-index'         null           ]
     ['-h' '--help'              'display this help message'                             Boolean        ]
     ['-j' '--js'                'print out the compiled JavaScript'                     Boolean        ]
     ['-m' '--map'               'generate source map and save as .js.map files'         Boolean        ]
     ['-M' '--inline-map'        'generate source map and include it directly in output' Boolean        ]
     ['-n' '--noop'              'does nothing, for debugging purposes'                  Boolean        ]
-    ['-o' '--output [DIR]'      'set the output directory for compiled JavaScript'      String         ]
+    ['-o' '--output DIR'        'set the output directory for compiled JavaScript'      String         ]
     ['-P' '--parse'             'print out the parse tree that the parser produces'     Boolean        ]
-    ['-r' '--require [MODULE]'  'require the given module before eval or REPL'         [String, Array] ]
+    ['-r' '--require MODULE'    'require the given module before eval or REPL'         [String, Array] ]
     ['-s' '--stdio'             'listen for and compile scripts over stdio'             Boolean        ]
     ['-t' '--tokens'            'print out the tokens that the lexer/rewriter produce'  Boolean        ]
     ['-v' '--version'           'display the version number'                            Boolean        ]
@@ -500,16 +498,17 @@ printTokens = (tokens) ->
 version = -> printLine "#{Koffee.VERSION}"
 usage   = -> 
 
-    lines = ["#{BANNER}\n"]
+    lines = ["#{gray 'Usage:'} #{yellow 'koffee'} #{gray '[options]'} path/to/script #{gray '[options]'}\n"]
     
     rules = SWITCHES.map (rule) ->
-        rule.unshift null if rule.length < 3
         [short, long, description] = rule
-        match    = long.match(/\[(\w+(\*?))\]/)
         longFlag = long.match(/^(--\w[\w\-]*)/)[1]
-        letter   = if short then short + ', ' else '    '
-        option   = pad letter + long
-        lines.push '    ' + option + description
+        cshort   = if short then gray(short[0]) + bold(gray(short[1..])) + '  ' else '    '
+        clong    = pad long, 20
+        clong    = gray(clong[0..1]) + bold(white(clong[2..].split(' ')[0])) + ' ' + bold(blueBright(clong[2..].split(' ')[1..].join(' ')))
+        lines.push '    ' + cshort + clong + gray description
+        
+    lines.push gray '\nIf called without a script, the interactive REPL will be started'
         
     log "\n#{ lines.join('\n') }\n"
         

@@ -7,39 +7,33 @@
 ###
 
 META = [
+    
     key: 'profile'   
-    meta: (o) -> 
-        id = "#{o.node.condition.locationData.first_line+1}_#{o.node.condition.locationData.first_column}"
-        if o.args[0]
-            name = o.args[0]
-        else
-            name = id
+    meta: (args:,node:) -> 
+        id = "#{node.condition.locationData.first_line+1}_#{node.condition.locationData.first_column}"
+        name = args[0] ? id
         after:  "console.log('#{name}', require('pretty-time')(process.hrtime(koffee_#{id})));"
         code:   "koffee_#{id} = process.hrtime()"
         reduce: false
 ,
     key: 'start'   
-    meta: (o) -> 
-        id = o.args[0] ? 'start_end'
+    meta: (args:) -> 
+        id = args[0] ? 'start_end'
         before: "koffee_#{id} = process.hrtime()"
         reduce: true
         body:   false
 ,
     key: 'end'     
-    meta: (o) -> 
-        id = o.args[0] ? 'start_end'
+    meta: (args:) -> 
+        id = args[0] ? 'start_end'
         before: "console.log('#{id}', require('pretty-time')(process.hrtime(koffee_#{id})))"
         reduce: true
         body:   false
 ,        
     key: 'rand'    
-    meta: (o) -> code:"Math.random() < #{o.args?[0] ? 0.5}" reduce:false   
-    # key: 'token'   
-    # key: 'parse'   
-    # key: 'code'    
-    # key: 'test'    
-    # key: 'assert'  
-    # key: 'dbg'     
+    meta: (args:) -> code:"Math.random() < #{args?[0] ? 0.5}" reduce:false   
+    
+    # key: 'token' 'parse' 'code' 'test' 'assert' 'dbg' 
 ]
 
 injectMeta = (options) -> # make sure that options has a meta set

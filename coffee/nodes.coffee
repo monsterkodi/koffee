@@ -2945,7 +2945,7 @@ exports.MetaIf = class MetaIf extends Base
             
             metaKey = @condition.properties?[0]?.name?.value
             if typeof o.meta[metaKey] == 'function'
-                info = o.meta[metaKey] options:o, node:@, args:[]
+                info = o.meta[metaKey] opts:o, node:@, args:[]
                 
         else if @condition.variable?.base?.value == 'this'
             
@@ -2954,7 +2954,7 @@ exports.MetaIf = class MetaIf extends Base
                 args = @condition.args.map (a) -> 
                     a.base?.value
                 args = args.map (a) -> if a[0] in ['"', "'"] then a[1..-2] else a
-                info = o.meta[metaKey] options:o, node:@, args:args
+                info = o.meta[metaKey] opts:o, node:@, args:args
             
         if info.eval or not info.code?
             cond = info.code ? fragmentsToText @condition.compileToFragments o, LEVEL_PAREN
@@ -2985,7 +2985,16 @@ exports.MetaIf = class MetaIf extends Base
             frag.push @makeCode indent + info.before
             
         if info.body
-            frag = frag.concat @ensureBlock(@body).compileToFragments bodyOpt
+            if info.block != false
+                body = @ensureBlock @body
+            else
+                log 'NOBLOCK', @body instanceof Block
+                if @body instanceof Block
+                    log 'deblock', @body
+                    body = @body.expressions[0]
+                else
+                    body = @body
+            frag = frag.concat body.compileToFragments bodyOpt
             
         if info.after
             frag.push @makeCode '\n' + indent + info.after
@@ -3000,7 +3009,8 @@ exports.MetaIf = class MetaIf extends Base
             else
                 frag = frag.concat @elseBody.compileToFragments bodyOpt
             
-        frag.push @makeCode '' if not frag.length
+        # frag.push @makeCode '' if not frag.length
+        # log frag
         return frag
 
     ensureBlock: (node) -> if node instanceof Block then node else new Block [node]

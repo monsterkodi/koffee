@@ -47,11 +47,14 @@ META = [
     info:
         then: true
         args: 1
-    meta: (args:) ->
+    meta: (opts:,args:) ->
+        # log opts, args
         code:   "o.Debug"
-        before: "console.log('#{args[0] ? ''}', __filename)"
-        reduce: true
         eval:   true
+        before: "console.log('#{require('path').basename(opts.source)}: '+'#{args[0] ? ''}', "
+        after:  ");"
+        reduce: true
+        block:  false
 ,        
     key: 'rand'    
     meta: (args:) -> code:"Math.random() < #{args?[0] ? 0.5}" reduce:false   

@@ -8,7 +8,7 @@
 
 META = [
     
-    key: 'profile'   
+    key:  'profile'   
     desc: '@profile [id] ...'
     info:
         args: 1
@@ -18,6 +18,7 @@ META = [
         after:  "console.log('#{name}', require('pretty-time')(process.hrtime(koffee_#{id})));"
         code:   "koffee_#{id} = process.hrtime()"
         reduce: false
+        body:   true
 ,
     key:  'start'   
     desc: '@start id ...'
@@ -39,6 +40,17 @@ META = [
         id = args[0] ? 'start_end'
         before: "console.log('#{id}', require('pretty-time')(process.hrtime(koffee_#{id})))"
         reduce: true
+        body:   false
+,        
+    key: 'dbg'    
+    desc: '@dbg msg ...'
+    info:
+        then: true
+        args: 1
+    meta: (args:) ->
+        code:   "o.Debug"
+        before: "console.log('#{args[0] ? ''}', __filename)"
+        reduce: false
         body:   false
 ,        
     key: 'rand'    

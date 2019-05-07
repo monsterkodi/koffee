@@ -2958,46 +2958,47 @@ exports.MetaIf = class MetaIf extends Base
             
         if not info.code? and not info.body?
             fragments = @condition.compileToFragments o, LEVEL_PAREN
-            info.code = fragmentsToText fragments
             try
                 os = require 'os'
                 fs = require 'fs'
-                info.body = eval info.code
+                info.body =!! eval fragmentsToText fragments
+                # @dbg conditionResult:info.body for:fragmentsToText fragments
             catch err
                 error err
             
-        if info.reduce
-            fragments = []
-            if info.before
-                fragments.push @makeCode info.before
-            if info.body
-                body = @ensureBlock(@body)
-                bodyFragments = body.compileToFragments o
-                fragments = fragments.concat bodyFragments
-            else if @elseBody
-                if @isChain
-                    fragments = fragments.concat @elseBody.unwrap().compileToFragments o
-                else
-                    fragments = fragments.concat @elseBody.compileToFragments o
-            if info.after
-                fragments.push @makeCode info.after
-                
-            fragments.push @makeCode '' if not fragments.length
-            return fragments
-        else
+        frag = []
+        
+        # @dbg info
+        
+        if info.before
+            frag.push @makeCode info.before
+            
+        if info.reduce == false
+            frag = frag.concat @makeCode("if ("), @makeCode(info.code), @makeCode(") {\n")#, body, @makeCode("\n#{@tab}}")
+            
             indent = o.indent + TAB
-            body   = @ensureBlock(@body).compileToFragments merge o, {indent}
-            if info.after
-                body.push @makeCode '\n' + indent + info.after
-            ifPart = [].concat @makeCode("if ("), @makeCode(info.code), @makeCode(") {\n"), body, @makeCode("\n#{@tab}}")
-            return ifPart if not @elseBody
-            answer = ifPart.concat @makeCode(' else ')
+            bodyOpt = merge o, {indent}
+        else
+            bodyOpt = o
+                        
+        if info.body
+            frag = frag.concat @ensureBlock(@body).compileToFragments bodyOpt
+            
+        if info.after
+            frag.push @makeCode '\n' + indent + info.after
+
+        if not info.reduce
+            frag.push @makeCode("\n#{@tab}}")
+                        
+        if @elseBody and (info.reduce == false or info.body == false)
+            frag.push @makeCode ' else ' if not info.reduce
             if @isChain
-                o.chainChild = yes
-                answer = answer.concat @elseBody.unwrap().compileToFragments o, LEVEL_TOP
+                frag = frag.concat @elseBody.unwrap().compileToFragments bodyOpt #, LEVEL_TOP  ???
             else
-                answer = answer.concat @makeCode("{\n"), @elseBody.compileToFragments(merge(o, {indent}), LEVEL_TOP), @makeCode("\n#{@tab}}")            
-            return answer
+                frag = frag.concat @elseBody.compileToFragments bodyOpt
+            
+        frag.push @makeCode '' if not frag.length
+        return frag
 
     ensureBlock: (node) -> if node instanceof Block then node else new Block [node]
     unfoldSoak: -> @soak and this

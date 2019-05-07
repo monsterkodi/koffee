@@ -670,8 +670,8 @@ class Rewriter
             tag is 'TERMINATOR' or (tag is 'INDENT' and prevTag not in SINGLE_LINERS)
 
         action = (token, i) ->
-            if token[0] not in ['INDENT', 'TERMINATOR'] or (token.generated and not token.fromThen)
-                log 'instertPOST_', original, token, i
+            if token[0] not in ['INDENT'] or (token.generated and not token.fromThen)
+            # if token[0] not in ['INDENT', 'TERMINATOR'] or (token.generated and not token.fromThen)
                 original[0] = 'POST_' + original[0]
 
         @scanTokens (token, i) ->

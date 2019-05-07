@@ -2956,31 +2956,34 @@ exports.MetaIf = class MetaIf extends Base
                 args = args.map (a) -> if a[0] in ['"', "'"] then a[1..-2] else a
                 info = o.meta[metaKey] options:o, node:@, args:args
             
-        if not info.code? and not info.body?
-            fragments = @condition.compileToFragments o, LEVEL_PAREN
+        if info.eval or not info.code?
+            cond = info.code ? fragmentsToText @condition.compileToFragments o, LEVEL_PAREN
             try
                 os = require 'os'
                 fs = require 'fs'
-                info.body =!! eval fragmentsToText fragments
-                # @dbg conditionResult:info.body for:fragmentsToText fragments
+                info.body =!! eval cond
+                if info.eval and info.reduce and not info.body and not @elseBody
+                    return []
+                # @dbg conditionResult:info.body for:cond
             catch err
                 error err
             
         frag = []
         
         # @dbg info
-        
-        if info.before
-            frag.push @makeCode info.before
-            
+                    
         if info.reduce == false
             frag = frag.concat @makeCode("if ("), @makeCode(info.code), @makeCode(") {\n")#, body, @makeCode("\n#{@tab}}")
             
             indent = o.indent + TAB
             bodyOpt = merge o, {indent}
         else
+            indent = o.indent
             bodyOpt = o
-                        
+
+        if info.before
+            frag.push @makeCode indent + info.before
+            
         if info.body
             frag = frag.concat @ensureBlock(@body).compileToFragments bodyOpt
             

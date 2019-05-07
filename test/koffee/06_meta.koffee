@@ -28,7 +28,7 @@ test "meta if", ->
     equal "@if 'a'       @then yes @else no", 'true;;\n'
     equal "@if []        @then yes @else no", 'true;;\n'
     
-    equal "@if 0        @then 1 @else 2; @if 3 @then 4 @else 5", '2;\n4;;;\n'
+    equal "@if 0         @then 1 @else 2; @if 3 @then 4 @else 5", '2;\n4;;;\n'
     
     equal "2;4;5", '2;\n4;\n5;\n\n'
     

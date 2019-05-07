@@ -50,8 +50,8 @@ META = [
     meta: (args:) ->
         code:   "o.Debug"
         before: "console.log('#{args[0] ? ''}', __filename)"
-        reduce: false
-        body:   false
+        reduce: true
+        eval:   true
 ,        
     key: 'rand'    
     meta: (args:) -> code:"Math.random() < #{args?[0] ? 0.5}" reduce:false   

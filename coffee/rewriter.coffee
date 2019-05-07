@@ -182,7 +182,7 @@ class Rewriter
                             else
                                 arg = 0
                                 for a in [0...(meta.info.args ? 0)]
-                                    if @tag(i+adv) in ['IDENTIFIER', 'NUMBER', 'STRING']
+                                    if @tag(i+adv) in ['NUMBER', 'STRING']
                                         arg++ # argument found
                                         adv++
                                     else
@@ -671,7 +671,6 @@ class Rewriter
 
         action = (token, i) ->
             if token[0] not in ['INDENT'] or (token.generated and not token.fromThen)
-            # if token[0] not in ['INDENT', 'TERMINATOR'] or (token.generated and not token.fromThen)
                 original[0] = 'POST_' + original[0]
 
         @scanTokens (token, i) ->

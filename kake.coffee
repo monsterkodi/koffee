@@ -7,7 +7,7 @@ childp  = require 'child_process'
 Koffee  = require './js/koffee'
 helpers = require './js/helpers'
 
-{ white, green, blueBright, yellow, gray, bold } = require 'colorette'
+{ white, green, red, blueBright, yellow, gray, bold } = require 'colorette'
 
 # 000   000   0000000   0000000    00000000  
 # 0000  000  000   000  000   000  000       

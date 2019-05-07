@@ -217,7 +217,7 @@
                                 } else {
                                     arg = 0;
                                     for (a = k = 0, ref6 = (ref7 = meta.info.args) != null ? ref7 : 0; 0 <= ref6 ? k < ref6 : k > ref6; a = 0 <= ref6 ? ++k : --k) {
-                                        if ((ref8 = this.tag(i + adv)) === 'IDENTIFIER' || ref8 === 'NUMBER' || ref8 === 'STRING') {
+                                        if ((ref8 = this.tag(i + adv)) === 'NUMBER' || ref8 === 'STRING') {
                                             arg++;
                                             adv++;
                                         } else {

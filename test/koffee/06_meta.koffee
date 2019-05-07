@@ -2,22 +2,150 @@ require('../../js/helpers').initTest() if not global.test
 
 compile = (s) -> Koffee.compile s, bare:true
 
-test "meta if", ->
+check = (c,p) -> 
+    js = compile(c)
+    if -1 == js.indexOf p
+        eq js, p
 
-    check = (c,p) -> 
-        js = compile(c)
-        if -1 == js.indexOf p
-            eq js, p
+equal = (c,p) -> 
+    js = compile(c)
+    eq js, p
+        
+test "meta if", ->
             
-    check "@if true then yes @else no", 'true;'
-    check "@if 1 @then yes @else no", 'true;'
-    check """
+    equal "@if true then yes @else no", 'true;;\n'
+    equal "@if false then yes @else no", 'false;;\n'
+    equal "@if 1 @then yes @else no", 'true;;\n'
+    equal "@if 0 @then yes @else no", 'false;;\n'
+    equal "@if 0 @then 1 @else 2; @if 3 @then 4 @else 5", '2;\n4;;;\n'
+    equal "2;4;5", '2;\n4;\n5;\n\n'
+    
+    equal """
         @if 'a'
             'hello'
         @else 
-            'world'""", "'hello'"
-    # check "@if @debug @then yes @else no", 'if (this.debug)'
+            'world'""", "'hello';;\n"
+    equal """
+        @if false
+            'hello'
+        @else 
+            'world'""", "'world';;\n"
+
+    equal """
+        @if false
+            'hello'
+        @else @if yes
+            123
+        @else 
+            'world'""", "123;;\n"
+
+    equal """
+        @if false
+            'hello'
+        @elif yes
+            345
+        @else 
+            'world'""", "345;;\n"
+
+test "meta profile", ->
+
+    check """
+        @if @profile abc
+            a 1
+            b 2
+            c 3
+        """, """ 
+        if (koffee_1_4 = process.hrtime()) {
+            a(1);
+            b(2);
+            c(3);
+            console.log('abc', require('pretty-time')(process.hrtime(koffee_1_4)));
+        };
+        """
+
+    check """
+        @if @profile then Math.sin(1)
+        """, "if (koffee_1_4 = process.hrtime()) {\n    Math.sin(1)"
+
+    check """
+        @if @profile(test) then Math.sin(1)
+        """, "if (koffee_1_4 = process.hrtime()) {\n    Math.sin(1);\n    console.log('test',"
+
+    check """
+        @if @profile test @then Math.sin(1)
+        """, "if (koffee_1_4 = process.hrtime()) {\n    Math.sin(1);\n    console.log('test',"
     
+    check """
+        @if @profile
+            @if @profile then bla()
+        """, """
+        if (koffee_1_4 = process.hrtime()) {
+            if (koffee_2_8 = process.hrtime()) {
+                bla();"""        
+
+test "meta profile shortcut", ->
+    
+    check """
+        @profile
+            a 1
+            b 2
+            c 3
+        """, """ 
+        if (koffee_1_0 = process.hrtime()) {
+            a(1);
+            b(2);
+            c(3);
+            console.log('1_0', require('pretty-time')(process.hrtime(koffee_1_0)));
+        };
+        """
+        
+    check """
+        @profile
+            @profile
+                @profile
+                    a 1
+        """, """
+        if (koffee_1_0 = process.hrtime()) {
+            if (koffee_2_4 = process.hrtime()) {
+                if (koffee_3_8 = process.hrtime()) {
+                    a(1);
+                    console.log('3_8', require('pretty-time')(process.hrtime(koffee_3_8)));
+                };
+                console.log('2_4', require('pretty-time')(process.hrtime(koffee_2_4)));
+            };
+            console.log('1_0', require('pretty-time')(process.hrtime(koffee_1_0)));
+        };"""
+
+    check """
+        @profile 'hello1' sin 0.5
+        """, """
+        if (koffee_1_0 = process.hrtime()) {
+            sin(0.5);
+            console.log('hello1',"""
+            
+    check """@profile() sin 0.5""", """
+        if (koffee_1_0 = process.hrtime()) {
+            sin(0.5);"""        
+    
+    check """@profile sin 0.5""", """
+        if (koffee_1_0 = process.hrtime()) {
+            sin(0.5);"""        
+    
+    check """@profile 123 sin 2""", """
+        if (koffee_1_0 = process.hrtime()) {
+            sin(2);
+            console.log('123',"""
+
+    check """@profile "123" sin 2""", """
+        if (koffee_1_0 = process.hrtime()) {
+            sin(2);
+            console.log('123',"""
+            
+    check """@profile(hello3) sin 3""", """
+        if (koffee_1_0 = process.hrtime()) {
+            sin(3);
+            console.log('hello3'"""
+                
 test "broken stuff", ->
 
     throws -> compile """

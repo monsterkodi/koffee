@@ -9,6 +9,7 @@
 META = [
     
     key: 'profile'   
+    desc: '@profile [id] ...'
     meta: (args:,node:) -> 
         id = "#{node.condition.locationData.first_line+1}_#{node.condition.locationData.first_column}"
         name = args[0] ? id
@@ -17,6 +18,7 @@ META = [
         reduce: false
 ,
     key: 'start'   
+    desc: '@start id ...'
     meta: (args:) -> 
         id = args[0] ? 'start_end'
         before: "koffee_#{id} = process.hrtime()"
@@ -24,6 +26,7 @@ META = [
         body:   false
 ,
     key: 'end'     
+    desc: '@end id ...'
     meta: (args:) -> 
         id = args[0] ? 'start_end'
         before: "console.log('#{id}', require('pretty-time')(process.hrtime(koffee_#{id})))"
@@ -52,6 +55,8 @@ injectMeta = (options) -> # make sure that options has a meta set
 logMetas = ->
     
     { pad } = require './helpers'
-    log "\nMetas:\n\n#{ META.map((f) -> "    #{pad f.key}#{f.desc}").join('\n') }\n"
+    { gray } = require 'colorette'
+    log "#{gray 'Metas:'}\n\n#{ META.map((f) -> "    #{pad f.key}#{gray f.desc ? "@#{f.key} ..."}").join('\n') }"
+    log "    if else                 #{gray '@if cond ... [[@elif cond ...] @else ...]'}\n"
     
 module.exports = { META, injectMeta, logMetas }

@@ -2987,7 +2987,7 @@ exports.MetaIf = class MetaIf extends Base
             if info.after
                 body.push @makeCode '\n' + indent + info.after
             ifPart = [].concat @makeCode("if ("), @makeCode(info.code), @makeCode(") {\n"), body, @makeCode("\n#{@tab}}")
-            return ifPart unless @elseBody
+            return ifPart if not @elseBody
             answer = ifPart.concat @makeCode(' else ')
             if @isChain
                 o.chainChild = yes

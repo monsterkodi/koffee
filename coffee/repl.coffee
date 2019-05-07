@@ -59,9 +59,10 @@ runInContext = (js, context, filename) ->
         vm.runInContext js, context, filename
 
 addMultilineHandler = (repl) ->
+    
     {rli, inputStream, outputStream} = repl
-    # Node 0.11.12 changed API, prompt is now _prompt.
-    origPrompt = repl._prompt ? repl.prompt
+    
+    origPrompt = repl._prompt ? repl.prompt # Node 0.11.12 changed API, prompt is now _prompt.
 
     multiline =
         enabled: off

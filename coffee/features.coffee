@@ -38,4 +38,7 @@ logFeatures = ->
     { gray } = require 'colorette'
     log "\n#{gray 'Features:'}\n\n#{ FEATURES.map((f) -> "    #{pad f.flag}#{gray f.desc}").join('\n') }\n"
     
+    { logMetas } = require './meta'
+    logMetas()
+    
 module.exports = { FEATURES, injectFeature, logFeatures, hasFeature }

@@ -132,10 +132,7 @@ startRepl = ->
     #   (a) be consistent with the `node` REPL and, therefore, 
     #   (b) make packages that modify native prototypes (such as 'colors' and 'sugar') work as expected.
     
-    log 'START REPL'
     replCliOpts = useGlobal: yes
-    # opts.prelude = makePrelude opts.require if opts.require
-    # log opts.prelude, opts.require
     replCliOpts.prelude = opts.prelude
     require('./repl').start replCliOpts
 

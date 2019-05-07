@@ -7,3612 +7,2925 @@
 000  0000  000   000  000   000  000            000  
 000   000   0000000   0000000    00000000  0000000
  */
+var Access, Arr, Assign, Base, Block, BooleanLiteral, Call, Class, Code, CodeFragment, Comment, Existence, Expansion, ExportAllDeclaration, ExportDeclaration, ExportDefaultDeclaration, ExportNamedDeclaration, ExportSpecifier, ExportSpecifierList, Extends, For, IdentifierLiteral, If, ImportClause, ImportDeclaration, ImportDefaultSpecifier, ImportNamespaceSpecifier, ImportSpecifier, ImportSpecifierList, In, Index, InfinityLiteral, JS_FORBIDDEN, LEVEL_ACCESS, LEVEL_COND, LEVEL_LIST, LEVEL_OP, LEVEL_PAREN, LEVEL_TOP, Literal, MetaIf, ModuleDeclaration, ModuleSpecifier, ModuleSpecifierList, NEGATE, NO, NaNLiteral, NullLiteral, NumberLiteral, Obj, Op, Param, Parens, PassthroughLiteral, PropertyName, Range, RegexLiteral, RegexWithInterpolations, Return, SIMPLENUM, Scope, Slice, Splat, StatementLiteral, StringLiteral, StringWithInterpolations, SuperCall, Switch, TAB, THIS, TaggedTemplateCall, ThisLiteral, Throw, Try, UTILITIES, UndefinedLiteral, Value, While, YES, YieldReturn, addLocationDataFn, compact, del, ends, extend, flatten, fragmentsToText, hasFeature, injectFeature, injectMeta, isComplexOrAssignable, isLiteralArguments, isLiteralThis, isUnassignable, locationDataToString, merge, multident, ref1, ref2, some, starts, stringify, throwSyntaxError, unfoldSoak, utility,
+    extend1 = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    hasProp = {}.hasOwnProperty,
+    indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; },
+    slice = [].slice;
 
-(function() {
-    var Access, Arr, Assign, Base, Block, BooleanLiteral, Call, Class, Code, CodeFragment, Comment, Existence, Expansion, ExportAllDeclaration, ExportDeclaration, ExportDefaultDeclaration, ExportNamedDeclaration, ExportSpecifier, ExportSpecifierList, Extends, For, IdentifierLiteral, If, ImportClause, ImportDeclaration, ImportDefaultSpecifier, ImportNamespaceSpecifier, ImportSpecifier, ImportSpecifierList, In, Index, InfinityLiteral, JS_FORBIDDEN, LEVEL_ACCESS, LEVEL_COND, LEVEL_LIST, LEVEL_OP, LEVEL_PAREN, LEVEL_TOP, Literal, MetaIf, ModuleDeclaration, ModuleSpecifier, ModuleSpecifierList, NEGATE, NO, NaNLiteral, NullLiteral, NumberLiteral, Obj, Op, Param, Parens, PassthroughLiteral, PropertyName, Range, RegexLiteral, RegexWithInterpolations, Return, SIMPLENUM, Scope, Slice, Splat, StatementLiteral, StringLiteral, StringWithInterpolations, SuperCall, Switch, TAB, THIS, TaggedTemplateCall, ThisLiteral, Throw, Try, UTILITIES, UndefinedLiteral, Value, While, YES, YieldReturn, addLocationDataFn, compact, del, ends, extend, flatten, fragmentsToText, hasFeature, injectFeature, injectMeta, isComplexOrAssignable, isLiteralArguments, isLiteralThis, isUnassignable, locationDataToString, merge, multident, ref1, ref2, some, starts, stringify, throwSyntaxError, unfoldSoak, utility,
-        extend1 = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-        hasProp = {}.hasOwnProperty,
-        indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; },
-        slice = [].slice;
+Error.stackTraceLimit = 2e308;
 
-    Error.stackTraceLimit = 2e308;
+Scope = require('./scope').Scope;
 
-    Scope = require('./scope').Scope;
+ref1 = require('./lexer'), isUnassignable = ref1.isUnassignable, JS_FORBIDDEN = ref1.JS_FORBIDDEN;
 
-    ref1 = require('./lexer'), isUnassignable = ref1.isUnassignable, JS_FORBIDDEN = ref1.JS_FORBIDDEN;
+ref2 = require('./helpers'), compact = ref2.compact, flatten = ref2.flatten, extend = ref2.extend, merge = ref2.merge, del = ref2.del, starts = ref2.starts, ends = ref2.ends, some = ref2.some, injectFeature = ref2.injectFeature, hasFeature = ref2.hasFeature, injectMeta = ref2.injectMeta, addLocationDataFn = ref2.addLocationDataFn, locationDataToString = ref2.locationDataToString, throwSyntaxError = ref2.throwSyntaxError, stringify = ref2.stringify;
 
-    ref2 = require('./helpers'), compact = ref2.compact, flatten = ref2.flatten, extend = ref2.extend, merge = ref2.merge, del = ref2.del, starts = ref2.starts, ends = ref2.ends, some = ref2.some, injectFeature = ref2.injectFeature, hasFeature = ref2.hasFeature, injectMeta = ref2.injectMeta, addLocationDataFn = ref2.addLocationDataFn, locationDataToString = ref2.locationDataToString, throwSyntaxError = ref2.throwSyntaxError, stringify = ref2.stringify;
+exports.extend = extend;
 
-    exports.extend = extend;
+exports.addLocationDataFn = addLocationDataFn;
 
-    exports.addLocationDataFn = addLocationDataFn;
+YES = function() {
+    return true;
+};
 
-    YES = function() {
-        return true;
+NO = function() {
+    return false;
+};
+
+THIS = function() {
+    return this;
+};
+
+NEGATE = function() {
+    this.negated = !this.negated;
+    return this;
+};
+
+exports.CodeFragment = CodeFragment = (function() {
+    function CodeFragment(parent, code) {
+        var ref3;
+        this.code = "" + code;
+        this.locationData = parent != null ? parent.locationData : void 0;
+        this.type = (parent != null ? (ref3 = parent.constructor) != null ? ref3.name : void 0 : void 0) || 'unknown';
+    }
+
+    CodeFragment.prototype.toString = function() {
+        return "" + this.code + (this.locationData ? ": " + locationDataToString(this.locationData) : '');
     };
 
-    NO = function() {
+    return CodeFragment;
+
+})();
+
+fragmentsToText = function(fragments) {
+    var fragment;
+    return ((function() {
+        var j, len1, results;
+        results = [];
+        for (j = 0, len1 = fragments.length; j < len1; j++) {
+            fragment = fragments[j];
+            results.push(fragment.code);
+        }
+        return results;
+    })()).join('');
+};
+
+exports.Base = Base = (function() {
+    function Base() {}
+
+    Base.prototype.compile = function(o, lvl) {
+        return fragmentsToText(this.compileToFragments(o, lvl));
+    };
+
+    Base.prototype.compileToFragments = function(o, lvl) {
+        var node;
+        o = injectFeature(o);
+        o = injectMeta(o);
+        if (lvl) {
+            o.level = lvl;
+        }
+        node = this.unfoldSoak(o) || this;
+        node.tab = o.indent;
+        if (o.level === LEVEL_TOP || !node.isStatement(o)) {
+            return node.compileNode(o);
+        } else {
+            return node.compileClosure(o);
+        }
+    };
+
+    Base.prototype.compileClosure = function(o) {
+        var args, argumentsNode, func, jumpNode, meth, parts, ref3;
+        if (jumpNode = this.jumps()) {
+            jumpNode.error('cannot use a pure statement in an expression');
+        }
+        o.sharedScope = true;
+        func = new Code([], Block.wrap([this]));
+        args = [];
+        if ((argumentsNode = this.contains(isLiteralArguments)) || this.contains(isLiteralThis)) {
+            args = [new ThisLiteral];
+            if (argumentsNode) {
+                meth = 'apply';
+                args.push(new IdentifierLiteral('arguments'));
+            } else {
+                meth = 'call';
+            }
+            func = new Value(func, [new Access(new PropertyName(meth))]);
+        }
+        parts = (new Call(func, args)).compileNode(o);
+        if (func.isGenerator || ((ref3 = func.base) != null ? ref3.isGenerator : void 0)) {
+            parts.unshift(this.makeCode("(yield* "));
+            parts.push(this.makeCode(")"));
+        }
+        return parts;
+    };
+
+    Base.prototype.cache = function(o, level, isComplex) {
+        var complex, ref, sub;
+        complex = isComplex != null ? isComplex(this) : this.isComplex();
+        if (complex) {
+            ref = new IdentifierLiteral(o.scope.freeVariable('ref'));
+            sub = new Assign(ref, this);
+            if (level) {
+                return [sub.compileToFragments(o, level), [this.makeCode(ref.value)]];
+            } else {
+                return [sub, ref];
+            }
+        } else {
+            ref = level ? this.compileToFragments(o, level) : this;
+            return [ref, ref];
+        }
+    };
+
+    Base.prototype.cacheToCodeFragments = function(cacheValues) {
+        return [fragmentsToText(cacheValues[0]), fragmentsToText(cacheValues[1])];
+    };
+
+    Base.prototype.makeReturn = function(res) {
+        var me;
+        me = this.unwrapAll();
+        if (res) {
+            return new Call(new Literal(res + ".push"), [me]);
+        } else {
+            return new Return(me);
+        }
+    };
+
+    Base.prototype.contains = function(pred) {
+        var node;
+        node = void 0;
+        this.traverseChildren(false, function(n) {
+            if (pred(n)) {
+                node = n;
+                return false;
+            }
+        });
+        return node;
+    };
+
+    Base.prototype.lastNonComment = function(list) {
+        var i;
+        i = list.length;
+        while (i--) {
+            if (!(list[i] instanceof Comment)) {
+                return list[i];
+            }
+        }
+        return null;
+    };
+
+    Base.prototype.toString = function(idt, name) {
+        var tree;
+        if (idt == null) {
+            idt = '';
+        }
+        if (name == null) {
+            name = this.constructor.name;
+        }
+        tree = '\n' + idt + name;
+        if (this.soak) {
+            tree += '?';
+        }
+        this.eachChild(function(node) {
+            return tree += node.toString(idt + TAB);
+        });
+        return tree;
+    };
+
+    Base.prototype.eachChild = function(func) {
+        var attr, child, j, k, len1, len2, ref3, ref4;
+        if (!this.children) {
+            return this;
+        }
+        ref3 = this.children;
+        for (j = 0, len1 = ref3.length; j < len1; j++) {
+            attr = ref3[j];
+            if (this[attr]) {
+                ref4 = flatten([this[attr]]);
+                for (k = 0, len2 = ref4.length; k < len2; k++) {
+                    child = ref4[k];
+                    if (func(child) === false) {
+                        return this;
+                    }
+                }
+            }
+        }
+        return this;
+    };
+
+    Base.prototype.traverseChildren = function(crossScope, func) {
+        return this.eachChild(function(child) {
+            var recur;
+            recur = func(child);
+            if (recur !== false) {
+                return child.traverseChildren(crossScope, func);
+            }
+        });
+    };
+
+    Base.prototype.invert = function() {
+        return new Op('!', this);
+    };
+
+    Base.prototype.unwrapAll = function() {
+        var node;
+        node = this;
+        while (node !== (node = node.unwrap())) {
+            continue;
+        }
+        return node;
+    };
+
+    Base.prototype.children = [];
+
+    Base.prototype.isStatement = NO;
+
+    Base.prototype.jumps = NO;
+
+    Base.prototype.isComplex = YES;
+
+    Base.prototype.isChainable = NO;
+
+    Base.prototype.isAssignable = NO;
+
+    Base.prototype.isNumber = NO;
+
+    Base.prototype.unwrap = THIS;
+
+    Base.prototype.unfoldSoak = NO;
+
+    Base.prototype.assigns = NO;
+
+    Base.prototype.updateLocationDataIfMissing = function(locationData) {
+        if (this.locationData) {
+            return this;
+        }
+        this.locationData = locationData;
+        return this.eachChild(function(child) {
+            return child.updateLocationDataIfMissing(locationData);
+        });
+    };
+
+    Base.prototype.error = function(message) {
+        return throwSyntaxError(message, this.locationData);
+    };
+
+    Base.prototype.makeCode = function(code) {
+        return new CodeFragment(this, code);
+    };
+
+    Base.prototype.wrapInBraces = function(fragments) {
+        return [].concat(this.makeCode('('), fragments, this.makeCode(')'));
+    };
+
+    Base.prototype.joinFragmentArrays = function(fragmentsList, joinStr) {
+        var answer, fragments, i, j, len1;
+        answer = [];
+        for (i = j = 0, len1 = fragmentsList.length; j < len1; i = ++j) {
+            fragments = fragmentsList[i];
+            if (i) {
+                answer.push(this.makeCode(joinStr));
+            }
+            answer = answer.concat(fragments);
+        }
+        return answer;
+    };
+
+    return Base;
+
+})();
+
+exports.Block = Block = (function(superClass1) {
+    extend1(Block, superClass1);
+
+    function Block(nodes) {
+        this.expressions = compact(flatten(nodes || []));
+    }
+
+    Block.prototype.children = ['expressions'];
+
+    Block.prototype.push = function(node) {
+        this.expressions.push(node);
+        return this;
+    };
+
+    Block.prototype.pop = function() {
+        return this.expressions.pop();
+    };
+
+    Block.prototype.unshift = function(node) {
+        this.expressions.unshift(node);
+        return this;
+    };
+
+    Block.prototype.unwrap = function() {
+        if (this.expressions.length === 1) {
+            return this.expressions[0];
+        } else {
+            return this;
+        }
+    };
+
+    Block.prototype.isEmpty = function() {
+        return !this.expressions.length;
+    };
+
+    Block.prototype.isStatement = function(o) {
+        var exp, j, len1, ref3;
+        ref3 = this.expressions;
+        for (j = 0, len1 = ref3.length; j < len1; j++) {
+            exp = ref3[j];
+            if (exp.isStatement(o)) {
+                return true;
+            }
+        }
         return false;
     };
 
-    THIS = function() {
-        return this;
-    };
-
-    NEGATE = function() {
-        this.negated = !this.negated;
-        return this;
-    };
-
-    exports.CodeFragment = CodeFragment = (function() {
-        function CodeFragment(parent, code) {
-            var ref3;
-            this.code = "" + code;
-            this.locationData = parent != null ? parent.locationData : void 0;
-            this.type = (parent != null ? (ref3 = parent.constructor) != null ? ref3.name : void 0 : void 0) || 'unknown';
+    Block.prototype.jumps = function(o) {
+        var exp, j, jumpNode, len1, ref3;
+        ref3 = this.expressions;
+        for (j = 0, len1 = ref3.length; j < len1; j++) {
+            exp = ref3[j];
+            if (jumpNode = exp.jumps(o)) {
+                return jumpNode;
+            }
         }
-
-        CodeFragment.prototype.toString = function() {
-            return "" + this.code + (this.locationData ? ": " + locationDataToString(this.locationData) : '');
-        };
-
-        return CodeFragment;
-
-    })();
-
-    fragmentsToText = function(fragments) {
-        var fragment;
-        return ((function() {
-            var j, len1, results;
-            results = [];
-            for (j = 0, len1 = fragments.length; j < len1; j++) {
-                fragment = fragments[j];
-                results.push(fragment.code);
-            }
-            return results;
-        })()).join('');
     };
 
-    exports.Base = Base = (function() {
-        function Base() {}
-
-        Base.prototype.compile = function(o, lvl) {
-            return fragmentsToText(this.compileToFragments(o, lvl));
-        };
-
-        Base.prototype.compileToFragments = function(o, lvl) {
-            var node;
-            o = injectFeature(o);
-            o = injectMeta(o);
-            if (lvl) {
-                o.level = lvl;
+    Block.prototype.makeReturn = function(res) {
+        var expr, len;
+        len = this.expressions.length;
+        while (len--) {
+            expr = this.expressions[len];
+            if (!(expr instanceof Comment)) {
+                this.expressions[len] = expr.makeReturn(res);
+                if (expr instanceof Return && !expr.expression) {
+                    this.expressions.splice(len, 1);
+                }
+                break;
             }
-            node = this.unfoldSoak(o) || this;
-            node.tab = o.indent;
-            if (o.level === LEVEL_TOP || !node.isStatement(o)) {
-                return node.compileNode(o);
+        }
+        return this;
+    };
+
+    Block.prototype.compileToFragments = function(o, level) {
+        if (o == null) {
+            o = {};
+        }
+        if (o.scope) {
+            return Block.__super__.compileToFragments.call(this, o, level);
+        } else {
+            return this.compileRoot(o);
+        }
+    };
+
+    Block.prototype.compileNode = function(o) {
+        var answer, compiledNodes, fragments, index, j, len1, node, ref3, top;
+        this.tab = o.indent;
+        top = o.level === LEVEL_TOP;
+        compiledNodes = [];
+        ref3 = this.expressions;
+        for (index = j = 0, len1 = ref3.length; j < len1; index = ++j) {
+            node = ref3[index];
+            node = node.unwrapAll();
+            node = node.unfoldSoak(o) || node;
+            if (node instanceof Block) {
+                compiledNodes.push(node.compileNode(o));
+            } else if (top) {
+                node.front = true;
+                fragments = node.compileToFragments(o);
+                if (!node.isStatement(o)) {
+                    fragments.unshift(this.makeCode("" + this.tab));
+                    fragments.push(this.makeCode(";"));
+                }
+                compiledNodes.push(fragments);
             } else {
-                return node.compileClosure(o);
+                compiledNodes.push(node.compileToFragments(o, LEVEL_LIST));
             }
-        };
-
-        Base.prototype.compileClosure = function(o) {
-            var args, argumentsNode, func, jumpNode, meth, parts, ref3;
-            if (jumpNode = this.jumps()) {
-                jumpNode.error('cannot use a pure statement in an expression');
-            }
-            o.sharedScope = true;
-            func = new Code([], Block.wrap([this]));
-            args = [];
-            if ((argumentsNode = this.contains(isLiteralArguments)) || this.contains(isLiteralThis)) {
-                args = [new ThisLiteral];
-                if (argumentsNode) {
-                    meth = 'apply';
-                    args.push(new IdentifierLiteral('arguments'));
-                } else {
-                    meth = 'call';
-                }
-                func = new Value(func, [new Access(new PropertyName(meth))]);
-            }
-            parts = (new Call(func, args)).compileNode(o);
-            if (func.isGenerator || ((ref3 = func.base) != null ? ref3.isGenerator : void 0)) {
-                parts.unshift(this.makeCode("(yield* "));
-                parts.push(this.makeCode(")"));
-            }
-            return parts;
-        };
-
-        Base.prototype.cache = function(o, level, isComplex) {
-            var complex, ref, sub;
-            complex = isComplex != null ? isComplex(this) : this.isComplex();
-            if (complex) {
-                ref = new IdentifierLiteral(o.scope.freeVariable('ref'));
-                sub = new Assign(ref, this);
-                if (level) {
-                    return [sub.compileToFragments(o, level), [this.makeCode(ref.value)]];
-                } else {
-                    return [sub, ref];
-                }
+        }
+        if (top) {
+            if (this.spaced) {
+                return [].concat(this.joinFragmentArrays(compiledNodes, '\n\n'), this.makeCode("\n"));
             } else {
-                ref = level ? this.compileToFragments(o, level) : this;
-                return [ref, ref];
+                return this.joinFragmentArrays(compiledNodes, '\n');
             }
-        };
+        }
+        if (compiledNodes.length) {
+            answer = this.joinFragmentArrays(compiledNodes, ', ');
+        } else {
+            answer = [this.makeCode("void 0")];
+        }
+        if (compiledNodes.length > 1 && o.level >= LEVEL_LIST) {
+            return this.wrapInBraces(answer);
+        } else {
+            return answer;
+        }
+    };
 
-        Base.prototype.cacheToCodeFragments = function(cacheValues) {
-            return [fragmentsToText(cacheValues[0]), fragmentsToText(cacheValues[1])];
-        };
-
-        Base.prototype.makeReturn = function(res) {
-            var me;
-            me = this.unwrapAll();
-            if (res) {
-                return new Call(new Literal(res + ".push"), [me]);
-            } else {
-                return new Return(me);
-            }
-        };
-
-        Base.prototype.contains = function(pred) {
-            var node;
-            node = void 0;
-            this.traverseChildren(false, function(n) {
-                if (pred(n)) {
-                    node = n;
-                    return false;
-                }
-            });
-            return node;
-        };
-
-        Base.prototype.lastNonComment = function(list) {
-            var i;
-            i = list.length;
-            while (i--) {
-                if (!(list[i] instanceof Comment)) {
-                    return list[i];
-                }
-            }
-            return null;
-        };
-
-        Base.prototype.toString = function(idt, name) {
-            var tree;
-            if (idt == null) {
-                idt = '';
-            }
-            if (name == null) {
-                name = this.constructor.name;
-            }
-            tree = '\n' + idt + name;
-            if (this.soak) {
-                tree += '?';
-            }
-            this.eachChild(function(node) {
-                return tree += node.toString(idt + TAB);
-            });
-            return tree;
-        };
-
-        Base.prototype.eachChild = function(func) {
-            var attr, child, j, k, len1, len2, ref3, ref4;
-            if (!this.children) {
-                return this;
-            }
-            ref3 = this.children;
-            for (j = 0, len1 = ref3.length; j < len1; j++) {
-                attr = ref3[j];
-                if (this[attr]) {
-                    ref4 = flatten([this[attr]]);
-                    for (k = 0, len2 = ref4.length; k < len2; k++) {
-                        child = ref4[k];
-                        if (func(child) === false) {
-                            return this;
-                        }
+    Block.prototype.compileRoot = function(o) {
+        var exp, fragments, i, j, len1, name, prelude, preludeExps, ref3, ref4, rest;
+        o.indent = o.bare ? '' : TAB;
+        o.level = LEVEL_TOP;
+        this.spaced = true;
+        o.scope = new Scope(null, this, null, (ref3 = o.referencedVars) != null ? ref3 : []);
+        ref4 = o.locals || [];
+        for (j = 0, len1 = ref4.length; j < len1; j++) {
+            name = ref4[j];
+            o.scope.parameter(name);
+        }
+        prelude = [];
+        if (!o.bare) {
+            preludeExps = (function() {
+                var k, len2, ref5, results;
+                ref5 = this.expressions;
+                results = [];
+                for (i = k = 0, len2 = ref5.length; k < len2; i = ++k) {
+                    exp = ref5[i];
+                    if (!(exp.unwrap() instanceof Comment)) {
+                        break;
                     }
+                    results.push(exp);
                 }
+                return results;
+            }).call(this);
+            rest = this.expressions.slice(preludeExps.length);
+            this.expressions = preludeExps;
+            if (preludeExps.length) {
+                prelude = this.compileNode(merge(o, {
+                    indent: ''
+                }));
+                prelude.push(this.makeCode("\n"));
             }
-            return this;
-        };
+            this.expressions = rest;
+        }
+        fragments = this.compileWithDeclarations(o);
+        if (o.bare) {
+            return fragments;
+        }
+        return [].concat(prelude, this.makeCode("(function() {\n"), fragments, this.makeCode("\n}).call(this);\n"));
+    };
 
-        Base.prototype.traverseChildren = function(crossScope, func) {
-            return this.eachChild(function(child) {
-                var recur;
-                recur = func(child);
-                if (recur !== false) {
-                    return child.traverseChildren(crossScope, func);
+    Block.prototype.compileWithDeclarations = function(o) {
+        var assigns, declars, exp, fragments, i, j, len1, post, ref3, ref4, ref5, rest, scope, spaced;
+        fragments = [];
+        post = [];
+        ref3 = this.expressions;
+        for (i = j = 0, len1 = ref3.length; j < len1; i = ++j) {
+            exp = ref3[i];
+            exp = exp.unwrap();
+            if (!(exp instanceof Comment || exp instanceof Literal)) {
+                break;
+            }
+        }
+        o = merge(o, {
+            level: LEVEL_TOP
+        });
+        if (i) {
+            rest = this.expressions.splice(i, 9e9);
+            ref4 = [this.spaced, false], spaced = ref4[0], this.spaced = ref4[1];
+            ref5 = [this.compileNode(o), spaced], fragments = ref5[0], this.spaced = ref5[1];
+            this.expressions = rest;
+        }
+        post = this.compileNode(o);
+        scope = o.scope;
+        if (scope.expressions === this) {
+            declars = o.scope.hasDeclarations();
+            assigns = scope.hasAssignments;
+            if (declars || assigns) {
+                if (i) {
+                    fragments.push(this.makeCode('\n'));
                 }
+                fragments.push(this.makeCode(this.tab + "var "));
+                if (declars) {
+                    fragments.push(this.makeCode(scope.declaredVariables().join(', ')));
+                }
+                if (assigns) {
+                    if (declars) {
+                        fragments.push(this.makeCode(",\n" + (this.tab + TAB)));
+                    }
+                    fragments.push(this.makeCode(scope.assignedVariables().join(",\n" + (this.tab + TAB))));
+                }
+                fragments.push(this.makeCode(";\n" + (this.spaced ? '\n' : '')));
+            } else if (fragments.length && post.length) {
+                fragments.push(this.makeCode("\n"));
+            }
+        }
+        return fragments.concat(post);
+    };
+
+    Block.wrap = function(nodes) {
+        if (nodes.length === 1 && nodes[0] instanceof Block) {
+            return nodes[0];
+        }
+        return new Block(nodes);
+    };
+
+    return Block;
+
+})(Base);
+
+exports.Literal = Literal = (function(superClass1) {
+    extend1(Literal, superClass1);
+
+    function Literal(value1) {
+        this.value = value1;
+    }
+
+    Literal.prototype.isComplex = NO;
+
+    Literal.prototype.assigns = function(name) {
+        return name === this.value;
+    };
+
+    Literal.prototype.compileNode = function(o) {
+        return [this.makeCode(this.value)];
+    };
+
+    Literal.prototype.toString = function() {
+        return " " + (this.isStatement() ? Literal.__super__.toString.apply(this, arguments) : this.constructor.name) + ": " + this.value;
+    };
+
+    return Literal;
+
+})(Base);
+
+exports.NumberLiteral = NumberLiteral = (function(superClass1) {
+    extend1(NumberLiteral, superClass1);
+
+    function NumberLiteral() {
+        return NumberLiteral.__super__.constructor.apply(this, arguments);
+    }
+
+    return NumberLiteral;
+
+})(Literal);
+
+exports.InfinityLiteral = InfinityLiteral = (function(superClass1) {
+    extend1(InfinityLiteral, superClass1);
+
+    function InfinityLiteral() {
+        return InfinityLiteral.__super__.constructor.apply(this, arguments);
+    }
+
+    InfinityLiteral.prototype.compileNode = function() {
+        return [this.makeCode('2e308')];
+    };
+
+    return InfinityLiteral;
+
+})(NumberLiteral);
+
+exports.NaNLiteral = NaNLiteral = (function(superClass1) {
+    extend1(NaNLiteral, superClass1);
+
+    function NaNLiteral() {
+        NaNLiteral.__super__.constructor.call(this, 'NaN');
+    }
+
+    NaNLiteral.prototype.compileNode = function(o) {
+        var code;
+        code = [this.makeCode('0/0')];
+        if (o.level >= LEVEL_OP) {
+            return this.wrapInBraces(code);
+        } else {
+            return code;
+        }
+    };
+
+    return NaNLiteral;
+
+})(NumberLiteral);
+
+exports.StringLiteral = StringLiteral = (function(superClass1) {
+    extend1(StringLiteral, superClass1);
+
+    function StringLiteral() {
+        return StringLiteral.__super__.constructor.apply(this, arguments);
+    }
+
+    return StringLiteral;
+
+})(Literal);
+
+exports.RegexLiteral = RegexLiteral = (function(superClass1) {
+    extend1(RegexLiteral, superClass1);
+
+    function RegexLiteral() {
+        return RegexLiteral.__super__.constructor.apply(this, arguments);
+    }
+
+    return RegexLiteral;
+
+})(Literal);
+
+exports.PassthroughLiteral = PassthroughLiteral = (function(superClass1) {
+    extend1(PassthroughLiteral, superClass1);
+
+    function PassthroughLiteral() {
+        return PassthroughLiteral.__super__.constructor.apply(this, arguments);
+    }
+
+    return PassthroughLiteral;
+
+})(Literal);
+
+exports.IdentifierLiteral = IdentifierLiteral = (function(superClass1) {
+    extend1(IdentifierLiteral, superClass1);
+
+    function IdentifierLiteral() {
+        return IdentifierLiteral.__super__.constructor.apply(this, arguments);
+    }
+
+    IdentifierLiteral.prototype.isAssignable = YES;
+
+    return IdentifierLiteral;
+
+})(Literal);
+
+exports.PropertyName = PropertyName = (function(superClass1) {
+    extend1(PropertyName, superClass1);
+
+    function PropertyName() {
+        return PropertyName.__super__.constructor.apply(this, arguments);
+    }
+
+    PropertyName.prototype.isAssignable = YES;
+
+    return PropertyName;
+
+})(Literal);
+
+exports.StatementLiteral = StatementLiteral = (function(superClass1) {
+    extend1(StatementLiteral, superClass1);
+
+    function StatementLiteral() {
+        return StatementLiteral.__super__.constructor.apply(this, arguments);
+    }
+
+    StatementLiteral.prototype.isStatement = YES;
+
+    StatementLiteral.prototype.makeReturn = THIS;
+
+    StatementLiteral.prototype.jumps = function(o) {
+        if (this.value === 'break' && !((o != null ? o.loop : void 0) || (o != null ? o.block : void 0))) {
+            return this;
+        }
+        if (this.value === 'continue' && !(o != null ? o.loop : void 0)) {
+            return this;
+        }
+    };
+
+    StatementLiteral.prototype.compileNode = function(o) {
+        return [this.makeCode("" + this.tab + this.value + ";")];
+    };
+
+    return StatementLiteral;
+
+})(Literal);
+
+exports.ThisLiteral = ThisLiteral = (function(superClass1) {
+    extend1(ThisLiteral, superClass1);
+
+    function ThisLiteral() {
+        ThisLiteral.__super__.constructor.call(this, 'this');
+    }
+
+    ThisLiteral.prototype.compileNode = function(o) {
+        var code, ref3;
+        code = ((ref3 = o.scope.method) != null ? ref3.bound : void 0) ? o.scope.method.context : this.value;
+        return [this.makeCode(code)];
+    };
+
+    return ThisLiteral;
+
+})(Literal);
+
+exports.UndefinedLiteral = UndefinedLiteral = (function(superClass1) {
+    extend1(UndefinedLiteral, superClass1);
+
+    function UndefinedLiteral() {
+        UndefinedLiteral.__super__.constructor.call(this, 'undefined');
+    }
+
+    UndefinedLiteral.prototype.compileNode = function(o) {
+        return [this.makeCode(o.level >= LEVEL_ACCESS ? '(void 0)' : 'void 0')];
+    };
+
+    return UndefinedLiteral;
+
+})(Literal);
+
+exports.NullLiteral = NullLiteral = (function(superClass1) {
+    extend1(NullLiteral, superClass1);
+
+    function NullLiteral() {
+        NullLiteral.__super__.constructor.call(this, 'null');
+    }
+
+    return NullLiteral;
+
+})(Literal);
+
+exports.BooleanLiteral = BooleanLiteral = (function(superClass1) {
+    extend1(BooleanLiteral, superClass1);
+
+    function BooleanLiteral() {
+        return BooleanLiteral.__super__.constructor.apply(this, arguments);
+    }
+
+    return BooleanLiteral;
+
+})(Literal);
+
+exports.Return = Return = (function(superClass1) {
+    extend1(Return, superClass1);
+
+    function Return(expression) {
+        this.expression = expression;
+    }
+
+    Return.prototype.children = ['expression'];
+
+    Return.prototype.isStatement = YES;
+
+    Return.prototype.makeReturn = THIS;
+
+    Return.prototype.jumps = THIS;
+
+    Return.prototype.compileToFragments = function(o, level) {
+        var expr, ref3;
+        expr = (ref3 = this.expression) != null ? ref3.makeReturn() : void 0;
+        if (expr && !(expr instanceof Return)) {
+            return expr.compileToFragments(o, level);
+        } else {
+            return Return.__super__.compileToFragments.call(this, o, level);
+        }
+    };
+
+    Return.prototype.compileNode = function(o) {
+        var answer;
+        answer = [];
+        answer.push(this.makeCode(this.tab + ("return" + (this.expression ? " " : ""))));
+        if (this.expression) {
+            answer = answer.concat(this.expression.compileToFragments(o, LEVEL_PAREN));
+        }
+        answer.push(this.makeCode(";"));
+        return answer;
+    };
+
+    return Return;
+
+})(Base);
+
+exports.YieldReturn = YieldReturn = (function(superClass1) {
+    extend1(YieldReturn, superClass1);
+
+    function YieldReturn() {
+        return YieldReturn.__super__.constructor.apply(this, arguments);
+    }
+
+    YieldReturn.prototype.compileNode = function(o) {
+        if (o.scope.parent == null) {
+            this.error('yield can only occur inside functions');
+        }
+        return YieldReturn.__super__.compileNode.apply(this, arguments);
+    };
+
+    return YieldReturn;
+
+})(Return);
+
+exports.Value = Value = (function(superClass1) {
+    extend1(Value, superClass1);
+
+    function Value(base, props, tag) {
+        if (!props && base instanceof Value) {
+            return base;
+        }
+        this.base = base;
+        this.properties = props || [];
+        if (tag) {
+            this[tag] = true;
+        }
+        return this;
+    }
+
+    Value.prototype.children = ['base', 'properties'];
+
+    Value.prototype.add = function(props) {
+        this.properties = this.properties.concat(props);
+        return this;
+    };
+
+    Value.prototype.hasProperties = function() {
+        return !!this.properties.length;
+    };
+
+    Value.prototype.bareLiteral = function(type) {
+        return !this.properties.length && this.base instanceof type;
+    };
+
+    Value.prototype.isArray = function() {
+        return this.bareLiteral(Arr);
+    };
+
+    Value.prototype.isRange = function() {
+        return this.bareLiteral(Range);
+    };
+
+    Value.prototype.isComplex = function() {
+        return this.hasProperties() || this.base.isComplex();
+    };
+
+    Value.prototype.isAssignable = function() {
+        return this.hasProperties() || this.base.isAssignable();
+    };
+
+    Value.prototype.isNumber = function() {
+        return this.bareLiteral(NumberLiteral);
+    };
+
+    Value.prototype.isString = function() {
+        return this.bareLiteral(StringLiteral);
+    };
+
+    Value.prototype.isRegex = function() {
+        return this.bareLiteral(RegexLiteral);
+    };
+
+    Value.prototype.isUndefined = function() {
+        return this.bareLiteral(UndefinedLiteral);
+    };
+
+    Value.prototype.isNull = function() {
+        return this.bareLiteral(NullLiteral);
+    };
+
+    Value.prototype.isBoolean = function() {
+        return this.bareLiteral(BooleanLiteral);
+    };
+
+    Value.prototype.isAtomic = function() {
+        var j, len1, node, ref3;
+        ref3 = this.properties.concat(this.base);
+        for (j = 0, len1 = ref3.length; j < len1; j++) {
+            node = ref3[j];
+            if (node.soak || node instanceof Call) {
+                return false;
+            }
+        }
+        return true;
+    };
+
+    Value.prototype.isNotCallable = function() {
+        return this.isNumber() || this.isString() || this.isRegex() || this.isArray() || this.isRange() || this.isSplice() || this.isObject() || this.isUndefined() || this.isNull() || this.isBoolean();
+    };
+
+    Value.prototype.isStatement = function(o) {
+        return !this.properties.length && this.base.isStatement(o);
+    };
+
+    Value.prototype.assigns = function(name) {
+        return !this.properties.length && this.base.assigns(name);
+    };
+
+    Value.prototype.jumps = function(o) {
+        return !this.properties.length && this.base.jumps(o);
+    };
+
+    Value.prototype.isObject = function(onlyGenerated) {
+        if (this.properties.length) {
+            return false;
+        }
+        return (this.base instanceof Obj) && (!onlyGenerated || this.base.generated);
+    };
+
+    Value.prototype.isSplice = function() {
+        var lastProp, ref3;
+        ref3 = this.properties, lastProp = ref3[ref3.length - 1];
+        return lastProp instanceof Slice;
+    };
+
+    Value.prototype.looksStatic = function(className) {
+        var ref3;
+        return this.base.value === className && this.properties.length === 1 && ((ref3 = this.properties[0].name) != null ? ref3.value : void 0) !== 'prototype';
+    };
+
+    Value.prototype.unwrap = function() {
+        if (this.properties.length) {
+            return this;
+        } else {
+            return this.base;
+        }
+    };
+
+    Value.prototype.cacheReference = function(o) {
+        var base, bref, name, nref, ref3;
+        ref3 = this.properties, name = ref3[ref3.length - 1];
+        if (this.properties.length < 2 && !this.base.isComplex() && !(name != null ? name.isComplex() : void 0)) {
+            return [this, this];
+        }
+        base = new Value(this.base, this.properties.slice(0, -1));
+        if (base.isComplex()) {
+            bref = new IdentifierLiteral(o.scope.freeVariable('base'));
+            base = new Value(new Parens(new Assign(bref, base)));
+        }
+        if (!name) {
+            return [base, bref];
+        }
+        if (name.isComplex()) {
+            nref = new IdentifierLiteral(o.scope.freeVariable('name'));
+            name = new Index(new Assign(nref, name.index));
+            nref = new Index(nref);
+        }
+        return [base.add(name), new Value(bref || base.base, [nref || name])];
+    };
+
+    Value.prototype.compileNode = function(o) {
+        var fragments, j, len1, prop, props;
+        this.base.front = this.front;
+        props = this.properties;
+        fragments = this.base.compileToFragments(o, (props.length ? LEVEL_ACCESS : null));
+        if (props.length && SIMPLENUM.test(fragmentsToText(fragments))) {
+            fragments.push(this.makeCode('.'));
+        }
+        for (j = 0, len1 = props.length; j < len1; j++) {
+            prop = props[j];
+            fragments.push.apply(fragments, prop.compileToFragments(o));
+        }
+        return fragments;
+    };
+
+    Value.prototype.unfoldSoak = function(o) {
+        return this.unfoldedSoak != null ? this.unfoldedSoak : this.unfoldedSoak = (function(_this) {
+            return function() {
+                var fst, i, ifn, j, len1, prop, ref, ref3, ref4, snd;
+                if (ifn = _this.base.unfoldSoak(o)) {
+                    (ref3 = ifn.body.properties).push.apply(ref3, _this.properties);
+                    return ifn;
+                }
+                ref4 = _this.properties;
+                for (i = j = 0, len1 = ref4.length; j < len1; i = ++j) {
+                    prop = ref4[i];
+                    if (!prop.soak) {
+                        continue;
+                    }
+                    prop.soak = false;
+                    fst = new Value(_this.base, _this.properties.slice(0, i));
+                    snd = new Value(_this.base, _this.properties.slice(i));
+                    if (fst.isComplex()) {
+                        ref = new IdentifierLiteral(o.scope.freeVariable('ref'));
+                        fst = new Parens(new Assign(ref, fst));
+                        snd.base = ref;
+                    }
+                    return new If(new Existence(fst), snd, {
+                        soak: true
+                    });
+                }
+                return false;
+            };
+        })(this)();
+    };
+
+    return Value;
+
+})(Base);
+
+exports.Comment = Comment = (function(superClass1) {
+    extend1(Comment, superClass1);
+
+    function Comment(comment1) {
+        this.comment = comment1;
+    }
+
+    Comment.prototype.isStatement = YES;
+
+    Comment.prototype.makeReturn = THIS;
+
+    Comment.prototype.compileNode = function(o, level) {
+        var code, comment;
+        comment = this.comment.replace(/^(\s*)#(?=\s)/gm, "$1 *");
+        code = "/*" + (multident(comment, this.tab)) + (indexOf.call(comment, '\n') >= 0 ? "\n" + this.tab : '') + " */";
+        if ((level || o.level) === LEVEL_TOP) {
+            code = o.indent + code;
+        }
+        return [this.makeCode("\n"), this.makeCode(code)];
+    };
+
+    return Comment;
+
+})(Base);
+
+exports.Call = Call = (function(superClass1) {
+    extend1(Call, superClass1);
+
+    function Call(variable1, args1, soak1) {
+        this.variable = variable1;
+        this.args = args1 != null ? args1 : [];
+        this.soak = soak1;
+        this.isNew = false;
+        if (this.variable instanceof Value && this.variable.isNotCallable()) {
+            this.variable.error("literal is not a function");
+        }
+    }
+
+    Call.prototype.children = ['variable', 'args'];
+
+    Call.prototype.updateLocationDataIfMissing = function(locationData) {
+        var base, ref3;
+        if (this.locationData && this.needsUpdatedStartLocation) {
+            this.locationData.first_line = locationData.first_line;
+            this.locationData.first_column = locationData.first_column;
+            base = ((ref3 = this.variable) != null ? ref3.base : void 0) || this.variable;
+            if (base.needsUpdatedStartLocation) {
+                this.variable.locationData.first_line = locationData.first_line;
+                this.variable.locationData.first_column = locationData.first_column;
+                base.updateLocationDataIfMissing(locationData);
+            }
+            delete this.needsUpdatedStartLocation;
+        }
+        return Call.__super__.updateLocationDataIfMissing.apply(this, arguments);
+    };
+
+    Call.prototype.newInstance = function() {
+        var base, ref3;
+        base = ((ref3 = this.variable) != null ? ref3.base : void 0) || this.variable;
+        if (base instanceof Call && !base.isNew) {
+            base.newInstance();
+        } else {
+            this.isNew = true;
+        }
+        this.needsUpdatedStartLocation = true;
+        return this;
+    };
+
+    Call.prototype.unfoldSoak = function(o) {
+        var call, ifn, j, left, len1, list, ref3, ref4, rite;
+        if (this.soak) {
+            if (this instanceof SuperCall) {
+                left = new Literal(this.superReference(o));
+                rite = new Value(left);
+            } else {
+                if (ifn = unfoldSoak(o, this, 'variable')) {
+                    return ifn;
+                }
+                ref3 = new Value(this.variable).cacheReference(o), left = ref3[0], rite = ref3[1];
+            }
+            rite = new Call(rite, this.args);
+            rite.isNew = this.isNew;
+            left = new Literal("typeof " + (left.compile(o)) + " === \"function\"");
+            return new If(left, new Value(rite), {
+                soak: true
             });
-        };
-
-        Base.prototype.invert = function() {
-            return new Op('!', this);
-        };
-
-        Base.prototype.unwrapAll = function() {
-            var node;
-            node = this;
-            while (node !== (node = node.unwrap())) {
+        }
+        call = this;
+        list = [];
+        while (true) {
+            if (call.variable instanceof Call) {
+                list.push(call);
+                call = call.variable;
                 continue;
             }
-            return node;
-        };
-
-        Base.prototype.children = [];
-
-        Base.prototype.isStatement = NO;
-
-        Base.prototype.jumps = NO;
-
-        Base.prototype.isComplex = YES;
-
-        Base.prototype.isChainable = NO;
-
-        Base.prototype.isAssignable = NO;
-
-        Base.prototype.isNumber = NO;
-
-        Base.prototype.unwrap = THIS;
-
-        Base.prototype.unfoldSoak = NO;
-
-        Base.prototype.assigns = NO;
-
-        Base.prototype.updateLocationDataIfMissing = function(locationData) {
-            if (this.locationData) {
-                return this;
+            if (!(call.variable instanceof Value)) {
+                break;
             }
-            this.locationData = locationData;
-            return this.eachChild(function(child) {
-                return child.updateLocationDataIfMissing(locationData);
-            });
-        };
-
-        Base.prototype.error = function(message) {
-            return throwSyntaxError(message, this.locationData);
-        };
-
-        Base.prototype.makeCode = function(code) {
-            return new CodeFragment(this, code);
-        };
-
-        Base.prototype.wrapInBraces = function(fragments) {
-            return [].concat(this.makeCode('('), fragments, this.makeCode(')'));
-        };
-
-        Base.prototype.joinFragmentArrays = function(fragmentsList, joinStr) {
-            var answer, fragments, i, j, len1;
-            answer = [];
-            for (i = j = 0, len1 = fragmentsList.length; j < len1; i = ++j) {
-                fragments = fragmentsList[i];
-                if (i) {
-                    answer.push(this.makeCode(joinStr));
+            list.push(call);
+            if (!((call = call.variable.base) instanceof Call)) {
+                break;
+            }
+        }
+        ref4 = list.reverse();
+        for (j = 0, len1 = ref4.length; j < len1; j++) {
+            call = ref4[j];
+            if (ifn) {
+                if (call.variable instanceof Call) {
+                    call.variable = ifn;
+                } else {
+                    call.variable.base = ifn;
                 }
-                answer = answer.concat(fragments);
             }
+            ifn = unfoldSoak(o, call, 'variable');
+        }
+        return ifn;
+    };
+
+    Call.prototype.compileNode = function(o) {
+        var arg, argIndex, compiledArgs, compiledArray, fragments, j, len1, preface, ref3, ref4;
+        if ((ref3 = this.variable) != null) {
+            ref3.front = this.front;
+        }
+        compiledArray = Splat.compileSplattedArray(o, this.args, true);
+        if (compiledArray.length) {
+            return this.compileSplat(o, compiledArray);
+        }
+        compiledArgs = [];
+        ref4 = this.args;
+        for (argIndex = j = 0, len1 = ref4.length; j < len1; argIndex = ++j) {
+            arg = ref4[argIndex];
+            if (argIndex) {
+                compiledArgs.push(this.makeCode(", "));
+            }
+            compiledArgs.push.apply(compiledArgs, arg.compileToFragments(o, LEVEL_LIST));
+        }
+        fragments = [];
+        if (this instanceof SuperCall) {
+            preface = this.superReference(o) + (".call(" + (this.superThis(o)));
+            if (compiledArgs.length) {
+                preface += ", ";
+            }
+            fragments.push(this.makeCode(preface));
+        } else {
+            if (this.isNew) {
+                fragments.push(this.makeCode('new '));
+            }
+            fragments.push.apply(fragments, this.variable.compileToFragments(o, LEVEL_ACCESS));
+            fragments.push(this.makeCode("("));
+        }
+        fragments.push.apply(fragments, compiledArgs);
+        fragments.push(this.makeCode(")"));
+        return fragments;
+    };
+
+    Call.prototype.compileSplat = function(o, splatArgs) {
+        var answer, base, fun, idt, name, ref;
+        if (this instanceof SuperCall) {
+            return [].concat(this.makeCode((this.superReference(o)) + ".apply(" + (this.superThis(o)) + ", "), splatArgs, this.makeCode(")"));
+        }
+        if (this.isNew) {
+            idt = this.tab + TAB;
+            return [].concat(this.makeCode("(function(func, args, ctor) {\n" + idt + "ctor.prototype = func.prototype;\n" + idt + "var child = new ctor, result = func.apply(child, args);\n" + idt + "return Object(result) === result ? result : child;\n" + this.tab + "})("), this.variable.compileToFragments(o, LEVEL_LIST), this.makeCode(", "), splatArgs, this.makeCode(", function(){})"));
+        }
+        answer = [];
+        base = new Value(this.variable);
+        if ((name = base.properties.pop()) && base.isComplex()) {
+            ref = o.scope.freeVariable('ref');
+            answer = answer.concat(this.makeCode("(" + ref + " = "), base.compileToFragments(o, LEVEL_LIST), this.makeCode(")"), name.compileToFragments(o));
+        } else {
+            fun = base.compileToFragments(o, LEVEL_ACCESS);
+            if (SIMPLENUM.test(fragmentsToText(fun))) {
+                fun = this.wrapInBraces(fun);
+            }
+            if (name) {
+                ref = fragmentsToText(fun);
+                fun.push.apply(fun, name.compileToFragments(o));
+            } else {
+                ref = 'null';
+            }
+            answer = answer.concat(fun);
+        }
+        return answer = answer.concat(this.makeCode(".apply(" + ref + ", "), splatArgs, this.makeCode(")"));
+    };
+
+    return Call;
+
+})(Base);
+
+exports.SuperCall = SuperCall = (function(superClass1) {
+    extend1(SuperCall, superClass1);
+
+    function SuperCall(args) {
+        SuperCall.__super__.constructor.call(this, null, args != null ? args : [new Splat(new IdentifierLiteral('arguments'))]);
+        this.isBare = args != null;
+    }
+
+    SuperCall.prototype.superReference = function(o) {
+        var accesses, base, bref, klass, method, name, nref, variable;
+        method = o.scope.namedMethod();
+        if (method != null ? method.klass : void 0) {
+            klass = method.klass, name = method.name, variable = method.variable;
+            if (klass.isComplex()) {
+                bref = new IdentifierLiteral(o.scope.parent.freeVariable('base'));
+                base = new Value(new Parens(new Assign(bref, klass)));
+                variable.base = base;
+                variable.properties.splice(0, klass.properties.length);
+            }
+            if (name.isComplex() || (name instanceof Index && name.index.isAssignable())) {
+                nref = new IdentifierLiteral(o.scope.parent.freeVariable('name'));
+                name = new Index(new Assign(nref, name.index));
+                variable.properties.pop();
+                variable.properties.push(name);
+            }
+            accesses = [new Access(new PropertyName('__super__'))];
+            if (method["static"]) {
+                accesses.push(new Access(new PropertyName('constructor')));
+            }
+            accesses.push(nref != null ? new Index(nref) : name);
+            return (new Value(bref != null ? bref : klass, accesses)).compile(o);
+        } else if (method != null ? method.ctor : void 0) {
+            return method.name + ".__super__.constructor";
+        } else {
+            return this.error('cannot call super outside of an instance method. ' + method);
+        }
+    };
+
+    SuperCall.prototype.superThis = function(o) {
+        var method;
+        method = o.scope.method;
+        return (method && !method.klass && method.context) || "this";
+    };
+
+    SuperCall.prototype.compileSplat = function(o, splatArgs) {
+        if (splatArgs.length === 1 && splatArgs[0].code === 'arguments' && (this.configParameter != null) && hasFeature(o, 'config_parameters')) {
+            return [].concat(this.makeCode("" + (this.configParameterCodeBeforeSuper()) + (this.superReference(o)) + ".apply(" + (this.superThis(o)) + ", "), splatArgs, this.makeCode(")"));
+        }
+        return SuperCall.__super__.compileSplat.apply(this, arguments);
+    };
+
+    SuperCall.prototype.configParameterCodeBeforeSuper = function() {
+        var a, param;
+        if (!(param = this.configParameter)) {
+            return '';
+        }
+        a = param.objects.map(function(obj) {
+            var n, ref3, t;
+            n = obj.variable.base.value;
+            if (n === 'this') {
+                n = (ref3 = obj.variable.properties) != null ? ref3[0].name.value : void 0;
+                return n + ":this." + n;
+            } else {
+                t = obj.value.variable["this"] && 'this.' || '';
+                return n + ":" + (t + n);
+            }
+        });
+        return "arguments[0] = _.defaults({" + (a.join(',')) + "}, arguments[0]); ";
+    };
+
+    return SuperCall;
+
+})(Call);
+
+exports.RegexWithInterpolations = RegexWithInterpolations = (function(superClass1) {
+    extend1(RegexWithInterpolations, superClass1);
+
+    function RegexWithInterpolations(args) {
+        if (args == null) {
+            args = [];
+        }
+        RegexWithInterpolations.__super__.constructor.call(this, new Value(new IdentifierLiteral('RegExp')), args, false);
+    }
+
+    return RegexWithInterpolations;
+
+})(Call);
+
+exports.TaggedTemplateCall = TaggedTemplateCall = (function(superClass1) {
+    extend1(TaggedTemplateCall, superClass1);
+
+    function TaggedTemplateCall(variable, arg, soak) {
+        if (arg instanceof StringLiteral) {
+            arg = new StringWithInterpolations(Block.wrap([new Value(arg)]));
+        }
+        TaggedTemplateCall.__super__.constructor.call(this, variable, [arg], soak);
+    }
+
+    TaggedTemplateCall.prototype.compileNode = function(o) {
+        o.inTaggedTemplateCall = true;
+        return this.variable.compileToFragments(o, LEVEL_ACCESS).concat(this.args[0].compileToFragments(o, LEVEL_LIST));
+    };
+
+    return TaggedTemplateCall;
+
+})(Call);
+
+exports.Extends = Extends = (function(superClass1) {
+    extend1(Extends, superClass1);
+
+    function Extends(child1, parent1) {
+        this.child = child1;
+        this.parent = parent1;
+    }
+
+    Extends.prototype.children = ['child', 'parent'];
+
+    Extends.prototype.compileToFragments = function(o) {
+        return new Call(new Value(new Literal(utility('extend', o))), [this.child, this.parent]).compileToFragments(o);
+    };
+
+    return Extends;
+
+})(Base);
+
+exports.Access = Access = (function(superClass1) {
+    extend1(Access, superClass1);
+
+    function Access(name1, tag) {
+        this.name = name1;
+        this.soak = tag === 'soak';
+    }
+
+    Access.prototype.children = ['name'];
+
+    Access.prototype.compileToFragments = function(o) {
+        var name, node, ref3;
+        name = this.name.compileToFragments(o);
+        node = this.name.unwrap();
+        if (node instanceof PropertyName) {
+            if (ref3 = node.value, indexOf.call(JS_FORBIDDEN, ref3) >= 0) {
+                return [this.makeCode('["')].concat(slice.call(name), [this.makeCode('"]')]);
+            } else {
+                return [this.makeCode('.')].concat(slice.call(name));
+            }
+        } else {
+            return [this.makeCode('[')].concat(slice.call(name), [this.makeCode(']')]);
+        }
+    };
+
+    Access.prototype.isComplex = NO;
+
+    return Access;
+
+})(Base);
+
+exports.Index = Index = (function(superClass1) {
+    extend1(Index, superClass1);
+
+    function Index(index1) {
+        this.index = index1;
+    }
+
+    Index.prototype.children = ['index'];
+
+    Index.prototype.compileToFragments = function(o) {
+        return [].concat(this.makeCode("["), this.index.compileToFragments(o, LEVEL_PAREN), this.makeCode("]"));
+    };
+
+    Index.prototype.isComplex = function() {
+        return this.index.isComplex();
+    };
+
+    return Index;
+
+})(Base);
+
+exports.Range = Range = (function(superClass1) {
+    extend1(Range, superClass1);
+
+    Range.prototype.children = ['from', 'to'];
+
+    function Range(from1, to1, tag) {
+        this.from = from1;
+        this.to = to1;
+        this.exclusive = tag === 'exclusive';
+        this.equals = this.exclusive ? '' : '=';
+    }
+
+    Range.prototype.compileVariables = function(o) {
+        var isComplex, ref3, ref4, ref5, step;
+        o = merge(o, {
+            top: true
+        });
+        isComplex = del(o, 'isComplex');
+        ref3 = this.cacheToCodeFragments(this.from.cache(o, LEVEL_LIST, isComplex)), this.fromC = ref3[0], this.fromVar = ref3[1];
+        ref4 = this.cacheToCodeFragments(this.to.cache(o, LEVEL_LIST, isComplex)), this.toC = ref4[0], this.toVar = ref4[1];
+        if (step = del(o, 'step')) {
+            ref5 = this.cacheToCodeFragments(step.cache(o, LEVEL_LIST, isComplex)), this.step = ref5[0], this.stepVar = ref5[1];
+        }
+        this.fromNum = this.from.isNumber() ? Number(this.fromVar) : null;
+        this.toNum = this.to.isNumber() ? Number(this.toVar) : null;
+        return this.stepNum = (step != null ? step.isNumber() : void 0) ? Number(this.stepVar) : null;
+    };
+
+    Range.prototype.compileNode = function(o) {
+        var cond, condPart, from, gt, idx, idxName, known, lt, namedIndex, ref3, ref4, stepPart, to, varPart;
+        if (!this.fromVar) {
+            this.compileVariables(o);
+        }
+        if (!o.index) {
+            return this.compileArray(o);
+        }
+        known = (this.fromNum != null) && (this.toNum != null);
+        idx = del(o, 'index');
+        idxName = del(o, 'name');
+        namedIndex = idxName && idxName !== idx;
+        varPart = idx + " = " + this.fromC;
+        if (this.toC !== this.toVar) {
+            varPart += ", " + this.toC;
+        }
+        if (this.step !== this.stepVar) {
+            varPart += ", " + this.step;
+        }
+        ref3 = [idx + " <" + this.equals, idx + " >" + this.equals], lt = ref3[0], gt = ref3[1];
+        condPart = this.stepNum != null ? this.stepNum > 0 ? lt + " " + this.toVar : gt + " " + this.toVar : known ? ((ref4 = [this.fromNum, this.toNum], from = ref4[0], to = ref4[1], ref4), from <= to ? lt + " " + to : gt + " " + to) : (cond = this.stepVar ? this.stepVar + " > 0" : this.fromVar + " <= " + this.toVar, cond + " ? " + lt + " " + this.toVar + " : " + gt + " " + this.toVar);
+        stepPart = this.stepVar ? idx + " += " + this.stepVar : known ? namedIndex ? from <= to ? "++" + idx : "--" + idx : from <= to ? idx + "++" : idx + "--" : namedIndex ? cond + " ? ++" + idx + " : --" + idx : cond + " ? " + idx + "++ : " + idx + "--";
+        if (namedIndex) {
+            varPart = idxName + " = " + varPart;
+        }
+        if (namedIndex) {
+            stepPart = idxName + " = " + stepPart;
+        }
+        return [this.makeCode(varPart + "; " + condPart + "; " + stepPart)];
+    };
+
+    Range.prototype.compileArray = function(o) {
+        var args, body, cond, hasArgs, i, idt, j, known, post, pre, range, ref3, ref4, result, results, vars;
+        known = (this.fromNum != null) && (this.toNum != null);
+        if (known && Math.abs(this.fromNum - this.toNum) <= 20) {
+            range = (function() {
+                results = [];
+                for (var j = ref3 = this.fromNum, ref4 = this.toNum; ref3 <= ref4 ? j <= ref4 : j >= ref4; ref3 <= ref4 ? j++ : j--){ results.push(j); }
+                return results;
+            }).apply(this);
+            if (this.exclusive) {
+                range.pop();
+            }
+            return [this.makeCode("[" + (range.join(', ')) + "]")];
+        }
+        idt = this.tab + TAB;
+        i = o.scope.freeVariable('i', {
+            single: true
+        });
+        result = o.scope.freeVariable('results');
+        pre = "\n" + idt + result + " = [];";
+        if (known) {
+            o.index = i;
+            body = fragmentsToText(this.compileNode(o));
+        } else {
+            vars = (i + " = " + this.fromC) + (this.toC !== this.toVar ? ", " + this.toC : '');
+            cond = this.fromVar + " <= " + this.toVar;
+            body = "var " + vars + "; " + cond + " ? " + i + " <" + this.equals + " " + this.toVar + " : " + i + " >" + this.equals + " " + this.toVar + "; " + cond + " ? " + i + "++ : " + i + "--";
+        }
+        post = "{ " + result + ".push(" + i + "); }\n" + idt + "return " + result + ";\n" + o.indent;
+        hasArgs = function(node) {
+            return node != null ? node.contains(isLiteralArguments) : void 0;
+        };
+        if (hasArgs(this.from) || hasArgs(this.to)) {
+            args = ', arguments';
+        }
+        return [this.makeCode("(function() {" + pre + "\n" + idt + "for (" + body + ")" + post + "}).apply(this" + (args != null ? args : '') + ")")];
+    };
+
+    return Range;
+
+})(Base);
+
+exports.Slice = Slice = (function(superClass1) {
+    extend1(Slice, superClass1);
+
+    Slice.prototype.children = ['range'];
+
+    function Slice(range1) {
+        this.range = range1;
+        Slice.__super__.constructor.call(this);
+    }
+
+    Slice.prototype.compileNode = function(o) {
+        var compiled, compiledText, from, fromCompiled, ref3, to, toStr;
+        ref3 = this.range, to = ref3.to, from = ref3.from;
+        fromCompiled = from && from.compileToFragments(o, LEVEL_PAREN) || [this.makeCode('0')];
+        if (to) {
+            compiled = to.compileToFragments(o, LEVEL_PAREN);
+            compiledText = fragmentsToText(compiled);
+            if (!(!this.range.exclusive && +compiledText === -1)) {
+                toStr = ', ' + (this.range.exclusive ? compiledText : to.isNumber() ? "" + (+compiledText + 1) : (compiled = to.compileToFragments(o, LEVEL_ACCESS), "+" + (fragmentsToText(compiled)) + " + 1 || 9e9"));
+            }
+        }
+        return [this.makeCode(".slice(" + (fragmentsToText(fromCompiled)) + (toStr || '') + ")")];
+    };
+
+    return Slice;
+
+})(Base);
+
+exports.Obj = Obj = (function(superClass1) {
+    extend1(Obj, superClass1);
+
+    function Obj(props, generated) {
+        this.generated = generated != null ? generated : false;
+        this.objects = this.properties = props || [];
+    }
+
+    Obj.prototype.children = ['properties'];
+
+    Obj.prototype.compileNode = function(o) {
+        var answer, dynamicIndex, hasDynamic, i, idt, indent, j, join, k, key, l, lastNoncom, len1, len2, len3, node, oref, prop, props, ref3, value;
+        props = this.properties;
+        if (this.generated) {
+            for (j = 0, len1 = props.length; j < len1; j++) {
+                node = props[j];
+                if (node instanceof Value) {
+                    node.error('cannot have an implicit value in an implicit object');
+                }
+            }
+        }
+        for (dynamicIndex = k = 0, len2 = props.length; k < len2; dynamicIndex = ++k) {
+            prop = props[dynamicIndex];
+            if ((prop.variable || prop).base instanceof Parens) {
+                break;
+            }
+        }
+        hasDynamic = dynamicIndex < props.length;
+        idt = o.indent += TAB;
+        lastNoncom = this.lastNonComment(this.properties);
+        answer = [];
+        if (hasDynamic) {
+            oref = o.scope.freeVariable('obj');
+            answer.push(this.makeCode("(\n" + idt + oref + " = "));
+        }
+        answer.push(this.makeCode("{" + (props.length === 0 || dynamicIndex === 0 ? '}' : '\n')));
+        for (i = l = 0, len3 = props.length; l < len3; i = ++l) {
+            prop = props[i];
+            if (i === dynamicIndex) {
+                if (i !== 0) {
+                    answer.push(this.makeCode("\n" + idt + "}"));
+                }
+                answer.push(this.makeCode(',\n'));
+            }
+            join = i === props.length - 1 || i === dynamicIndex - 1 ? '' : prop === lastNoncom || prop instanceof Comment ? '\n' : ',\n';
+            indent = prop instanceof Comment ? '' : idt;
+            if (hasDynamic && i < dynamicIndex) {
+                indent += TAB;
+            }
+            if (prop instanceof Assign) {
+                if (prop.context !== 'object') {
+                    prop.operatorToken.error("unexpected " + prop.operatorToken.value);
+                }
+                if (prop.variable instanceof Value && prop.variable.hasProperties()) {
+                    prop.variable.error('invalid object key');
+                }
+            }
+            if (prop instanceof Value && prop["this"]) {
+                prop = new Assign(prop.properties[0].name, prop, 'object');
+            }
+            if (!(prop instanceof Comment)) {
+                if (i < dynamicIndex) {
+                    if (!(prop instanceof Assign)) {
+                        prop = new Assign(prop, prop, 'object');
+                    }
+                } else {
+                    if (prop instanceof Assign) {
+                        key = prop.variable;
+                        value = prop.value;
+                    } else {
+                        ref3 = prop.base.cache(o), key = ref3[0], value = ref3[1];
+                        if (key instanceof IdentifierLiteral) {
+                            key = new PropertyName(key.value);
+                        }
+                    }
+                    prop = new Assign(new Value(new IdentifierLiteral(oref), [new Access(key)]), value);
+                }
+            }
+            if (indent) {
+                answer.push(this.makeCode(indent));
+            }
+            answer.push.apply(answer, prop.compileToFragments(o, LEVEL_TOP));
+            if (join) {
+                answer.push(this.makeCode(join));
+            }
+        }
+        if (hasDynamic) {
+            answer.push(this.makeCode(",\n" + idt + oref + "\n" + this.tab + ")"));
+        } else {
+            if (props.length !== 0) {
+                answer.push(this.makeCode("\n" + this.tab + "}"));
+            }
+        }
+        if (this.front && !hasDynamic) {
+            return this.wrapInBraces(answer);
+        } else {
             return answer;
-        };
-
-        return Base;
-
-    })();
-
-    exports.Block = Block = (function(superClass1) {
-        extend1(Block, superClass1);
-
-        function Block(nodes) {
-            this.expressions = compact(flatten(nodes || []));
         }
+    };
 
-        Block.prototype.children = ['expressions'];
-
-        Block.prototype.push = function(node) {
-            this.expressions.push(node);
-            return this;
-        };
-
-        Block.prototype.pop = function() {
-            return this.expressions.pop();
-        };
-
-        Block.prototype.unshift = function(node) {
-            this.expressions.unshift(node);
-            return this;
-        };
-
-        Block.prototype.unwrap = function() {
-            if (this.expressions.length === 1) {
-                return this.expressions[0];
-            } else {
-                return this;
+    Obj.prototype.assigns = function(name) {
+        var j, len1, prop, ref3;
+        ref3 = this.properties;
+        for (j = 0, len1 = ref3.length; j < len1; j++) {
+            prop = ref3[j];
+            if (prop.assigns(name)) {
+                return true;
             }
-        };
+        }
+        return false;
+    };
 
-        Block.prototype.isEmpty = function() {
-            return !this.expressions.length;
-        };
+    return Obj;
 
-        Block.prototype.isStatement = function(o) {
-            var exp, j, len1, ref3;
-            ref3 = this.expressions;
+})(Base);
+
+exports.Arr = Arr = (function(superClass1) {
+    extend1(Arr, superClass1);
+
+    function Arr(objs) {
+        this.objects = objs || [];
+    }
+
+    Arr.prototype.children = ['objects'];
+
+    Arr.prototype.compileNode = function(o) {
+        var answer, compiledObjs, fragments, index, j, len1, obj;
+        if (!this.objects.length) {
+            return [this.makeCode('[]')];
+        }
+        o.indent += TAB;
+        answer = Splat.compileSplattedArray(o, this.objects);
+        if (answer.length) {
+            return answer;
+        }
+        answer = [];
+        compiledObjs = (function() {
+            var j, len1, ref3, results;
+            ref3 = this.objects;
+            results = [];
             for (j = 0, len1 = ref3.length; j < len1; j++) {
-                exp = ref3[j];
-                if (exp.isStatement(o)) {
-                    return true;
+                obj = ref3[j];
+                results.push(obj.compileToFragments(o, LEVEL_LIST));
+            }
+            return results;
+        }).call(this);
+        for (index = j = 0, len1 = compiledObjs.length; j < len1; index = ++j) {
+            fragments = compiledObjs[index];
+            if (index) {
+                answer.push(this.makeCode(", "));
+            }
+            answer.push.apply(answer, fragments);
+        }
+        if (fragmentsToText(answer).indexOf('\n') >= 0) {
+            answer.unshift(this.makeCode("[\n" + o.indent));
+            answer.push(this.makeCode("\n" + this.tab + "]"));
+        } else {
+            answer.unshift(this.makeCode("["));
+            answer.push(this.makeCode("]"));
+        }
+        return answer;
+    };
+
+    Arr.prototype.assigns = function(name) {
+        var j, len1, obj, ref3;
+        ref3 = this.objects;
+        for (j = 0, len1 = ref3.length; j < len1; j++) {
+            obj = ref3[j];
+            if (obj.assigns(name)) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    return Arr;
+
+})(Base);
+
+exports.Class = Class = (function(superClass1) {
+    extend1(Class, superClass1);
+
+    function Class(variable1, parent1, body1) {
+        this.variable = variable1;
+        this.parent = parent1;
+        this.body = body1 != null ? body1 : new Block;
+        this.boundFuncs = [];
+        this.body.classBody = true;
+    }
+
+    Class.prototype.children = ['variable', 'parent', 'body'];
+
+    Class.prototype.defaultClassVariableName = '_Class';
+
+    Class.prototype.determineName = function() {
+        var message, name, node, ref3, tail;
+        if (!this.variable) {
+            return this.defaultClassVariableName;
+        }
+        ref3 = this.variable.properties, tail = ref3[ref3.length - 1];
+        node = tail ? tail instanceof Access && tail.name : this.variable.base;
+        if (!(node instanceof IdentifierLiteral || node instanceof PropertyName)) {
+            return this.defaultClassVariableName;
+        }
+        name = node.value;
+        if (!tail) {
+            message = isUnassignable(name);
+            if (message) {
+                this.variable.error(message);
+            }
+        }
+        if (indexOf.call(JS_FORBIDDEN, name) >= 0) {
+            return "_" + name;
+        } else {
+            return name;
+        }
+    };
+
+    Class.prototype.setContext = function(name) {
+        return this.body.traverseChildren(false, function(node) {
+            if (node.classBody) {
+                return false;
+            }
+            if (node instanceof ThisLiteral) {
+                return node.value = name;
+            } else if (node instanceof Code) {
+                if (node.bound) {
+                    return node.context = name;
                 }
             }
-            return false;
-        };
+        });
+    };
 
-        Block.prototype.jumps = function(o) {
-            var exp, j, jumpNode, len1, ref3;
-            ref3 = this.expressions;
-            for (j = 0, len1 = ref3.length; j < len1; j++) {
-                exp = ref3[j];
-                if (jumpNode = exp.jumps(o)) {
-                    return jumpNode;
-                }
-            }
-        };
+    Class.prototype.addBoundFunctions = function(o) {
+        var bvar, j, len1, lhs, ref3;
+        ref3 = this.boundFuncs;
+        for (j = 0, len1 = ref3.length; j < len1; j++) {
+            bvar = ref3[j];
+            lhs = (new Value(new ThisLiteral, [new Access(bvar)])).compile(o);
+            this.ctor.body.unshift(new Literal(lhs + " = " + (utility('bind', o)) + "(" + lhs + ", this)"));
+        }
+    };
 
-        Block.prototype.makeReturn = function(res) {
-            var expr, len;
-            len = this.expressions.length;
-            while (len--) {
-                expr = this.expressions[len];
-                if (!(expr instanceof Comment)) {
-                    this.expressions[len] = expr.makeReturn(res);
-                    if (expr instanceof Return && !expr.expression) {
-                        this.expressions.splice(len, 1);
-                    }
-                    break;
-                }
-            }
-            return this;
-        };
-
-        Block.prototype.compileToFragments = function(o, level) {
-            if (o == null) {
-                o = {};
-            }
-            if (o.scope) {
-                return Block.__super__.compileToFragments.call(this, o, level);
-            } else {
-                return this.compileRoot(o);
-            }
-        };
-
-        Block.prototype.compileNode = function(o) {
-            var answer, compiledNodes, fragments, index, j, len1, node, ref3, top;
-            this.tab = o.indent;
-            top = o.level === LEVEL_TOP;
-            compiledNodes = [];
-            ref3 = this.expressions;
-            for (index = j = 0, len1 = ref3.length; j < len1; index = ++j) {
-                node = ref3[index];
-                node = node.unwrapAll();
-                node = node.unfoldSoak(o) || node;
-                if (node instanceof Block) {
-                    compiledNodes.push(node.compileNode(o));
-                } else if (top) {
-                    node.front = true;
-                    fragments = node.compileToFragments(o);
-                    if (!node.isStatement(o)) {
-                        fragments.unshift(this.makeCode("" + this.tab));
-                        fragments.push(this.makeCode(";"));
-                    }
-                    compiledNodes.push(fragments);
-                } else {
-                    compiledNodes.push(node.compileToFragments(o, LEVEL_LIST));
-                }
-            }
-            if (top) {
-                if (this.spaced) {
-                    return [].concat(this.joinFragmentArrays(compiledNodes, '\n\n'), this.makeCode("\n"));
-                } else {
-                    return this.joinFragmentArrays(compiledNodes, '\n');
-                }
-            }
-            if (compiledNodes.length) {
-                answer = this.joinFragmentArrays(compiledNodes, ', ');
-            } else {
-                answer = [this.makeCode("void 0")];
-            }
-            if (compiledNodes.length > 1 && o.level >= LEVEL_LIST) {
-                return this.wrapInBraces(answer);
-            } else {
-                return answer;
-            }
-        };
-
-        Block.prototype.compileRoot = function(o) {
-            var exp, fragments, i, j, len1, name, prelude, preludeExps, ref3, ref4, rest;
-            o.indent = o.bare ? '' : TAB;
-            o.level = LEVEL_TOP;
-            this.spaced = true;
-            o.scope = new Scope(null, this, null, (ref3 = o.referencedVars) != null ? ref3 : []);
-            ref4 = o.locals || [];
-            for (j = 0, len1 = ref4.length; j < len1; j++) {
-                name = ref4[j];
-                o.scope.parameter(name);
-            }
-            prelude = [];
-            if (!o.bare) {
-                preludeExps = (function() {
-                    var k, len2, ref5, results;
-                    ref5 = this.expressions;
-                    results = [];
-                    for (i = k = 0, len2 = ref5.length; k < len2; i = ++k) {
-                        exp = ref5[i];
-                        if (!(exp.unwrap() instanceof Comment)) {
-                            break;
+    Class.prototype.addProperties = function(node, name, o) {
+        var acc, assign, base, exprs, func, props;
+        props = node.base.properties.slice(0);
+        exprs = (function() {
+            var results;
+            results = [];
+            while (assign = props.shift()) {
+                if (assign instanceof Assign) {
+                    base = assign.variable.base;
+                    delete assign.context;
+                    func = assign.value;
+                    if (base.value === 'constructor') {
+                        if (this.ctor) {
+                            assign.error('cannot define more than one constructor in a class');
                         }
-                        results.push(exp);
+                        if (func.bound) {
+                            assign.error('cannot define a constructor as a bound function');
+                        }
+                        if (func instanceof Code) {
+                            assign = this.ctor = func;
+                        } else {
+                            this.externalCtor = o.classScope.freeVariable('ctor');
+                            assign = new Assign(new IdentifierLiteral(this.externalCtor), func);
+                        }
+                    } else {
+                        if (assign.variable["this"]) {
+                            func["static"] = true;
+                        } else {
+                            acc = base.isComplex() ? new Index(base) : new Access(base);
+                            assign.variable = new Value(new IdentifierLiteral(name), [new Access(new PropertyName('prototype')), acc]);
+                            if (func instanceof Code && func.bound) {
+                                this.boundFuncs.push(base);
+                                func.bound = false;
+                            }
+                        }
                     }
-                    return results;
-                }).call(this);
-                rest = this.expressions.slice(preludeExps.length);
-                this.expressions = preludeExps;
-                if (preludeExps.length) {
-                    prelude = this.compileNode(merge(o, {
-                        indent: ''
-                    }));
-                    prelude.push(this.makeCode("\n"));
                 }
-                this.expressions = rest;
+                results.push(assign);
             }
-            fragments = this.compileWithDeclarations(o);
-            if (o.bare) {
-                return fragments;
-            }
-            return [].concat(prelude, this.makeCode("(function() {\n"), fragments, this.makeCode("\n}).call(this);\n"));
-        };
+            return results;
+        }).call(this);
+        return compact(exprs);
+    };
 
-        Block.prototype.compileWithDeclarations = function(o) {
-            var assigns, declars, exp, fragments, i, j, len1, post, ref3, ref4, ref5, rest, scope, spaced;
-            fragments = [];
-            post = [];
-            ref3 = this.expressions;
-            for (i = j = 0, len1 = ref3.length; j < len1; i = ++j) {
-                exp = ref3[i];
-                exp = exp.unwrap();
-                if (!(exp instanceof Comment || exp instanceof Literal)) {
-                    break;
+    Class.prototype.walkBody = function(name, o) {
+        return this.traverseChildren(false, (function(_this) {
+            return function(child) {
+                var cont, exps, i, j, len1, node, ref3;
+                cont = true;
+                if (child instanceof Class) {
+                    return false;
+                }
+                if (child instanceof Block) {
+                    ref3 = exps = child.expressions;
+                    for (i = j = 0, len1 = ref3.length; j < len1; i = ++j) {
+                        node = ref3[i];
+                        if (node instanceof Assign && node.variable.looksStatic(name)) {
+                            node.value["static"] = true;
+                        } else if (node instanceof Value && node.isObject(true)) {
+                            cont = false;
+                            exps[i] = _this.addProperties(node, name, o);
+                        }
+                    }
+                    child.expressions = exps = flatten(exps);
+                    if (child.classBody && hasFeature(o, 'config_parameters')) {
+                        _this.prepareSuperCallForConfigParams(name, o, child);
+                    }
+                }
+                return cont && !(child instanceof Class);
+            };
+        })(this));
+    };
+
+    Class.prototype.prepareSuperCallForConfigParams = function(name, o, classBody) {
+        var bodyExpr, expr, j, k, len1, len2, param0, ref3, ref4, ref5;
+        ref3 = classBody.expressions;
+        for (j = 0, len1 = ref3.length; j < len1; j++) {
+            expr = ref3[j];
+            if (expr instanceof Code) {
+                if (!((ref4 = expr.params[0]) != null ? ref4.name : void 0)) {
+                    continue;
+                }
+                param0 = expr.params[0].name;
+                if (!param0.generated) {
+                    return;
+                }
+                if (!param0 instanceof Obj) {
+                    return console.log('CONSTRUCTOR PARAM0 NOT AN OBJ?');
+                }
+                if (!expr.body instanceof Block) {
+                    return console.log('CONSTRUCTOR BODY NOT AN BLOCK?');
+                }
+                ref5 = expr.body.expressions;
+                for (k = 0, len2 = ref5.length; k < len2; k++) {
+                    bodyExpr = ref5[k];
+                    if (bodyExpr instanceof SuperCall) {
+                        bodyExpr.configParameter = param0;
+                    }
                 }
             }
-            o = merge(o, {
-                level: LEVEL_TOP
+        }
+    };
+
+    Class.prototype.hoistDirectivePrologue = function() {
+        var expressions, index, node;
+        index = 0;
+        expressions = this.body.expressions;
+        while ((node = expressions[index]) && node instanceof Comment || node instanceof Value && node.isString()) {
+            ++index;
+        }
+        return this.directives = expressions.splice(0, index);
+    };
+
+    Class.prototype.ensureConstructor = function(name) {
+        if (!this.ctor) {
+            this.ctor = new Code;
+            if (this.externalCtor) {
+                this.ctor.body.push(new Literal(this.externalCtor + ".apply(this, arguments)"));
+            } else if (this.parent) {
+                this.ctor.body.push(new Literal(name + ".__super__.constructor.apply(this, arguments)"));
+            }
+            this.ctor.body.makeReturn();
+            this.body.expressions.unshift(this.ctor);
+        }
+        this.ctor.ctor = this.ctor.name = name;
+        this.ctor.klass = null;
+        return this.ctor.noReturn = true;
+    };
+
+    Class.prototype.compileNode = function(o) {
+        var args, argumentsNode, func, jumpNode, klass, lname, name, ref3, superClass;
+        if (jumpNode = this.body.jumps()) {
+            jumpNode.error('Class bodies cannot contain pure statements');
+        }
+        if (argumentsNode = this.body.contains(isLiteralArguments)) {
+            argumentsNode.error("Class bodies shouldn't reference arguments");
+        }
+        name = this.determineName();
+        lname = new IdentifierLiteral(name);
+        func = new Code([], Block.wrap([this.body]));
+        args = [];
+        o.classScope = func.makeScope(o.scope);
+        this.hoistDirectivePrologue();
+        this.setContext(name);
+        this.walkBody(name, o);
+        this.ensureConstructor(name);
+        this.addBoundFunctions(o);
+        this.body.spaced = true;
+        this.body.expressions.push(lname);
+        if (this.parent) {
+            superClass = new IdentifierLiteral(o.classScope.freeVariable('superClass', {
+                reserve: false
+            }));
+            this.body.expressions.unshift(new Extends(lname, superClass));
+            func.params.push(new Param(superClass));
+            args.push(this.parent);
+        }
+        (ref3 = this.body.expressions).unshift.apply(ref3, this.directives);
+        klass = new Parens(new Call(func, args));
+        if (this.variable) {
+            klass = new Assign(this.variable, klass, null, {
+                moduleDeclaration: this.moduleDeclaration
             });
-            if (i) {
-                rest = this.expressions.splice(i, 9e9);
-                ref4 = [this.spaced, false], spaced = ref4[0], this.spaced = ref4[1];
-                ref5 = [this.compileNode(o), spaced], fragments = ref5[0], this.spaced = ref5[1];
-                this.expressions = rest;
+        }
+        return klass.compileToFragments(o);
+    };
+
+    return Class;
+
+})(Base);
+
+exports.ModuleDeclaration = ModuleDeclaration = (function(superClass1) {
+    extend1(ModuleDeclaration, superClass1);
+
+    function ModuleDeclaration(clause, source1) {
+        this.clause = clause;
+        this.source = source1;
+        this.checkSource();
+    }
+
+    ModuleDeclaration.prototype.children = ['clause', 'source'];
+
+    ModuleDeclaration.prototype.isStatement = YES;
+
+    ModuleDeclaration.prototype.jumps = THIS;
+
+    ModuleDeclaration.prototype.makeReturn = THIS;
+
+    ModuleDeclaration.prototype.checkSource = function() {
+        if ((this.source != null) && this.source instanceof StringWithInterpolations) {
+            return this.source.error('the name of the module to be imported from must be an uninterpolated string');
+        }
+    };
+
+    ModuleDeclaration.prototype.checkScope = function(o, moduleDeclarationType) {
+        if (o.indent.length !== 0) {
+            return this.error(moduleDeclarationType + " statements must be at top-level scope");
+        }
+    };
+
+    return ModuleDeclaration;
+
+})(Base);
+
+exports.ImportDeclaration = ImportDeclaration = (function(superClass1) {
+    extend1(ImportDeclaration, superClass1);
+
+    function ImportDeclaration() {
+        return ImportDeclaration.__super__.constructor.apply(this, arguments);
+    }
+
+    ImportDeclaration.prototype.compileNode = function(o) {
+        var code, ref3;
+        this.checkScope(o, 'import');
+        o.importedSymbols = [];
+        code = [];
+        code.push(this.makeCode(this.tab + "import "));
+        if (this.clause != null) {
+            code.push.apply(code, this.clause.compileNode(o));
+        }
+        if (((ref3 = this.source) != null ? ref3.value : void 0) != null) {
+            if (this.clause !== null) {
+                code.push(this.makeCode(' from '));
             }
-            post = this.compileNode(o);
-            scope = o.scope;
-            if (scope.expressions === this) {
-                declars = o.scope.hasDeclarations();
-                assigns = scope.hasAssignments;
-                if (declars || assigns) {
-                    if (i) {
-                        fragments.push(this.makeCode('\n'));
-                    }
-                    fragments.push(this.makeCode(this.tab + "var "));
-                    if (declars) {
-                        fragments.push(this.makeCode(scope.declaredVariables().join(', ')));
-                    }
-                    if (assigns) {
-                        if (declars) {
-                            fragments.push(this.makeCode(",\n" + (this.tab + TAB)));
-                        }
-                        fragments.push(this.makeCode(scope.assignedVariables().join(",\n" + (this.tab + TAB))));
-                    }
-                    fragments.push(this.makeCode(";\n" + (this.spaced ? '\n' : '')));
-                } else if (fragments.length && post.length) {
-                    fragments.push(this.makeCode("\n"));
+            code.push(this.makeCode(this.source.value));
+        }
+        code.push(this.makeCode(';'));
+        return code;
+    };
+
+    return ImportDeclaration;
+
+})(ModuleDeclaration);
+
+exports.ImportClause = ImportClause = (function(superClass1) {
+    extend1(ImportClause, superClass1);
+
+    function ImportClause(defaultBinding, namedImports) {
+        this.defaultBinding = defaultBinding;
+        this.namedImports = namedImports;
+    }
+
+    ImportClause.prototype.children = ['defaultBinding', 'namedImports'];
+
+    ImportClause.prototype.compileNode = function(o) {
+        var code;
+        code = [];
+        if (this.defaultBinding != null) {
+            code.push.apply(code, this.defaultBinding.compileNode(o));
+            if (this.namedImports != null) {
+                code.push(this.makeCode(', '));
+            }
+        }
+        if (this.namedImports != null) {
+            code.push.apply(code, this.namedImports.compileNode(o));
+        }
+        return code;
+    };
+
+    return ImportClause;
+
+})(Base);
+
+exports.ExportDeclaration = ExportDeclaration = (function(superClass1) {
+    extend1(ExportDeclaration, superClass1);
+
+    function ExportDeclaration() {
+        return ExportDeclaration.__super__.constructor.apply(this, arguments);
+    }
+
+    ExportDeclaration.prototype.compileNode = function(o) {
+        var code, ref3;
+        this.checkScope(o, 'export');
+        code = [];
+        code.push(this.makeCode(this.tab + "export "));
+        if (this instanceof ExportDefaultDeclaration) {
+            code.push(this.makeCode('default '));
+        }
+        if (!(this instanceof ExportDefaultDeclaration) && (this.clause instanceof Assign || this.clause instanceof Class)) {
+            if (this.clause instanceof Class && !this.clause.variable) {
+                this.clause.error('anonymous classes cannot be exported');
+            }
+            code.push(this.makeCode('var '));
+            this.clause.moduleDeclaration = 'export';
+        }
+        if ((this.clause.body != null) && this.clause.body instanceof Block) {
+            code = code.concat(this.clause.compileToFragments(o, LEVEL_TOP));
+        } else {
+            code = code.concat(this.clause.compileNode(o));
+        }
+        if (((ref3 = this.source) != null ? ref3.value : void 0) != null) {
+            code.push(this.makeCode(" from " + this.source.value));
+        }
+        code.push(this.makeCode(';'));
+        return code;
+    };
+
+    return ExportDeclaration;
+
+})(ModuleDeclaration);
+
+exports.ExportNamedDeclaration = ExportNamedDeclaration = (function(superClass1) {
+    extend1(ExportNamedDeclaration, superClass1);
+
+    function ExportNamedDeclaration() {
+        return ExportNamedDeclaration.__super__.constructor.apply(this, arguments);
+    }
+
+    return ExportNamedDeclaration;
+
+})(ExportDeclaration);
+
+exports.ExportDefaultDeclaration = ExportDefaultDeclaration = (function(superClass1) {
+    extend1(ExportDefaultDeclaration, superClass1);
+
+    function ExportDefaultDeclaration() {
+        return ExportDefaultDeclaration.__super__.constructor.apply(this, arguments);
+    }
+
+    return ExportDefaultDeclaration;
+
+})(ExportDeclaration);
+
+exports.ExportAllDeclaration = ExportAllDeclaration = (function(superClass1) {
+    extend1(ExportAllDeclaration, superClass1);
+
+    function ExportAllDeclaration() {
+        return ExportAllDeclaration.__super__.constructor.apply(this, arguments);
+    }
+
+    return ExportAllDeclaration;
+
+})(ExportDeclaration);
+
+exports.ModuleSpecifierList = ModuleSpecifierList = (function(superClass1) {
+    extend1(ModuleSpecifierList, superClass1);
+
+    function ModuleSpecifierList(specifiers) {
+        this.specifiers = specifiers;
+    }
+
+    ModuleSpecifierList.prototype.children = ['specifiers'];
+
+    ModuleSpecifierList.prototype.compileNode = function(o) {
+        var code, compiledList, fragments, index, j, len1, specifier;
+        code = [];
+        o.indent += TAB;
+        compiledList = (function() {
+            var j, len1, ref3, results;
+            ref3 = this.specifiers;
+            results = [];
+            for (j = 0, len1 = ref3.length; j < len1; j++) {
+                specifier = ref3[j];
+                results.push(specifier.compileToFragments(o, LEVEL_LIST));
+            }
+            return results;
+        }).call(this);
+        if (this.specifiers.length !== 0) {
+            code.push(this.makeCode("{\n" + o.indent));
+            for (index = j = 0, len1 = compiledList.length; j < len1; index = ++j) {
+                fragments = compiledList[index];
+                if (index) {
+                    code.push(this.makeCode(",\n" + o.indent));
+                }
+                code.push.apply(code, fragments);
+            }
+            code.push(this.makeCode("\n}"));
+        } else {
+            code.push(this.makeCode('{}'));
+        }
+        return code;
+    };
+
+    return ModuleSpecifierList;
+
+})(Base);
+
+exports.ImportSpecifierList = ImportSpecifierList = (function(superClass1) {
+    extend1(ImportSpecifierList, superClass1);
+
+    function ImportSpecifierList() {
+        return ImportSpecifierList.__super__.constructor.apply(this, arguments);
+    }
+
+    return ImportSpecifierList;
+
+})(ModuleSpecifierList);
+
+exports.ExportSpecifierList = ExportSpecifierList = (function(superClass1) {
+    extend1(ExportSpecifierList, superClass1);
+
+    function ExportSpecifierList() {
+        return ExportSpecifierList.__super__.constructor.apply(this, arguments);
+    }
+
+    return ExportSpecifierList;
+
+})(ModuleSpecifierList);
+
+exports.ModuleSpecifier = ModuleSpecifier = (function(superClass1) {
+    extend1(ModuleSpecifier, superClass1);
+
+    function ModuleSpecifier(original, alias, moduleDeclarationType1) {
+        this.original = original;
+        this.alias = alias;
+        this.moduleDeclarationType = moduleDeclarationType1;
+        this.identifier = this.alias != null ? this.alias.value : this.original.value;
+    }
+
+    ModuleSpecifier.prototype.children = ['original', 'alias'];
+
+    ModuleSpecifier.prototype.compileNode = function(o) {
+        var code;
+        o.scope.find(this.identifier, this.moduleDeclarationType);
+        code = [];
+        code.push(this.makeCode(this.original.value));
+        if (this.alias != null) {
+            code.push(this.makeCode(" as " + this.alias.value));
+        }
+        return code;
+    };
+
+    return ModuleSpecifier;
+
+})(Base);
+
+exports.ImportSpecifier = ImportSpecifier = (function(superClass1) {
+    extend1(ImportSpecifier, superClass1);
+
+    function ImportSpecifier(imported, local) {
+        ImportSpecifier.__super__.constructor.call(this, imported, local, 'import');
+    }
+
+    ImportSpecifier.prototype.compileNode = function(o) {
+        var ref3;
+        if ((ref3 = this.identifier, indexOf.call(o.importedSymbols, ref3) >= 0) || o.scope.check(this.identifier)) {
+            this.error("'" + this.identifier + "' has already been declared");
+        } else {
+            o.importedSymbols.push(this.identifier);
+        }
+        return ImportSpecifier.__super__.compileNode.call(this, o);
+    };
+
+    return ImportSpecifier;
+
+})(ModuleSpecifier);
+
+exports.ImportDefaultSpecifier = ImportDefaultSpecifier = (function(superClass1) {
+    extend1(ImportDefaultSpecifier, superClass1);
+
+    function ImportDefaultSpecifier() {
+        return ImportDefaultSpecifier.__super__.constructor.apply(this, arguments);
+    }
+
+    return ImportDefaultSpecifier;
+
+})(ImportSpecifier);
+
+exports.ImportNamespaceSpecifier = ImportNamespaceSpecifier = (function(superClass1) {
+    extend1(ImportNamespaceSpecifier, superClass1);
+
+    function ImportNamespaceSpecifier() {
+        return ImportNamespaceSpecifier.__super__.constructor.apply(this, arguments);
+    }
+
+    return ImportNamespaceSpecifier;
+
+})(ImportSpecifier);
+
+exports.ExportSpecifier = ExportSpecifier = (function(superClass1) {
+    extend1(ExportSpecifier, superClass1);
+
+    function ExportSpecifier(local, exported) {
+        ExportSpecifier.__super__.constructor.call(this, local, exported, 'export');
+    }
+
+    return ExportSpecifier;
+
+})(ModuleSpecifier);
+
+exports.Assign = Assign = (function(superClass1) {
+    extend1(Assign, superClass1);
+
+    function Assign(variable1, value1, context, options) {
+        this.variable = variable1;
+        this.value = value1;
+        this.context = context;
+        if (options == null) {
+            options = {};
+        }
+        this.param = options.param, this.subpattern = options.subpattern, this.operatorToken = options.operatorToken, this.moduleDeclaration = options.moduleDeclaration;
+    }
+
+    Assign.prototype.children = ['variable', 'value'];
+
+    Assign.prototype.isStatement = function(o) {
+        return (o != null ? o.level : void 0) === LEVEL_TOP && (this.context != null) && (this.moduleDeclaration || indexOf.call(this.context, "?") >= 0);
+    };
+
+    Assign.prototype.checkAssignability = function(o, varBase) {
+        if (Object.prototype.hasOwnProperty.call(o.scope.positions, varBase.value) && o.scope.variables[o.scope.positions[varBase.value]].type === 'import') {
+            return varBase.error("'" + varBase.value + "' is read-only");
+        }
+    };
+
+    Assign.prototype.assigns = function(name) {
+        return this[this.context === 'object' ? 'value' : 'variable'].assigns(name);
+    };
+
+    Assign.prototype.unfoldSoak = function(o) {
+        return unfoldSoak(o, this, 'variable');
+    };
+
+    Assign.prototype.compileNode = function(o) {
+        var answer, compiledName, isValue, j, name, properties, prototype, ref3, ref4, ref5, ref6, ref7, ref8, val, varBase;
+        if (isValue = this.variable instanceof Value) {
+            if (this.variable.isArray() || this.variable.isObject()) {
+                return this.compilePatternMatch(o);
+            }
+            if (this.variable.isSplice()) {
+                return this.compileSplice(o);
+            }
+            if ((ref3 = this.context) === '||=' || ref3 === '&&=' || ref3 === '?=') {
+                return this.compileConditional(o);
+            }
+            if ((ref4 = this.context) === '**=' || ref4 === '//=' || ref4 === '%%=') {
+                return this.compileSpecialMath(o);
+            }
+        }
+        if (this.value instanceof Code) {
+            if (this.value["static"]) {
+                this.value.klass = this.variable.base;
+                this.value.name = this.variable.properties[0];
+                this.value.variable = this.variable;
+            } else if (((ref5 = this.variable.properties) != null ? ref5.length : void 0) >= 2) {
+                ref6 = this.variable.properties, properties = 3 <= ref6.length ? slice.call(ref6, 0, j = ref6.length - 2) : (j = 0, []), prototype = ref6[j++], name = ref6[j++];
+                if (((ref7 = prototype.name) != null ? ref7.value : void 0) === 'prototype') {
+                    this.value.klass = new Value(this.variable.base, properties);
+                    this.value.name = name;
+                    this.value.variable = this.variable;
                 }
             }
-            return fragments.concat(post);
-        };
-
-        Block.wrap = function(nodes) {
-            if (nodes.length === 1 && nodes[0] instanceof Block) {
-                return nodes[0];
+        }
+        if (!this.context) {
+            varBase = this.variable.unwrapAll();
+            if (!varBase.isAssignable()) {
+                this.variable.error("'" + (this.variable.compile(o)) + "' can't be assigned");
             }
-            return new Block(nodes);
-        };
-
-        return Block;
-
-    })(Base);
-
-    exports.Literal = Literal = (function(superClass1) {
-        extend1(Literal, superClass1);
-
-        function Literal(value1) {
-            this.value = value1;
+            if (!(typeof varBase.hasProperties === "function" ? varBase.hasProperties() : void 0)) {
+                if (this.moduleDeclaration) {
+                    this.checkAssignability(o, varBase);
+                    o.scope.add(varBase.value, this.moduleDeclaration);
+                } else if (this.param) {
+                    o.scope.add(varBase.value, 'var');
+                } else {
+                    this.checkAssignability(o, varBase);
+                    o.scope.find(varBase.value);
+                }
+            }
         }
-
-        Literal.prototype.isComplex = NO;
-
-        Literal.prototype.assigns = function(name) {
-            return name === this.value;
-        };
-
-        Literal.prototype.compileNode = function(o) {
-            return [this.makeCode(this.value)];
-        };
-
-        Literal.prototype.toString = function() {
-            return " " + (this.isStatement() ? Literal.__super__.toString.apply(this, arguments) : this.constructor.name) + ": " + this.value;
-        };
-
-        return Literal;
-
-    })(Base);
-
-    exports.NumberLiteral = NumberLiteral = (function(superClass1) {
-        extend1(NumberLiteral, superClass1);
-
-        function NumberLiteral() {
-            return NumberLiteral.__super__.constructor.apply(this, arguments);
+        val = this.value.compileToFragments(o, LEVEL_LIST);
+        if (isValue && this.variable.base instanceof Obj) {
+            this.variable.front = true;
         }
-
-        return NumberLiteral;
-
-    })(Literal);
-
-    exports.InfinityLiteral = InfinityLiteral = (function(superClass1) {
-        extend1(InfinityLiteral, superClass1);
-
-        function InfinityLiteral() {
-            return InfinityLiteral.__super__.constructor.apply(this, arguments);
+        compiledName = this.variable.compileToFragments(o, LEVEL_LIST);
+        if (this.context === 'object') {
+            if (ref8 = fragmentsToText(compiledName), indexOf.call(JS_FORBIDDEN, ref8) >= 0) {
+                compiledName.unshift(this.makeCode('"'));
+                compiledName.push(this.makeCode('"'));
+            }
+            return compiledName.concat(this.makeCode(": "), val);
         }
-
-        InfinityLiteral.prototype.compileNode = function() {
-            return [this.makeCode('2e308')];
-        };
-
-        return InfinityLiteral;
-
-    })(NumberLiteral);
-
-    exports.NaNLiteral = NaNLiteral = (function(superClass1) {
-        extend1(NaNLiteral, superClass1);
-
-        function NaNLiteral() {
-            NaNLiteral.__super__.constructor.call(this, 'NaN');
+        answer = compiledName.concat(this.makeCode(" " + (this.context || '=') + " "), val);
+        if (o.level <= LEVEL_LIST) {
+            return answer;
+        } else {
+            return this.wrapInBraces(answer);
         }
+    };
 
-        NaNLiteral.prototype.compileNode = function(o) {
-            var code;
-            code = [this.makeCode('0/0')];
+    Assign.prototype.compilePatternMatch = function(o) {
+        var acc, assigns, code, defaultValue, expandedIdx, fragments, i, idx, isObject, ivar, j, len1, message, name, obj, objects, olen, ref, ref3, ref4, ref5, ref6, rest, top, val, value, vvar, vvarText;
+        top = o.level === LEVEL_TOP;
+        value = this.value;
+        objects = this.variable.base.objects;
+        if (!(olen = objects.length)) {
+            code = value.compileToFragments(o);
             if (o.level >= LEVEL_OP) {
                 return this.wrapInBraces(code);
             } else {
                 return code;
             }
-        };
-
-        return NaNLiteral;
-
-    })(NumberLiteral);
-
-    exports.StringLiteral = StringLiteral = (function(superClass1) {
-        extend1(StringLiteral, superClass1);
-
-        function StringLiteral() {
-            return StringLiteral.__super__.constructor.apply(this, arguments);
         }
-
-        return StringLiteral;
-
-    })(Literal);
-
-    exports.RegexLiteral = RegexLiteral = (function(superClass1) {
-        extend1(RegexLiteral, superClass1);
-
-        function RegexLiteral() {
-            return RegexLiteral.__super__.constructor.apply(this, arguments);
+        obj = objects[0];
+        if (olen === 1 && obj instanceof Expansion) {
+            obj.error('Destructuring assignment has no target');
         }
-
-        return RegexLiteral;
-
-    })(Literal);
-
-    exports.PassthroughLiteral = PassthroughLiteral = (function(superClass1) {
-        extend1(PassthroughLiteral, superClass1);
-
-        function PassthroughLiteral() {
-            return PassthroughLiteral.__super__.constructor.apply(this, arguments);
-        }
-
-        return PassthroughLiteral;
-
-    })(Literal);
-
-    exports.IdentifierLiteral = IdentifierLiteral = (function(superClass1) {
-        extend1(IdentifierLiteral, superClass1);
-
-        function IdentifierLiteral() {
-            return IdentifierLiteral.__super__.constructor.apply(this, arguments);
-        }
-
-        IdentifierLiteral.prototype.isAssignable = YES;
-
-        return IdentifierLiteral;
-
-    })(Literal);
-
-    exports.PropertyName = PropertyName = (function(superClass1) {
-        extend1(PropertyName, superClass1);
-
-        function PropertyName() {
-            return PropertyName.__super__.constructor.apply(this, arguments);
-        }
-
-        PropertyName.prototype.isAssignable = YES;
-
-        return PropertyName;
-
-    })(Literal);
-
-    exports.StatementLiteral = StatementLiteral = (function(superClass1) {
-        extend1(StatementLiteral, superClass1);
-
-        function StatementLiteral() {
-            return StatementLiteral.__super__.constructor.apply(this, arguments);
-        }
-
-        StatementLiteral.prototype.isStatement = YES;
-
-        StatementLiteral.prototype.makeReturn = THIS;
-
-        StatementLiteral.prototype.jumps = function(o) {
-            if (this.value === 'break' && !((o != null ? o.loop : void 0) || (o != null ? o.block : void 0))) {
-                return this;
-            }
-            if (this.value === 'continue' && !(o != null ? o.loop : void 0)) {
-                return this;
-            }
-        };
-
-        StatementLiteral.prototype.compileNode = function(o) {
-            return [this.makeCode("" + this.tab + this.value + ";")];
-        };
-
-        return StatementLiteral;
-
-    })(Literal);
-
-    exports.ThisLiteral = ThisLiteral = (function(superClass1) {
-        extend1(ThisLiteral, superClass1);
-
-        function ThisLiteral() {
-            ThisLiteral.__super__.constructor.call(this, 'this');
-        }
-
-        ThisLiteral.prototype.compileNode = function(o) {
-            var code, ref3;
-            code = ((ref3 = o.scope.method) != null ? ref3.bound : void 0) ? o.scope.method.context : this.value;
-            return [this.makeCode(code)];
-        };
-
-        return ThisLiteral;
-
-    })(Literal);
-
-    exports.UndefinedLiteral = UndefinedLiteral = (function(superClass1) {
-        extend1(UndefinedLiteral, superClass1);
-
-        function UndefinedLiteral() {
-            UndefinedLiteral.__super__.constructor.call(this, 'undefined');
-        }
-
-        UndefinedLiteral.prototype.compileNode = function(o) {
-            return [this.makeCode(o.level >= LEVEL_ACCESS ? '(void 0)' : 'void 0')];
-        };
-
-        return UndefinedLiteral;
-
-    })(Literal);
-
-    exports.NullLiteral = NullLiteral = (function(superClass1) {
-        extend1(NullLiteral, superClass1);
-
-        function NullLiteral() {
-            NullLiteral.__super__.constructor.call(this, 'null');
-        }
-
-        return NullLiteral;
-
-    })(Literal);
-
-    exports.BooleanLiteral = BooleanLiteral = (function(superClass1) {
-        extend1(BooleanLiteral, superClass1);
-
-        function BooleanLiteral() {
-            return BooleanLiteral.__super__.constructor.apply(this, arguments);
-        }
-
-        return BooleanLiteral;
-
-    })(Literal);
-
-    exports.Return = Return = (function(superClass1) {
-        extend1(Return, superClass1);
-
-        function Return(expression) {
-            this.expression = expression;
-        }
-
-        Return.prototype.children = ['expression'];
-
-        Return.prototype.isStatement = YES;
-
-        Return.prototype.makeReturn = THIS;
-
-        Return.prototype.jumps = THIS;
-
-        Return.prototype.compileToFragments = function(o, level) {
-            var expr, ref3;
-            expr = (ref3 = this.expression) != null ? ref3.makeReturn() : void 0;
-            if (expr && !(expr instanceof Return)) {
-                return expr.compileToFragments(o, level);
-            } else {
-                return Return.__super__.compileToFragments.call(this, o, level);
-            }
-        };
-
-        Return.prototype.compileNode = function(o) {
-            var answer;
-            answer = [];
-            answer.push(this.makeCode(this.tab + ("return" + (this.expression ? " " : ""))));
-            if (this.expression) {
-                answer = answer.concat(this.expression.compileToFragments(o, LEVEL_PAREN));
-            }
-            answer.push(this.makeCode(";"));
-            return answer;
-        };
-
-        return Return;
-
-    })(Base);
-
-    exports.YieldReturn = YieldReturn = (function(superClass1) {
-        extend1(YieldReturn, superClass1);
-
-        function YieldReturn() {
-            return YieldReturn.__super__.constructor.apply(this, arguments);
-        }
-
-        YieldReturn.prototype.compileNode = function(o) {
-            if (o.scope.parent == null) {
-                this.error('yield can only occur inside functions');
-            }
-            return YieldReturn.__super__.compileNode.apply(this, arguments);
-        };
-
-        return YieldReturn;
-
-    })(Return);
-
-    exports.Value = Value = (function(superClass1) {
-        extend1(Value, superClass1);
-
-        function Value(base, props, tag) {
-            if (!props && base instanceof Value) {
-                return base;
-            }
-            this.base = base;
-            this.properties = props || [];
-            if (tag) {
-                this[tag] = true;
-            }
-            return this;
-        }
-
-        Value.prototype.children = ['base', 'properties'];
-
-        Value.prototype.add = function(props) {
-            this.properties = this.properties.concat(props);
-            return this;
-        };
-
-        Value.prototype.hasProperties = function() {
-            return !!this.properties.length;
-        };
-
-        Value.prototype.bareLiteral = function(type) {
-            return !this.properties.length && this.base instanceof type;
-        };
-
-        Value.prototype.isArray = function() {
-            return this.bareLiteral(Arr);
-        };
-
-        Value.prototype.isRange = function() {
-            return this.bareLiteral(Range);
-        };
-
-        Value.prototype.isComplex = function() {
-            return this.hasProperties() || this.base.isComplex();
-        };
-
-        Value.prototype.isAssignable = function() {
-            return this.hasProperties() || this.base.isAssignable();
-        };
-
-        Value.prototype.isNumber = function() {
-            return this.bareLiteral(NumberLiteral);
-        };
-
-        Value.prototype.isString = function() {
-            return this.bareLiteral(StringLiteral);
-        };
-
-        Value.prototype.isRegex = function() {
-            return this.bareLiteral(RegexLiteral);
-        };
-
-        Value.prototype.isUndefined = function() {
-            return this.bareLiteral(UndefinedLiteral);
-        };
-
-        Value.prototype.isNull = function() {
-            return this.bareLiteral(NullLiteral);
-        };
-
-        Value.prototype.isBoolean = function() {
-            return this.bareLiteral(BooleanLiteral);
-        };
-
-        Value.prototype.isAtomic = function() {
-            var j, len1, node, ref3;
-            ref3 = this.properties.concat(this.base);
-            for (j = 0, len1 = ref3.length; j < len1; j++) {
-                node = ref3[j];
-                if (node.soak || node instanceof Call) {
-                    return false;
+        isObject = this.variable.isObject();
+        if (top && olen === 1 && !(obj instanceof Splat)) {
+            defaultValue = null;
+            if (obj instanceof Assign && obj.context === 'object') {
+                ref3 = obj, (ref4 = ref3.variable, idx = ref4.base), obj = ref3.value;
+                if (obj instanceof Assign) {
+                    defaultValue = obj.value;
+                    obj = obj.variable;
                 }
-            }
-            return true;
-        };
-
-        Value.prototype.isNotCallable = function() {
-            return this.isNumber() || this.isString() || this.isRegex() || this.isArray() || this.isRange() || this.isSplice() || this.isObject() || this.isUndefined() || this.isNull() || this.isBoolean();
-        };
-
-        Value.prototype.isStatement = function(o) {
-            return !this.properties.length && this.base.isStatement(o);
-        };
-
-        Value.prototype.assigns = function(name) {
-            return !this.properties.length && this.base.assigns(name);
-        };
-
-        Value.prototype.jumps = function(o) {
-            return !this.properties.length && this.base.jumps(o);
-        };
-
-        Value.prototype.isObject = function(onlyGenerated) {
-            if (this.properties.length) {
-                return false;
-            }
-            return (this.base instanceof Obj) && (!onlyGenerated || this.base.generated);
-        };
-
-        Value.prototype.isSplice = function() {
-            var lastProp, ref3;
-            ref3 = this.properties, lastProp = ref3[ref3.length - 1];
-            return lastProp instanceof Slice;
-        };
-
-        Value.prototype.looksStatic = function(className) {
-            var ref3;
-            return this.base.value === className && this.properties.length === 1 && ((ref3 = this.properties[0].name) != null ? ref3.value : void 0) !== 'prototype';
-        };
-
-        Value.prototype.unwrap = function() {
-            if (this.properties.length) {
-                return this;
             } else {
-                return this.base;
-            }
-        };
-
-        Value.prototype.cacheReference = function(o) {
-            var base, bref, name, nref, ref3;
-            ref3 = this.properties, name = ref3[ref3.length - 1];
-            if (this.properties.length < 2 && !this.base.isComplex() && !(name != null ? name.isComplex() : void 0)) {
-                return [this, this];
-            }
-            base = new Value(this.base, this.properties.slice(0, -1));
-            if (base.isComplex()) {
-                bref = new IdentifierLiteral(o.scope.freeVariable('base'));
-                base = new Value(new Parens(new Assign(bref, base)));
-            }
-            if (!name) {
-                return [base, bref];
-            }
-            if (name.isComplex()) {
-                nref = new IdentifierLiteral(o.scope.freeVariable('name'));
-                name = new Index(new Assign(nref, name.index));
-                nref = new Index(nref);
-            }
-            return [base.add(name), new Value(bref || base.base, [nref || name])];
-        };
-
-        Value.prototype.compileNode = function(o) {
-            var fragments, j, len1, prop, props;
-            this.base.front = this.front;
-            props = this.properties;
-            fragments = this.base.compileToFragments(o, (props.length ? LEVEL_ACCESS : null));
-            if (props.length && SIMPLENUM.test(fragmentsToText(fragments))) {
-                fragments.push(this.makeCode('.'));
-            }
-            for (j = 0, len1 = props.length; j < len1; j++) {
-                prop = props[j];
-                fragments.push.apply(fragments, prop.compileToFragments(o));
-            }
-            return fragments;
-        };
-
-        Value.prototype.unfoldSoak = function(o) {
-            return this.unfoldedSoak != null ? this.unfoldedSoak : this.unfoldedSoak = (function(_this) {
-                return function() {
-                    var fst, i, ifn, j, len1, prop, ref, ref3, ref4, snd;
-                    if (ifn = _this.base.unfoldSoak(o)) {
-                        (ref3 = ifn.body.properties).push.apply(ref3, _this.properties);
-                        return ifn;
-                    }
-                    ref4 = _this.properties;
-                    for (i = j = 0, len1 = ref4.length; j < len1; i = ++j) {
-                        prop = ref4[i];
-                        if (!prop.soak) {
-                            continue;
-                        }
-                        prop.soak = false;
-                        fst = new Value(_this.base, _this.properties.slice(0, i));
-                        snd = new Value(_this.base, _this.properties.slice(i));
-                        if (fst.isComplex()) {
-                            ref = new IdentifierLiteral(o.scope.freeVariable('ref'));
-                            fst = new Parens(new Assign(ref, fst));
-                            snd.base = ref;
-                        }
-                        return new If(new Existence(fst), snd, {
-                            soak: true
-                        });
-                    }
-                    return false;
-                };
-            })(this)();
-        };
-
-        return Value;
-
-    })(Base);
-
-    exports.Comment = Comment = (function(superClass1) {
-        extend1(Comment, superClass1);
-
-        function Comment(comment1) {
-            this.comment = comment1;
-        }
-
-        Comment.prototype.isStatement = YES;
-
-        Comment.prototype.makeReturn = THIS;
-
-        Comment.prototype.compileNode = function(o, level) {
-            var code, comment;
-            comment = this.comment.replace(/^(\s*)#(?=\s)/gm, "$1 *");
-            code = "/*" + (multident(comment, this.tab)) + (indexOf.call(comment, '\n') >= 0 ? "\n" + this.tab : '') + " */";
-            if ((level || o.level) === LEVEL_TOP) {
-                code = o.indent + code;
-            }
-            return [this.makeCode("\n"), this.makeCode(code)];
-        };
-
-        return Comment;
-
-    })(Base);
-
-    exports.Call = Call = (function(superClass1) {
-        extend1(Call, superClass1);
-
-        function Call(variable1, args1, soak1) {
-            this.variable = variable1;
-            this.args = args1 != null ? args1 : [];
-            this.soak = soak1;
-            this.isNew = false;
-            if (this.variable instanceof Value && this.variable.isNotCallable()) {
-                this.variable.error("literal is not a function");
-            }
-        }
-
-        Call.prototype.children = ['variable', 'args'];
-
-        Call.prototype.updateLocationDataIfMissing = function(locationData) {
-            var base, ref3;
-            if (this.locationData && this.needsUpdatedStartLocation) {
-                this.locationData.first_line = locationData.first_line;
-                this.locationData.first_column = locationData.first_column;
-                base = ((ref3 = this.variable) != null ? ref3.base : void 0) || this.variable;
-                if (base.needsUpdatedStartLocation) {
-                    this.variable.locationData.first_line = locationData.first_line;
-                    this.variable.locationData.first_column = locationData.first_column;
-                    base.updateLocationDataIfMissing(locationData);
+                if (obj instanceof Assign) {
+                    defaultValue = obj.value;
+                    obj = obj.variable;
                 }
-                delete this.needsUpdatedStartLocation;
+                idx = isObject ? obj["this"] ? obj.properties[0].name : new PropertyName(obj.unwrap().value) : new NumberLiteral(0);
             }
-            return Call.__super__.updateLocationDataIfMissing.apply(this, arguments);
-        };
-
-        Call.prototype.newInstance = function() {
-            var base, ref3;
-            base = ((ref3 = this.variable) != null ? ref3.base : void 0) || this.variable;
-            if (base instanceof Call && !base.isNew) {
-                base.newInstance();
-            } else {
-                this.isNew = true;
+            acc = idx.unwrap() instanceof PropertyName;
+            value = new Value(value);
+            value.properties.push(new (acc ? Access : Index)(idx));
+            message = isUnassignable(obj.unwrap().value);
+            if (message) {
+                obj.error(message);
             }
-            this.needsUpdatedStartLocation = true;
-            return this;
-        };
-
-        Call.prototype.unfoldSoak = function(o) {
-            var call, ifn, j, left, len1, list, ref3, ref4, rite;
-            if (this.soak) {
-                if (this instanceof SuperCall) {
-                    left = new Literal(this.superReference(o));
-                    rite = new Value(left);
+            if (defaultValue) {
+                value = new Op('?', value, defaultValue);
+            }
+            return new Assign(obj, value, null, {
+                param: this.param
+            }).compileToFragments(o, LEVEL_TOP);
+        }
+        vvar = value.compileToFragments(o, LEVEL_LIST);
+        vvarText = fragmentsToText(vvar);
+        assigns = [];
+        expandedIdx = false;
+        if (!(value.unwrap() instanceof IdentifierLiteral) || this.variable.assigns(vvarText)) {
+            assigns.push([this.makeCode((ref = o.scope.freeVariable('ref')) + " = ")].concat(slice.call(vvar)));
+            vvar = [this.makeCode(ref)];
+            vvarText = ref;
+        }
+        for (i = j = 0, len1 = objects.length; j < len1; i = ++j) {
+            obj = objects[i];
+            idx = i;
+            if (!expandedIdx && obj instanceof Splat) {
+                name = obj.name.unwrap().value;
+                obj = obj.unwrap();
+                val = olen + " <= " + vvarText + ".length ? " + (utility('slice', o)) + ".call(" + vvarText + ", " + i;
+                if (rest = olen - i - 1) {
+                    ivar = o.scope.freeVariable('i', {
+                        single: true
+                    });
+                    val += ", " + ivar + " = " + vvarText + ".length - " + rest + ") : (" + ivar + " = " + i + ", [])";
                 } else {
-                    if (ifn = unfoldSoak(o, this, 'variable')) {
-                        return ifn;
-                    }
-                    ref3 = new Value(this.variable).cacheReference(o), left = ref3[0], rite = ref3[1];
+                    val += ") : []";
                 }
-                rite = new Call(rite, this.args);
-                rite.isNew = this.isNew;
-                left = new Literal("typeof " + (left.compile(o)) + " === \"function\"");
-                return new If(left, new Value(rite), {
-                    soak: true
-                });
-            }
-            call = this;
-            list = [];
-            while (true) {
-                if (call.variable instanceof Call) {
-                    list.push(call);
-                    call = call.variable;
-                    continue;
-                }
-                if (!(call.variable instanceof Value)) {
-                    break;
-                }
-                list.push(call);
-                if (!((call = call.variable.base) instanceof Call)) {
-                    break;
-                }
-            }
-            ref4 = list.reverse();
-            for (j = 0, len1 = ref4.length; j < len1; j++) {
-                call = ref4[j];
-                if (ifn) {
-                    if (call.variable instanceof Call) {
-                        call.variable = ifn;
+                val = new Literal(val);
+                expandedIdx = ivar + "++";
+            } else if (!expandedIdx && obj instanceof Expansion) {
+                if (rest = olen - i - 1) {
+                    if (rest === 1) {
+                        expandedIdx = vvarText + ".length - 1";
                     } else {
-                        call.variable.base = ifn;
-                    }
-                }
-                ifn = unfoldSoak(o, call, 'variable');
-            }
-            return ifn;
-        };
-
-        Call.prototype.compileNode = function(o) {
-            var arg, argIndex, compiledArgs, compiledArray, fragments, j, len1, preface, ref3, ref4;
-            if ((ref3 = this.variable) != null) {
-                ref3.front = this.front;
-            }
-            compiledArray = Splat.compileSplattedArray(o, this.args, true);
-            if (compiledArray.length) {
-                return this.compileSplat(o, compiledArray);
-            }
-            compiledArgs = [];
-            ref4 = this.args;
-            for (argIndex = j = 0, len1 = ref4.length; j < len1; argIndex = ++j) {
-                arg = ref4[argIndex];
-                if (argIndex) {
-                    compiledArgs.push(this.makeCode(", "));
-                }
-                compiledArgs.push.apply(compiledArgs, arg.compileToFragments(o, LEVEL_LIST));
-            }
-            fragments = [];
-            if (this instanceof SuperCall) {
-                preface = this.superReference(o) + (".call(" + (this.superThis(o)));
-                if (compiledArgs.length) {
-                    preface += ", ";
-                }
-                fragments.push(this.makeCode(preface));
-            } else {
-                if (this.isNew) {
-                    fragments.push(this.makeCode('new '));
-                }
-                fragments.push.apply(fragments, this.variable.compileToFragments(o, LEVEL_ACCESS));
-                fragments.push(this.makeCode("("));
-            }
-            fragments.push.apply(fragments, compiledArgs);
-            fragments.push(this.makeCode(")"));
-            return fragments;
-        };
-
-        Call.prototype.compileSplat = function(o, splatArgs) {
-            var answer, base, fun, idt, name, ref;
-            if (this instanceof SuperCall) {
-                return [].concat(this.makeCode((this.superReference(o)) + ".apply(" + (this.superThis(o)) + ", "), splatArgs, this.makeCode(")"));
-            }
-            if (this.isNew) {
-                idt = this.tab + TAB;
-                return [].concat(this.makeCode("(function(func, args, ctor) {\n" + idt + "ctor.prototype = func.prototype;\n" + idt + "var child = new ctor, result = func.apply(child, args);\n" + idt + "return Object(result) === result ? result : child;\n" + this.tab + "})("), this.variable.compileToFragments(o, LEVEL_LIST), this.makeCode(", "), splatArgs, this.makeCode(", function(){})"));
-            }
-            answer = [];
-            base = new Value(this.variable);
-            if ((name = base.properties.pop()) && base.isComplex()) {
-                ref = o.scope.freeVariable('ref');
-                answer = answer.concat(this.makeCode("(" + ref + " = "), base.compileToFragments(o, LEVEL_LIST), this.makeCode(")"), name.compileToFragments(o));
-            } else {
-                fun = base.compileToFragments(o, LEVEL_ACCESS);
-                if (SIMPLENUM.test(fragmentsToText(fun))) {
-                    fun = this.wrapInBraces(fun);
-                }
-                if (name) {
-                    ref = fragmentsToText(fun);
-                    fun.push.apply(fun, name.compileToFragments(o));
-                } else {
-                    ref = 'null';
-                }
-                answer = answer.concat(fun);
-            }
-            return answer = answer.concat(this.makeCode(".apply(" + ref + ", "), splatArgs, this.makeCode(")"));
-        };
-
-        return Call;
-
-    })(Base);
-
-    exports.SuperCall = SuperCall = (function(superClass1) {
-        extend1(SuperCall, superClass1);
-
-        function SuperCall(args) {
-            SuperCall.__super__.constructor.call(this, null, args != null ? args : [new Splat(new IdentifierLiteral('arguments'))]);
-            this.isBare = args != null;
-        }
-
-        SuperCall.prototype.superReference = function(o) {
-            var accesses, base, bref, klass, method, name, nref, variable;
-            method = o.scope.namedMethod();
-            if (method != null ? method.klass : void 0) {
-                klass = method.klass, name = method.name, variable = method.variable;
-                if (klass.isComplex()) {
-                    bref = new IdentifierLiteral(o.scope.parent.freeVariable('base'));
-                    base = new Value(new Parens(new Assign(bref, klass)));
-                    variable.base = base;
-                    variable.properties.splice(0, klass.properties.length);
-                }
-                if (name.isComplex() || (name instanceof Index && name.index.isAssignable())) {
-                    nref = new IdentifierLiteral(o.scope.parent.freeVariable('name'));
-                    name = new Index(new Assign(nref, name.index));
-                    variable.properties.pop();
-                    variable.properties.push(name);
-                }
-                accesses = [new Access(new PropertyName('__super__'))];
-                if (method["static"]) {
-                    accesses.push(new Access(new PropertyName('constructor')));
-                }
-                accesses.push(nref != null ? new Index(nref) : name);
-                return (new Value(bref != null ? bref : klass, accesses)).compile(o);
-            } else if (method != null ? method.ctor : void 0) {
-                return method.name + ".__super__.constructor";
-            } else {
-                return this.error('cannot call super outside of an instance method. ' + method);
-            }
-        };
-
-        SuperCall.prototype.superThis = function(o) {
-            var method;
-            method = o.scope.method;
-            return (method && !method.klass && method.context) || "this";
-        };
-
-        SuperCall.prototype.compileSplat = function(o, splatArgs) {
-            if (splatArgs.length === 1 && splatArgs[0].code === 'arguments' && (this.configParameter != null) && hasFeature(o, 'config_parameters')) {
-                return [].concat(this.makeCode("" + (this.configParameterCodeBeforeSuper()) + (this.superReference(o)) + ".apply(" + (this.superThis(o)) + ", "), splatArgs, this.makeCode(")"));
-            }
-            return SuperCall.__super__.compileSplat.apply(this, arguments);
-        };
-
-        SuperCall.prototype.configParameterCodeBeforeSuper = function() {
-            var a, param;
-            if (!(param = this.configParameter)) {
-                return '';
-            }
-            a = param.objects.map(function(obj) {
-                var n, ref3, t;
-                n = obj.variable.base.value;
-                if (n === 'this') {
-                    n = (ref3 = obj.variable.properties) != null ? ref3[0].name.value : void 0;
-                    return n + ":this." + n;
-                } else {
-                    t = obj.value.variable["this"] && 'this.' || '';
-                    return n + ":" + (t + n);
-                }
-            });
-            return "arguments[0] = _.defaults({" + (a.join(',')) + "}, arguments[0]); ";
-        };
-
-        return SuperCall;
-
-    })(Call);
-
-    exports.RegexWithInterpolations = RegexWithInterpolations = (function(superClass1) {
-        extend1(RegexWithInterpolations, superClass1);
-
-        function RegexWithInterpolations(args) {
-            if (args == null) {
-                args = [];
-            }
-            RegexWithInterpolations.__super__.constructor.call(this, new Value(new IdentifierLiteral('RegExp')), args, false);
-        }
-
-        return RegexWithInterpolations;
-
-    })(Call);
-
-    exports.TaggedTemplateCall = TaggedTemplateCall = (function(superClass1) {
-        extend1(TaggedTemplateCall, superClass1);
-
-        function TaggedTemplateCall(variable, arg, soak) {
-            if (arg instanceof StringLiteral) {
-                arg = new StringWithInterpolations(Block.wrap([new Value(arg)]));
-            }
-            TaggedTemplateCall.__super__.constructor.call(this, variable, [arg], soak);
-        }
-
-        TaggedTemplateCall.prototype.compileNode = function(o) {
-            o.inTaggedTemplateCall = true;
-            return this.variable.compileToFragments(o, LEVEL_ACCESS).concat(this.args[0].compileToFragments(o, LEVEL_LIST));
-        };
-
-        return TaggedTemplateCall;
-
-    })(Call);
-
-    exports.Extends = Extends = (function(superClass1) {
-        extend1(Extends, superClass1);
-
-        function Extends(child1, parent1) {
-            this.child = child1;
-            this.parent = parent1;
-        }
-
-        Extends.prototype.children = ['child', 'parent'];
-
-        Extends.prototype.compileToFragments = function(o) {
-            return new Call(new Value(new Literal(utility('extend', o))), [this.child, this.parent]).compileToFragments(o);
-        };
-
-        return Extends;
-
-    })(Base);
-
-    exports.Access = Access = (function(superClass1) {
-        extend1(Access, superClass1);
-
-        function Access(name1, tag) {
-            this.name = name1;
-            this.soak = tag === 'soak';
-        }
-
-        Access.prototype.children = ['name'];
-
-        Access.prototype.compileToFragments = function(o) {
-            var name, node, ref3;
-            name = this.name.compileToFragments(o);
-            node = this.name.unwrap();
-            if (node instanceof PropertyName) {
-                if (ref3 = node.value, indexOf.call(JS_FORBIDDEN, ref3) >= 0) {
-                    return [this.makeCode('["')].concat(slice.call(name), [this.makeCode('"]')]);
-                } else {
-                    return [this.makeCode('.')].concat(slice.call(name));
-                }
-            } else {
-                return [this.makeCode('[')].concat(slice.call(name), [this.makeCode(']')]);
-            }
-        };
-
-        Access.prototype.isComplex = NO;
-
-        return Access;
-
-    })(Base);
-
-    exports.Index = Index = (function(superClass1) {
-        extend1(Index, superClass1);
-
-        function Index(index1) {
-            this.index = index1;
-        }
-
-        Index.prototype.children = ['index'];
-
-        Index.prototype.compileToFragments = function(o) {
-            return [].concat(this.makeCode("["), this.index.compileToFragments(o, LEVEL_PAREN), this.makeCode("]"));
-        };
-
-        Index.prototype.isComplex = function() {
-            return this.index.isComplex();
-        };
-
-        return Index;
-
-    })(Base);
-
-    exports.Range = Range = (function(superClass1) {
-        extend1(Range, superClass1);
-
-        Range.prototype.children = ['from', 'to'];
-
-        function Range(from1, to1, tag) {
-            this.from = from1;
-            this.to = to1;
-            this.exclusive = tag === 'exclusive';
-            this.equals = this.exclusive ? '' : '=';
-        }
-
-        Range.prototype.compileVariables = function(o) {
-            var isComplex, ref3, ref4, ref5, step;
-            o = merge(o, {
-                top: true
-            });
-            isComplex = del(o, 'isComplex');
-            ref3 = this.cacheToCodeFragments(this.from.cache(o, LEVEL_LIST, isComplex)), this.fromC = ref3[0], this.fromVar = ref3[1];
-            ref4 = this.cacheToCodeFragments(this.to.cache(o, LEVEL_LIST, isComplex)), this.toC = ref4[0], this.toVar = ref4[1];
-            if (step = del(o, 'step')) {
-                ref5 = this.cacheToCodeFragments(step.cache(o, LEVEL_LIST, isComplex)), this.step = ref5[0], this.stepVar = ref5[1];
-            }
-            this.fromNum = this.from.isNumber() ? Number(this.fromVar) : null;
-            this.toNum = this.to.isNumber() ? Number(this.toVar) : null;
-            return this.stepNum = (step != null ? step.isNumber() : void 0) ? Number(this.stepVar) : null;
-        };
-
-        Range.prototype.compileNode = function(o) {
-            var cond, condPart, from, gt, idx, idxName, known, lt, namedIndex, ref3, ref4, stepPart, to, varPart;
-            if (!this.fromVar) {
-                this.compileVariables(o);
-            }
-            if (!o.index) {
-                return this.compileArray(o);
-            }
-            known = (this.fromNum != null) && (this.toNum != null);
-            idx = del(o, 'index');
-            idxName = del(o, 'name');
-            namedIndex = idxName && idxName !== idx;
-            varPart = idx + " = " + this.fromC;
-            if (this.toC !== this.toVar) {
-                varPart += ", " + this.toC;
-            }
-            if (this.step !== this.stepVar) {
-                varPart += ", " + this.step;
-            }
-            ref3 = [idx + " <" + this.equals, idx + " >" + this.equals], lt = ref3[0], gt = ref3[1];
-            condPart = this.stepNum != null ? this.stepNum > 0 ? lt + " " + this.toVar : gt + " " + this.toVar : known ? ((ref4 = [this.fromNum, this.toNum], from = ref4[0], to = ref4[1], ref4), from <= to ? lt + " " + to : gt + " " + to) : (cond = this.stepVar ? this.stepVar + " > 0" : this.fromVar + " <= " + this.toVar, cond + " ? " + lt + " " + this.toVar + " : " + gt + " " + this.toVar);
-            stepPart = this.stepVar ? idx + " += " + this.stepVar : known ? namedIndex ? from <= to ? "++" + idx : "--" + idx : from <= to ? idx + "++" : idx + "--" : namedIndex ? cond + " ? ++" + idx + " : --" + idx : cond + " ? " + idx + "++ : " + idx + "--";
-            if (namedIndex) {
-                varPart = idxName + " = " + varPart;
-            }
-            if (namedIndex) {
-                stepPart = idxName + " = " + stepPart;
-            }
-            return [this.makeCode(varPart + "; " + condPart + "; " + stepPart)];
-        };
-
-        Range.prototype.compileArray = function(o) {
-            var args, body, cond, hasArgs, i, idt, j, known, post, pre, range, ref3, ref4, result, results, vars;
-            known = (this.fromNum != null) && (this.toNum != null);
-            if (known && Math.abs(this.fromNum - this.toNum) <= 20) {
-                range = (function() {
-                    results = [];
-                    for (var j = ref3 = this.fromNum, ref4 = this.toNum; ref3 <= ref4 ? j <= ref4 : j >= ref4; ref3 <= ref4 ? j++ : j--){ results.push(j); }
-                    return results;
-                }).apply(this);
-                if (this.exclusive) {
-                    range.pop();
-                }
-                return [this.makeCode("[" + (range.join(', ')) + "]")];
-            }
-            idt = this.tab + TAB;
-            i = o.scope.freeVariable('i', {
-                single: true
-            });
-            result = o.scope.freeVariable('results');
-            pre = "\n" + idt + result + " = [];";
-            if (known) {
-                o.index = i;
-                body = fragmentsToText(this.compileNode(o));
-            } else {
-                vars = (i + " = " + this.fromC) + (this.toC !== this.toVar ? ", " + this.toC : '');
-                cond = this.fromVar + " <= " + this.toVar;
-                body = "var " + vars + "; " + cond + " ? " + i + " <" + this.equals + " " + this.toVar + " : " + i + " >" + this.equals + " " + this.toVar + "; " + cond + " ? " + i + "++ : " + i + "--";
-            }
-            post = "{ " + result + ".push(" + i + "); }\n" + idt + "return " + result + ";\n" + o.indent;
-            hasArgs = function(node) {
-                return node != null ? node.contains(isLiteralArguments) : void 0;
-            };
-            if (hasArgs(this.from) || hasArgs(this.to)) {
-                args = ', arguments';
-            }
-            return [this.makeCode("(function() {" + pre + "\n" + idt + "for (" + body + ")" + post + "}).apply(this" + (args != null ? args : '') + ")")];
-        };
-
-        return Range;
-
-    })(Base);
-
-    exports.Slice = Slice = (function(superClass1) {
-        extend1(Slice, superClass1);
-
-        Slice.prototype.children = ['range'];
-
-        function Slice(range1) {
-            this.range = range1;
-            Slice.__super__.constructor.call(this);
-        }
-
-        Slice.prototype.compileNode = function(o) {
-            var compiled, compiledText, from, fromCompiled, ref3, to, toStr;
-            ref3 = this.range, to = ref3.to, from = ref3.from;
-            fromCompiled = from && from.compileToFragments(o, LEVEL_PAREN) || [this.makeCode('0')];
-            if (to) {
-                compiled = to.compileToFragments(o, LEVEL_PAREN);
-                compiledText = fragmentsToText(compiled);
-                if (!(!this.range.exclusive && +compiledText === -1)) {
-                    toStr = ', ' + (this.range.exclusive ? compiledText : to.isNumber() ? "" + (+compiledText + 1) : (compiled = to.compileToFragments(o, LEVEL_ACCESS), "+" + (fragmentsToText(compiled)) + " + 1 || 9e9"));
-                }
-            }
-            return [this.makeCode(".slice(" + (fragmentsToText(fromCompiled)) + (toStr || '') + ")")];
-        };
-
-        return Slice;
-
-    })(Base);
-
-    exports.Obj = Obj = (function(superClass1) {
-        extend1(Obj, superClass1);
-
-        function Obj(props, generated) {
-            this.generated = generated != null ? generated : false;
-            this.objects = this.properties = props || [];
-        }
-
-        Obj.prototype.children = ['properties'];
-
-        Obj.prototype.compileNode = function(o) {
-            var answer, dynamicIndex, hasDynamic, i, idt, indent, j, join, k, key, l, lastNoncom, len1, len2, len3, node, oref, prop, props, ref3, value;
-            props = this.properties;
-            if (this.generated) {
-                for (j = 0, len1 = props.length; j < len1; j++) {
-                    node = props[j];
-                    if (node instanceof Value) {
-                        node.error('cannot have an implicit value in an implicit object');
-                    }
-                }
-            }
-            for (dynamicIndex = k = 0, len2 = props.length; k < len2; dynamicIndex = ++k) {
-                prop = props[dynamicIndex];
-                if ((prop.variable || prop).base instanceof Parens) {
-                    break;
-                }
-            }
-            hasDynamic = dynamicIndex < props.length;
-            idt = o.indent += TAB;
-            lastNoncom = this.lastNonComment(this.properties);
-            answer = [];
-            if (hasDynamic) {
-                oref = o.scope.freeVariable('obj');
-                answer.push(this.makeCode("(\n" + idt + oref + " = "));
-            }
-            answer.push(this.makeCode("{" + (props.length === 0 || dynamicIndex === 0 ? '}' : '\n')));
-            for (i = l = 0, len3 = props.length; l < len3; i = ++l) {
-                prop = props[i];
-                if (i === dynamicIndex) {
-                    if (i !== 0) {
-                        answer.push(this.makeCode("\n" + idt + "}"));
-                    }
-                    answer.push(this.makeCode(',\n'));
-                }
-                join = i === props.length - 1 || i === dynamicIndex - 1 ? '' : prop === lastNoncom || prop instanceof Comment ? '\n' : ',\n';
-                indent = prop instanceof Comment ? '' : idt;
-                if (hasDynamic && i < dynamicIndex) {
-                    indent += TAB;
-                }
-                if (prop instanceof Assign) {
-                    if (prop.context !== 'object') {
-                        prop.operatorToken.error("unexpected " + prop.operatorToken.value);
-                    }
-                    if (prop.variable instanceof Value && prop.variable.hasProperties()) {
-                        prop.variable.error('invalid object key');
-                    }
-                }
-                if (prop instanceof Value && prop["this"]) {
-                    prop = new Assign(prop.properties[0].name, prop, 'object');
-                }
-                if (!(prop instanceof Comment)) {
-                    if (i < dynamicIndex) {
-                        if (!(prop instanceof Assign)) {
-                            prop = new Assign(prop, prop, 'object');
-                        }
-                    } else {
-                        if (prop instanceof Assign) {
-                            key = prop.variable;
-                            value = prop.value;
-                        } else {
-                            ref3 = prop.base.cache(o), key = ref3[0], value = ref3[1];
-                            if (key instanceof IdentifierLiteral) {
-                                key = new PropertyName(key.value);
-                            }
-                        }
-                        prop = new Assign(new Value(new IdentifierLiteral(oref), [new Access(key)]), value);
-                    }
-                }
-                if (indent) {
-                    answer.push(this.makeCode(indent));
-                }
-                answer.push.apply(answer, prop.compileToFragments(o, LEVEL_TOP));
-                if (join) {
-                    answer.push(this.makeCode(join));
-                }
-            }
-            if (hasDynamic) {
-                answer.push(this.makeCode(",\n" + idt + oref + "\n" + this.tab + ")"));
-            } else {
-                if (props.length !== 0) {
-                    answer.push(this.makeCode("\n" + this.tab + "}"));
-                }
-            }
-            if (this.front && !hasDynamic) {
-                return this.wrapInBraces(answer);
-            } else {
-                return answer;
-            }
-        };
-
-        Obj.prototype.assigns = function(name) {
-            var j, len1, prop, ref3;
-            ref3 = this.properties;
-            for (j = 0, len1 = ref3.length; j < len1; j++) {
-                prop = ref3[j];
-                if (prop.assigns(name)) {
-                    return true;
-                }
-            }
-            return false;
-        };
-
-        return Obj;
-
-    })(Base);
-
-    exports.Arr = Arr = (function(superClass1) {
-        extend1(Arr, superClass1);
-
-        function Arr(objs) {
-            this.objects = objs || [];
-        }
-
-        Arr.prototype.children = ['objects'];
-
-        Arr.prototype.compileNode = function(o) {
-            var answer, compiledObjs, fragments, index, j, len1, obj;
-            if (!this.objects.length) {
-                return [this.makeCode('[]')];
-            }
-            o.indent += TAB;
-            answer = Splat.compileSplattedArray(o, this.objects);
-            if (answer.length) {
-                return answer;
-            }
-            answer = [];
-            compiledObjs = (function() {
-                var j, len1, ref3, results;
-                ref3 = this.objects;
-                results = [];
-                for (j = 0, len1 = ref3.length; j < len1; j++) {
-                    obj = ref3[j];
-                    results.push(obj.compileToFragments(o, LEVEL_LIST));
-                }
-                return results;
-            }).call(this);
-            for (index = j = 0, len1 = compiledObjs.length; j < len1; index = ++j) {
-                fragments = compiledObjs[index];
-                if (index) {
-                    answer.push(this.makeCode(", "));
-                }
-                answer.push.apply(answer, fragments);
-            }
-            if (fragmentsToText(answer).indexOf('\n') >= 0) {
-                answer.unshift(this.makeCode("[\n" + o.indent));
-                answer.push(this.makeCode("\n" + this.tab + "]"));
-            } else {
-                answer.unshift(this.makeCode("["));
-                answer.push(this.makeCode("]"));
-            }
-            return answer;
-        };
-
-        Arr.prototype.assigns = function(name) {
-            var j, len1, obj, ref3;
-            ref3 = this.objects;
-            for (j = 0, len1 = ref3.length; j < len1; j++) {
-                obj = ref3[j];
-                if (obj.assigns(name)) {
-                    return true;
-                }
-            }
-            return false;
-        };
-
-        return Arr;
-
-    })(Base);
-
-    exports.Class = Class = (function(superClass1) {
-        extend1(Class, superClass1);
-
-        function Class(variable1, parent1, body1) {
-            this.variable = variable1;
-            this.parent = parent1;
-            this.body = body1 != null ? body1 : new Block;
-            this.boundFuncs = [];
-            this.body.classBody = true;
-        }
-
-        Class.prototype.children = ['variable', 'parent', 'body'];
-
-        Class.prototype.defaultClassVariableName = '_Class';
-
-        Class.prototype.determineName = function() {
-            var message, name, node, ref3, tail;
-            if (!this.variable) {
-                return this.defaultClassVariableName;
-            }
-            ref3 = this.variable.properties, tail = ref3[ref3.length - 1];
-            node = tail ? tail instanceof Access && tail.name : this.variable.base;
-            if (!(node instanceof IdentifierLiteral || node instanceof PropertyName)) {
-                return this.defaultClassVariableName;
-            }
-            name = node.value;
-            if (!tail) {
-                message = isUnassignable(name);
-                if (message) {
-                    this.variable.error(message);
-                }
-            }
-            if (indexOf.call(JS_FORBIDDEN, name) >= 0) {
-                return "_" + name;
-            } else {
-                return name;
-            }
-        };
-
-        Class.prototype.setContext = function(name) {
-            return this.body.traverseChildren(false, function(node) {
-                if (node.classBody) {
-                    return false;
-                }
-                if (node instanceof ThisLiteral) {
-                    return node.value = name;
-                } else if (node instanceof Code) {
-                    if (node.bound) {
-                        return node.context = name;
-                    }
-                }
-            });
-        };
-
-        Class.prototype.addBoundFunctions = function(o) {
-            var bvar, j, len1, lhs, ref3;
-            ref3 = this.boundFuncs;
-            for (j = 0, len1 = ref3.length; j < len1; j++) {
-                bvar = ref3[j];
-                lhs = (new Value(new ThisLiteral, [new Access(bvar)])).compile(o);
-                this.ctor.body.unshift(new Literal(lhs + " = " + (utility('bind', o)) + "(" + lhs + ", this)"));
-            }
-        };
-
-        Class.prototype.addProperties = function(node, name, o) {
-            var acc, assign, base, exprs, func, props;
-            props = node.base.properties.slice(0);
-            exprs = (function() {
-                var results;
-                results = [];
-                while (assign = props.shift()) {
-                    if (assign instanceof Assign) {
-                        base = assign.variable.base;
-                        delete assign.context;
-                        func = assign.value;
-                        if (base.value === 'constructor') {
-                            if (this.ctor) {
-                                assign.error('cannot define more than one constructor in a class');
-                            }
-                            if (func.bound) {
-                                assign.error('cannot define a constructor as a bound function');
-                            }
-                            if (func instanceof Code) {
-                                assign = this.ctor = func;
-                            } else {
-                                this.externalCtor = o.classScope.freeVariable('ctor');
-                                assign = new Assign(new IdentifierLiteral(this.externalCtor), func);
-                            }
-                        } else {
-                            if (assign.variable["this"]) {
-                                func["static"] = true;
-                            } else {
-                                acc = base.isComplex() ? new Index(base) : new Access(base);
-                                assign.variable = new Value(new IdentifierLiteral(name), [new Access(new PropertyName('prototype')), acc]);
-                                if (func instanceof Code && func.bound) {
-                                    this.boundFuncs.push(base);
-                                    func.bound = false;
-                                }
-                            }
-                        }
-                    }
-                    results.push(assign);
-                }
-                return results;
-            }).call(this);
-            return compact(exprs);
-        };
-
-        Class.prototype.walkBody = function(name, o) {
-            return this.traverseChildren(false, (function(_this) {
-                return function(child) {
-                    var cont, exps, i, j, len1, node, ref3;
-                    cont = true;
-                    if (child instanceof Class) {
-                        return false;
-                    }
-                    if (child instanceof Block) {
-                        ref3 = exps = child.expressions;
-                        for (i = j = 0, len1 = ref3.length; j < len1; i = ++j) {
-                            node = ref3[i];
-                            if (node instanceof Assign && node.variable.looksStatic(name)) {
-                                node.value["static"] = true;
-                            } else if (node instanceof Value && node.isObject(true)) {
-                                cont = false;
-                                exps[i] = _this.addProperties(node, name, o);
-                            }
-                        }
-                        child.expressions = exps = flatten(exps);
-                        if (child.classBody && hasFeature(o, 'config_parameters')) {
-                            _this.prepareSuperCallForConfigParams(name, o, child);
-                        }
-                    }
-                    return cont && !(child instanceof Class);
-                };
-            })(this));
-        };
-
-        Class.prototype.prepareSuperCallForConfigParams = function(name, o, classBody) {
-            var bodyExpr, expr, j, k, len1, len2, param0, ref3, ref4, ref5;
-            ref3 = classBody.expressions;
-            for (j = 0, len1 = ref3.length; j < len1; j++) {
-                expr = ref3[j];
-                if (expr instanceof Code) {
-                    if (!((ref4 = expr.params[0]) != null ? ref4.name : void 0)) {
-                        continue;
-                    }
-                    param0 = expr.params[0].name;
-                    if (!param0.generated) {
-                        return;
-                    }
-                    if (!param0 instanceof Obj) {
-                        return console.log('CONSTRUCTOR PARAM0 NOT AN OBJ?');
-                    }
-                    if (!expr.body instanceof Block) {
-                        return console.log('CONSTRUCTOR BODY NOT AN BLOCK?');
-                    }
-                    ref5 = expr.body.expressions;
-                    for (k = 0, len2 = ref5.length; k < len2; k++) {
-                        bodyExpr = ref5[k];
-                        if (bodyExpr instanceof SuperCall) {
-                            bodyExpr.configParameter = param0;
-                        }
-                    }
-                }
-            }
-        };
-
-        Class.prototype.hoistDirectivePrologue = function() {
-            var expressions, index, node;
-            index = 0;
-            expressions = this.body.expressions;
-            while ((node = expressions[index]) && node instanceof Comment || node instanceof Value && node.isString()) {
-                ++index;
-            }
-            return this.directives = expressions.splice(0, index);
-        };
-
-        Class.prototype.ensureConstructor = function(name) {
-            if (!this.ctor) {
-                this.ctor = new Code;
-                if (this.externalCtor) {
-                    this.ctor.body.push(new Literal(this.externalCtor + ".apply(this, arguments)"));
-                } else if (this.parent) {
-                    this.ctor.body.push(new Literal(name + ".__super__.constructor.apply(this, arguments)"));
-                }
-                this.ctor.body.makeReturn();
-                this.body.expressions.unshift(this.ctor);
-            }
-            this.ctor.ctor = this.ctor.name = name;
-            this.ctor.klass = null;
-            return this.ctor.noReturn = true;
-        };
-
-        Class.prototype.compileNode = function(o) {
-            var args, argumentsNode, func, jumpNode, klass, lname, name, ref3, superClass;
-            if (jumpNode = this.body.jumps()) {
-                jumpNode.error('Class bodies cannot contain pure statements');
-            }
-            if (argumentsNode = this.body.contains(isLiteralArguments)) {
-                argumentsNode.error("Class bodies shouldn't reference arguments");
-            }
-            name = this.determineName();
-            lname = new IdentifierLiteral(name);
-            func = new Code([], Block.wrap([this.body]));
-            args = [];
-            o.classScope = func.makeScope(o.scope);
-            this.hoistDirectivePrologue();
-            this.setContext(name);
-            this.walkBody(name, o);
-            this.ensureConstructor(name);
-            this.addBoundFunctions(o);
-            this.body.spaced = true;
-            this.body.expressions.push(lname);
-            if (this.parent) {
-                superClass = new IdentifierLiteral(o.classScope.freeVariable('superClass', {
-                    reserve: false
-                }));
-                this.body.expressions.unshift(new Extends(lname, superClass));
-                func.params.push(new Param(superClass));
-                args.push(this.parent);
-            }
-            (ref3 = this.body.expressions).unshift.apply(ref3, this.directives);
-            klass = new Parens(new Call(func, args));
-            if (this.variable) {
-                klass = new Assign(this.variable, klass, null, {
-                    moduleDeclaration: this.moduleDeclaration
-                });
-            }
-            return klass.compileToFragments(o);
-        };
-
-        return Class;
-
-    })(Base);
-
-    exports.ModuleDeclaration = ModuleDeclaration = (function(superClass1) {
-        extend1(ModuleDeclaration, superClass1);
-
-        function ModuleDeclaration(clause, source1) {
-            this.clause = clause;
-            this.source = source1;
-            this.checkSource();
-        }
-
-        ModuleDeclaration.prototype.children = ['clause', 'source'];
-
-        ModuleDeclaration.prototype.isStatement = YES;
-
-        ModuleDeclaration.prototype.jumps = THIS;
-
-        ModuleDeclaration.prototype.makeReturn = THIS;
-
-        ModuleDeclaration.prototype.checkSource = function() {
-            if ((this.source != null) && this.source instanceof StringWithInterpolations) {
-                return this.source.error('the name of the module to be imported from must be an uninterpolated string');
-            }
-        };
-
-        ModuleDeclaration.prototype.checkScope = function(o, moduleDeclarationType) {
-            if (o.indent.length !== 0) {
-                return this.error(moduleDeclarationType + " statements must be at top-level scope");
-            }
-        };
-
-        return ModuleDeclaration;
-
-    })(Base);
-
-    exports.ImportDeclaration = ImportDeclaration = (function(superClass1) {
-        extend1(ImportDeclaration, superClass1);
-
-        function ImportDeclaration() {
-            return ImportDeclaration.__super__.constructor.apply(this, arguments);
-        }
-
-        ImportDeclaration.prototype.compileNode = function(o) {
-            var code, ref3;
-            this.checkScope(o, 'import');
-            o.importedSymbols = [];
-            code = [];
-            code.push(this.makeCode(this.tab + "import "));
-            if (this.clause != null) {
-                code.push.apply(code, this.clause.compileNode(o));
-            }
-            if (((ref3 = this.source) != null ? ref3.value : void 0) != null) {
-                if (this.clause !== null) {
-                    code.push(this.makeCode(' from '));
-                }
-                code.push(this.makeCode(this.source.value));
-            }
-            code.push(this.makeCode(';'));
-            return code;
-        };
-
-        return ImportDeclaration;
-
-    })(ModuleDeclaration);
-
-    exports.ImportClause = ImportClause = (function(superClass1) {
-        extend1(ImportClause, superClass1);
-
-        function ImportClause(defaultBinding, namedImports) {
-            this.defaultBinding = defaultBinding;
-            this.namedImports = namedImports;
-        }
-
-        ImportClause.prototype.children = ['defaultBinding', 'namedImports'];
-
-        ImportClause.prototype.compileNode = function(o) {
-            var code;
-            code = [];
-            if (this.defaultBinding != null) {
-                code.push.apply(code, this.defaultBinding.compileNode(o));
-                if (this.namedImports != null) {
-                    code.push(this.makeCode(', '));
-                }
-            }
-            if (this.namedImports != null) {
-                code.push.apply(code, this.namedImports.compileNode(o));
-            }
-            return code;
-        };
-
-        return ImportClause;
-
-    })(Base);
-
-    exports.ExportDeclaration = ExportDeclaration = (function(superClass1) {
-        extend1(ExportDeclaration, superClass1);
-
-        function ExportDeclaration() {
-            return ExportDeclaration.__super__.constructor.apply(this, arguments);
-        }
-
-        ExportDeclaration.prototype.compileNode = function(o) {
-            var code, ref3;
-            this.checkScope(o, 'export');
-            code = [];
-            code.push(this.makeCode(this.tab + "export "));
-            if (this instanceof ExportDefaultDeclaration) {
-                code.push(this.makeCode('default '));
-            }
-            if (!(this instanceof ExportDefaultDeclaration) && (this.clause instanceof Assign || this.clause instanceof Class)) {
-                if (this.clause instanceof Class && !this.clause.variable) {
-                    this.clause.error('anonymous classes cannot be exported');
-                }
-                code.push(this.makeCode('var '));
-                this.clause.moduleDeclaration = 'export';
-            }
-            if ((this.clause.body != null) && this.clause.body instanceof Block) {
-                code = code.concat(this.clause.compileToFragments(o, LEVEL_TOP));
-            } else {
-                code = code.concat(this.clause.compileNode(o));
-            }
-            if (((ref3 = this.source) != null ? ref3.value : void 0) != null) {
-                code.push(this.makeCode(" from " + this.source.value));
-            }
-            code.push(this.makeCode(';'));
-            return code;
-        };
-
-        return ExportDeclaration;
-
-    })(ModuleDeclaration);
-
-    exports.ExportNamedDeclaration = ExportNamedDeclaration = (function(superClass1) {
-        extend1(ExportNamedDeclaration, superClass1);
-
-        function ExportNamedDeclaration() {
-            return ExportNamedDeclaration.__super__.constructor.apply(this, arguments);
-        }
-
-        return ExportNamedDeclaration;
-
-    })(ExportDeclaration);
-
-    exports.ExportDefaultDeclaration = ExportDefaultDeclaration = (function(superClass1) {
-        extend1(ExportDefaultDeclaration, superClass1);
-
-        function ExportDefaultDeclaration() {
-            return ExportDefaultDeclaration.__super__.constructor.apply(this, arguments);
-        }
-
-        return ExportDefaultDeclaration;
-
-    })(ExportDeclaration);
-
-    exports.ExportAllDeclaration = ExportAllDeclaration = (function(superClass1) {
-        extend1(ExportAllDeclaration, superClass1);
-
-        function ExportAllDeclaration() {
-            return ExportAllDeclaration.__super__.constructor.apply(this, arguments);
-        }
-
-        return ExportAllDeclaration;
-
-    })(ExportDeclaration);
-
-    exports.ModuleSpecifierList = ModuleSpecifierList = (function(superClass1) {
-        extend1(ModuleSpecifierList, superClass1);
-
-        function ModuleSpecifierList(specifiers) {
-            this.specifiers = specifiers;
-        }
-
-        ModuleSpecifierList.prototype.children = ['specifiers'];
-
-        ModuleSpecifierList.prototype.compileNode = function(o) {
-            var code, compiledList, fragments, index, j, len1, specifier;
-            code = [];
-            o.indent += TAB;
-            compiledList = (function() {
-                var j, len1, ref3, results;
-                ref3 = this.specifiers;
-                results = [];
-                for (j = 0, len1 = ref3.length; j < len1; j++) {
-                    specifier = ref3[j];
-                    results.push(specifier.compileToFragments(o, LEVEL_LIST));
-                }
-                return results;
-            }).call(this);
-            if (this.specifiers.length !== 0) {
-                code.push(this.makeCode("{\n" + o.indent));
-                for (index = j = 0, len1 = compiledList.length; j < len1; index = ++j) {
-                    fragments = compiledList[index];
-                    if (index) {
-                        code.push(this.makeCode(",\n" + o.indent));
-                    }
-                    code.push.apply(code, fragments);
-                }
-                code.push(this.makeCode("\n}"));
-            } else {
-                code.push(this.makeCode('{}'));
-            }
-            return code;
-        };
-
-        return ModuleSpecifierList;
-
-    })(Base);
-
-    exports.ImportSpecifierList = ImportSpecifierList = (function(superClass1) {
-        extend1(ImportSpecifierList, superClass1);
-
-        function ImportSpecifierList() {
-            return ImportSpecifierList.__super__.constructor.apply(this, arguments);
-        }
-
-        return ImportSpecifierList;
-
-    })(ModuleSpecifierList);
-
-    exports.ExportSpecifierList = ExportSpecifierList = (function(superClass1) {
-        extend1(ExportSpecifierList, superClass1);
-
-        function ExportSpecifierList() {
-            return ExportSpecifierList.__super__.constructor.apply(this, arguments);
-        }
-
-        return ExportSpecifierList;
-
-    })(ModuleSpecifierList);
-
-    exports.ModuleSpecifier = ModuleSpecifier = (function(superClass1) {
-        extend1(ModuleSpecifier, superClass1);
-
-        function ModuleSpecifier(original, alias, moduleDeclarationType1) {
-            this.original = original;
-            this.alias = alias;
-            this.moduleDeclarationType = moduleDeclarationType1;
-            this.identifier = this.alias != null ? this.alias.value : this.original.value;
-        }
-
-        ModuleSpecifier.prototype.children = ['original', 'alias'];
-
-        ModuleSpecifier.prototype.compileNode = function(o) {
-            var code;
-            o.scope.find(this.identifier, this.moduleDeclarationType);
-            code = [];
-            code.push(this.makeCode(this.original.value));
-            if (this.alias != null) {
-                code.push(this.makeCode(" as " + this.alias.value));
-            }
-            return code;
-        };
-
-        return ModuleSpecifier;
-
-    })(Base);
-
-    exports.ImportSpecifier = ImportSpecifier = (function(superClass1) {
-        extend1(ImportSpecifier, superClass1);
-
-        function ImportSpecifier(imported, local) {
-            ImportSpecifier.__super__.constructor.call(this, imported, local, 'import');
-        }
-
-        ImportSpecifier.prototype.compileNode = function(o) {
-            var ref3;
-            if ((ref3 = this.identifier, indexOf.call(o.importedSymbols, ref3) >= 0) || o.scope.check(this.identifier)) {
-                this.error("'" + this.identifier + "' has already been declared");
-            } else {
-                o.importedSymbols.push(this.identifier);
-            }
-            return ImportSpecifier.__super__.compileNode.call(this, o);
-        };
-
-        return ImportSpecifier;
-
-    })(ModuleSpecifier);
-
-    exports.ImportDefaultSpecifier = ImportDefaultSpecifier = (function(superClass1) {
-        extend1(ImportDefaultSpecifier, superClass1);
-
-        function ImportDefaultSpecifier() {
-            return ImportDefaultSpecifier.__super__.constructor.apply(this, arguments);
-        }
-
-        return ImportDefaultSpecifier;
-
-    })(ImportSpecifier);
-
-    exports.ImportNamespaceSpecifier = ImportNamespaceSpecifier = (function(superClass1) {
-        extend1(ImportNamespaceSpecifier, superClass1);
-
-        function ImportNamespaceSpecifier() {
-            return ImportNamespaceSpecifier.__super__.constructor.apply(this, arguments);
-        }
-
-        return ImportNamespaceSpecifier;
-
-    })(ImportSpecifier);
-
-    exports.ExportSpecifier = ExportSpecifier = (function(superClass1) {
-        extend1(ExportSpecifier, superClass1);
-
-        function ExportSpecifier(local, exported) {
-            ExportSpecifier.__super__.constructor.call(this, local, exported, 'export');
-        }
-
-        return ExportSpecifier;
-
-    })(ModuleSpecifier);
-
-    exports.Assign = Assign = (function(superClass1) {
-        extend1(Assign, superClass1);
-
-        function Assign(variable1, value1, context, options) {
-            this.variable = variable1;
-            this.value = value1;
-            this.context = context;
-            if (options == null) {
-                options = {};
-            }
-            this.param = options.param, this.subpattern = options.subpattern, this.operatorToken = options.operatorToken, this.moduleDeclaration = options.moduleDeclaration;
-        }
-
-        Assign.prototype.children = ['variable', 'value'];
-
-        Assign.prototype.isStatement = function(o) {
-            return (o != null ? o.level : void 0) === LEVEL_TOP && (this.context != null) && (this.moduleDeclaration || indexOf.call(this.context, "?") >= 0);
-        };
-
-        Assign.prototype.checkAssignability = function(o, varBase) {
-            if (Object.prototype.hasOwnProperty.call(o.scope.positions, varBase.value) && o.scope.variables[o.scope.positions[varBase.value]].type === 'import') {
-                return varBase.error("'" + varBase.value + "' is read-only");
-            }
-        };
-
-        Assign.prototype.assigns = function(name) {
-            return this[this.context === 'object' ? 'value' : 'variable'].assigns(name);
-        };
-
-        Assign.prototype.unfoldSoak = function(o) {
-            return unfoldSoak(o, this, 'variable');
-        };
-
-        Assign.prototype.compileNode = function(o) {
-            var answer, compiledName, isValue, j, name, properties, prototype, ref3, ref4, ref5, ref6, ref7, ref8, val, varBase;
-            if (isValue = this.variable instanceof Value) {
-                if (this.variable.isArray() || this.variable.isObject()) {
-                    return this.compilePatternMatch(o);
-                }
-                if (this.variable.isSplice()) {
-                    return this.compileSplice(o);
-                }
-                if ((ref3 = this.context) === '||=' || ref3 === '&&=' || ref3 === '?=') {
-                    return this.compileConditional(o);
-                }
-                if ((ref4 = this.context) === '**=' || ref4 === '//=' || ref4 === '%%=') {
-                    return this.compileSpecialMath(o);
-                }
-            }
-            if (this.value instanceof Code) {
-                if (this.value["static"]) {
-                    this.value.klass = this.variable.base;
-                    this.value.name = this.variable.properties[0];
-                    this.value.variable = this.variable;
-                } else if (((ref5 = this.variable.properties) != null ? ref5.length : void 0) >= 2) {
-                    ref6 = this.variable.properties, properties = 3 <= ref6.length ? slice.call(ref6, 0, j = ref6.length - 2) : (j = 0, []), prototype = ref6[j++], name = ref6[j++];
-                    if (((ref7 = prototype.name) != null ? ref7.value : void 0) === 'prototype') {
-                        this.value.klass = new Value(this.variable.base, properties);
-                        this.value.name = name;
-                        this.value.variable = this.variable;
-                    }
-                }
-            }
-            if (!this.context) {
-                varBase = this.variable.unwrapAll();
-                if (!varBase.isAssignable()) {
-                    this.variable.error("'" + (this.variable.compile(o)) + "' can't be assigned");
-                }
-                if (!(typeof varBase.hasProperties === "function" ? varBase.hasProperties() : void 0)) {
-                    if (this.moduleDeclaration) {
-                        this.checkAssignability(o, varBase);
-                        o.scope.add(varBase.value, this.moduleDeclaration);
-                    } else if (this.param) {
-                        o.scope.add(varBase.value, 'var');
-                    } else {
-                        this.checkAssignability(o, varBase);
-                        o.scope.find(varBase.value);
-                    }
-                }
-            }
-            val = this.value.compileToFragments(o, LEVEL_LIST);
-            if (isValue && this.variable.base instanceof Obj) {
-                this.variable.front = true;
-            }
-            compiledName = this.variable.compileToFragments(o, LEVEL_LIST);
-            if (this.context === 'object') {
-                if (ref8 = fragmentsToText(compiledName), indexOf.call(JS_FORBIDDEN, ref8) >= 0) {
-                    compiledName.unshift(this.makeCode('"'));
-                    compiledName.push(this.makeCode('"'));
-                }
-                return compiledName.concat(this.makeCode(": "), val);
-            }
-            answer = compiledName.concat(this.makeCode(" " + (this.context || '=') + " "), val);
-            if (o.level <= LEVEL_LIST) {
-                return answer;
-            } else {
-                return this.wrapInBraces(answer);
-            }
-        };
-
-        Assign.prototype.compilePatternMatch = function(o) {
-            var acc, assigns, code, defaultValue, expandedIdx, fragments, i, idx, isObject, ivar, j, len1, message, name, obj, objects, olen, ref, ref3, ref4, ref5, ref6, rest, top, val, value, vvar, vvarText;
-            top = o.level === LEVEL_TOP;
-            value = this.value;
-            objects = this.variable.base.objects;
-            if (!(olen = objects.length)) {
-                code = value.compileToFragments(o);
-                if (o.level >= LEVEL_OP) {
-                    return this.wrapInBraces(code);
-                } else {
-                    return code;
-                }
-            }
-            obj = objects[0];
-            if (olen === 1 && obj instanceof Expansion) {
-                obj.error('Destructuring assignment has no target');
-            }
-            isObject = this.variable.isObject();
-            if (top && olen === 1 && !(obj instanceof Splat)) {
-                defaultValue = null;
-                if (obj instanceof Assign && obj.context === 'object') {
-                    ref3 = obj, (ref4 = ref3.variable, idx = ref4.base), obj = ref3.value;
-                    if (obj instanceof Assign) {
-                        defaultValue = obj.value;
-                        obj = obj.variable;
-                    }
-                } else {
-                    if (obj instanceof Assign) {
-                        defaultValue = obj.value;
-                        obj = obj.variable;
-                    }
-                    idx = isObject ? obj["this"] ? obj.properties[0].name : new PropertyName(obj.unwrap().value) : new NumberLiteral(0);
-                }
-                acc = idx.unwrap() instanceof PropertyName;
-                value = new Value(value);
-                value.properties.push(new (acc ? Access : Index)(idx));
-                message = isUnassignable(obj.unwrap().value);
-                if (message) {
-                    obj.error(message);
-                }
-                if (defaultValue) {
-                    value = new Op('?', value, defaultValue);
-                }
-                return new Assign(obj, value, null, {
-                    param: this.param
-                }).compileToFragments(o, LEVEL_TOP);
-            }
-            vvar = value.compileToFragments(o, LEVEL_LIST);
-            vvarText = fragmentsToText(vvar);
-            assigns = [];
-            expandedIdx = false;
-            if (!(value.unwrap() instanceof IdentifierLiteral) || this.variable.assigns(vvarText)) {
-                assigns.push([this.makeCode((ref = o.scope.freeVariable('ref')) + " = ")].concat(slice.call(vvar)));
-                vvar = [this.makeCode(ref)];
-                vvarText = ref;
-            }
-            for (i = j = 0, len1 = objects.length; j < len1; i = ++j) {
-                obj = objects[i];
-                idx = i;
-                if (!expandedIdx && obj instanceof Splat) {
-                    name = obj.name.unwrap().value;
-                    obj = obj.unwrap();
-                    val = olen + " <= " + vvarText + ".length ? " + (utility('slice', o)) + ".call(" + vvarText + ", " + i;
-                    if (rest = olen - i - 1) {
                         ivar = o.scope.freeVariable('i', {
                             single: true
                         });
-                        val += ", " + ivar + " = " + vvarText + ".length - " + rest + ") : (" + ivar + " = " + i + ", [])";
-                    } else {
-                        val += ") : []";
+                        val = new Literal(ivar + " = " + vvarText + ".length - " + rest);
+                        expandedIdx = ivar + "++";
+                        assigns.push(val.compileToFragments(o, LEVEL_LIST));
                     }
-                    val = new Literal(val);
-                    expandedIdx = ivar + "++";
-                } else if (!expandedIdx && obj instanceof Expansion) {
-                    if (rest = olen - i - 1) {
-                        if (rest === 1) {
-                            expandedIdx = vvarText + ".length - 1";
-                        } else {
-                            ivar = o.scope.freeVariable('i', {
-                                single: true
-                            });
-                            val = new Literal(ivar + " = " + vvarText + ".length - " + rest);
-                            expandedIdx = ivar + "++";
-                            assigns.push(val.compileToFragments(o, LEVEL_LIST));
-                        }
+                }
+                continue;
+            } else {
+                if (obj instanceof Splat || obj instanceof Expansion) {
+                    obj.error("multiple splats/expansions are disallowed in an assignment");
+                }
+                defaultValue = null;
+                if (obj instanceof Assign && obj.context === 'object') {
+                    ref5 = obj, (ref6 = ref5.variable, idx = ref6.base), obj = ref5.value;
+                    if (obj instanceof Assign) {
+                        defaultValue = obj.value;
+                        obj = obj.variable;
                     }
-                    continue;
                 } else {
-                    if (obj instanceof Splat || obj instanceof Expansion) {
-                        obj.error("multiple splats/expansions are disallowed in an assignment");
+                    if (obj instanceof Assign) {
+                        defaultValue = obj.value;
+                        obj = obj.variable;
                     }
-                    defaultValue = null;
-                    if (obj instanceof Assign && obj.context === 'object') {
-                        ref5 = obj, (ref6 = ref5.variable, idx = ref6.base), obj = ref5.value;
-                        if (obj instanceof Assign) {
-                            defaultValue = obj.value;
-                            obj = obj.variable;
-                        }
-                    } else {
-                        if (obj instanceof Assign) {
-                            defaultValue = obj.value;
-                            obj = obj.variable;
-                        }
-                        idx = isObject ? obj["this"] ? obj.properties[0].name : new PropertyName(obj.unwrap().value) : new Literal(expandedIdx || idx);
-                    }
-                    name = obj.unwrap().value;
-                    acc = idx.unwrap() instanceof PropertyName;
-                    val = new Value(new Literal(vvarText), [new (acc ? Access : Index)(idx)]);
-                    if (defaultValue) {
-                        val = new Op('?', val, defaultValue);
-                    }
+                    idx = isObject ? obj["this"] ? obj.properties[0].name : new PropertyName(obj.unwrap().value) : new Literal(expandedIdx || idx);
                 }
-                if (name != null) {
-                    message = isUnassignable(name);
-                    if (message) {
-                        obj.error(message);
-                    }
+                name = obj.unwrap().value;
+                acc = idx.unwrap() instanceof PropertyName;
+                val = new Value(new Literal(vvarText), [new (acc ? Access : Index)(idx)]);
+                if (defaultValue) {
+                    val = new Op('?', val, defaultValue);
                 }
-                assigns.push(new Assign(obj, val, null, {
-                    param: this.param,
-                    subpattern: true
-                }).compileToFragments(o, LEVEL_LIST));
             }
-            if (!(top || this.subpattern)) {
-                assigns.push(vvar);
+            if (name != null) {
+                message = isUnassignable(name);
+                if (message) {
+                    obj.error(message);
+                }
             }
-            fragments = this.joinFragmentArrays(assigns, ', ');
-            if (o.level < LEVEL_LIST) {
+            assigns.push(new Assign(obj, val, null, {
+                param: this.param,
+                subpattern: true
+            }).compileToFragments(o, LEVEL_LIST));
+        }
+        if (!(top || this.subpattern)) {
+            assigns.push(vvar);
+        }
+        fragments = this.joinFragmentArrays(assigns, ', ');
+        if (o.level < LEVEL_LIST) {
+            return fragments;
+        } else {
+            return this.wrapInBraces(fragments);
+        }
+    };
+
+    Assign.prototype.compileConditional = function(o) {
+        var fragments, left, ref3, right;
+        ref3 = this.variable.cacheReference(o), left = ref3[0], right = ref3[1];
+        if (!left.properties.length && left.base instanceof Literal && !(left.base instanceof ThisLiteral) && !o.scope.check(left.base.value)) {
+            this.variable.error("the variable \"" + left.base.value + "\" can't be assigned with " + this.context + " because it has not been declared before");
+        }
+        if (indexOf.call(this.context, "?") >= 0) {
+            o.isExistentialEquals = true;
+            return new If(new Existence(left), right, {
+                type: 'if'
+            }).addElse(new Assign(right, this.value, '=')).compileToFragments(o);
+        } else {
+            fragments = new Op(this.context.slice(0, -1), left, new Assign(right, this.value, '=')).compileToFragments(o);
+            if (o.level <= LEVEL_LIST) {
                 return fragments;
             } else {
                 return this.wrapInBraces(fragments);
             }
-        };
-
-        Assign.prototype.compileConditional = function(o) {
-            var fragments, left, ref3, right;
-            ref3 = this.variable.cacheReference(o), left = ref3[0], right = ref3[1];
-            if (!left.properties.length && left.base instanceof Literal && !(left.base instanceof ThisLiteral) && !o.scope.check(left.base.value)) {
-                this.variable.error("the variable \"" + left.base.value + "\" can't be assigned with " + this.context + " because it has not been declared before");
-            }
-            if (indexOf.call(this.context, "?") >= 0) {
-                o.isExistentialEquals = true;
-                return new If(new Existence(left), right, {
-                    type: 'if'
-                }).addElse(new Assign(right, this.value, '=')).compileToFragments(o);
-            } else {
-                fragments = new Op(this.context.slice(0, -1), left, new Assign(right, this.value, '=')).compileToFragments(o);
-                if (o.level <= LEVEL_LIST) {
-                    return fragments;
-                } else {
-                    return this.wrapInBraces(fragments);
-                }
-            }
-        };
-
-        Assign.prototype.compileSpecialMath = function(o) {
-            var left, ref3, right;
-            ref3 = this.variable.cacheReference(o), left = ref3[0], right = ref3[1];
-            return new Assign(left, new Op(this.context.slice(0, -1), right, this.value)).compileToFragments(o);
-        };
-
-        Assign.prototype.compileSplice = function(o) {
-            var answer, exclusive, from, fromDecl, fromRef, name, ref3, ref4, ref5, to, valDef, valRef;
-            ref3 = this.variable.properties.pop().range, from = ref3.from, to = ref3.to, exclusive = ref3.exclusive;
-            name = this.variable.compile(o);
-            if (from) {
-                ref4 = this.cacheToCodeFragments(from.cache(o, LEVEL_OP)), fromDecl = ref4[0], fromRef = ref4[1];
-            } else {
-                fromDecl = fromRef = '0';
-            }
-            if (to) {
-                if ((from != null ? from.isNumber() : void 0) && to.isNumber()) {
-                    to = to.compile(o) - fromRef;
-                    if (!exclusive) {
-                        to += 1;
-                    }
-                } else {
-                    to = to.compile(o, LEVEL_ACCESS) + ' - ' + fromRef;
-                    if (!exclusive) {
-                        to += ' + 1';
-                    }
-                }
-            } else {
-                to = "9e9";
-            }
-            ref5 = this.value.cache(o, LEVEL_LIST), valDef = ref5[0], valRef = ref5[1];
-            answer = [].concat(this.makeCode("[].splice.apply(" + name + ", [" + fromDecl + ", " + to + "].concat("), valDef, this.makeCode(")), "), valRef);
-            if (o.level > LEVEL_TOP) {
-                return this.wrapInBraces(answer);
-            } else {
-                return answer;
-            }
-        };
-
-        return Assign;
-
-    })(Base);
-
-    exports.Code = Code = (function(superClass1) {
-        extend1(Code, superClass1);
-
-        function Code(params, body, tag) {
-            this.params = params || [];
-            this.body = body || new Block;
-            this.bound = tag === 'boundfunc';
-            this.isGenerator = !!this.body.contains(function(node) {
-                return (node instanceof Op && node.isYield()) || node instanceof YieldReturn;
-            });
         }
+    };
 
-        Code.prototype.children = ['params', 'body'];
+    Assign.prototype.compileSpecialMath = function(o) {
+        var left, ref3, right;
+        ref3 = this.variable.cacheReference(o), left = ref3[0], right = ref3[1];
+        return new Assign(left, new Op(this.context.slice(0, -1), right, this.value)).compileToFragments(o);
+    };
 
-        Code.prototype.isStatement = function() {
-            return !!this.ctor;
-        };
-
-        Code.prototype.jumps = NO;
-
-        Code.prototype.makeScope = function(parentScope) {
-            return new Scope(parentScope, this.body, this);
-        };
-
-        Code.prototype.compileNode = function(o) {
-            var answer, boundfunc, code, exprs, i, j, k, l, len1, len2, len3, len4, len5, len6, lit, m, p, param, params, q, r, ref, ref3, ref4, ref5, ref6, ref7, ref8, splats, uniqs, val, wasEmpty, wrapper;
-            if (this.bound && ((ref3 = o.scope.method) != null ? ref3.bound : void 0)) {
-                this.context = o.scope.method.context;
-            }
-            if (this.bound && !this.context) {
-                this.context = '_this';
-                wrapper = new Code([new Param(new IdentifierLiteral(this.context))], new Block([this]));
-                boundfunc = new Call(wrapper, [new ThisLiteral]);
-                boundfunc.updateLocationDataIfMissing(this.locationData);
-                return boundfunc.compileNode(o);
-            }
-            o.scope = del(o, 'classScope') || this.makeScope(o.scope);
-            o.scope.shared = del(o, 'sharedScope');
-            o.indent += TAB;
-            delete o.bare;
-            delete o.isExistentialEquals;
-            params = [];
-            exprs = [];
-            ref4 = this.params;
-            for (j = 0, len1 = ref4.length; j < len1; j++) {
-                param = ref4[j];
-                if (!(param instanceof Expansion)) {
-                    o.scope.parameter(param.asReference(o));
+    Assign.prototype.compileSplice = function(o) {
+        var answer, exclusive, from, fromDecl, fromRef, name, ref3, ref4, ref5, to, valDef, valRef;
+        ref3 = this.variable.properties.pop().range, from = ref3.from, to = ref3.to, exclusive = ref3.exclusive;
+        name = this.variable.compile(o);
+        if (from) {
+            ref4 = this.cacheToCodeFragments(from.cache(o, LEVEL_OP)), fromDecl = ref4[0], fromRef = ref4[1];
+        } else {
+            fromDecl = fromRef = '0';
+        }
+        if (to) {
+            if ((from != null ? from.isNumber() : void 0) && to.isNumber()) {
+                to = to.compile(o) - fromRef;
+                if (!exclusive) {
+                    to += 1;
                 }
-            }
-            ref5 = this.params;
-            for (k = 0, len2 = ref5.length; k < len2; k++) {
-                param = ref5[k];
-                if (!(param.splat || param instanceof Expansion)) {
-                    continue;
-                }
-                ref6 = this.params;
-                for (l = 0, len3 = ref6.length; l < len3; l++) {
-                    p = ref6[l];
-                    if (!(p instanceof Expansion) && p.name.value) {
-                        o.scope.add(p.name.value, 'var', true);
-                    }
-                }
-                splats = new Assign(new Value(new Arr((function() {
-                    var len4, m, ref7, results;
-                    ref7 = this.params;
-                    results = [];
-                    for (m = 0, len4 = ref7.length; m < len4; m++) {
-                        p = ref7[m];
-                        results.push(p.asReference(o));
-                    }
-                    return results;
-                }).call(this))), new Value(new IdentifierLiteral('arguments')));
-                break;
-            }
-            ref7 = this.params;
-            for (m = 0, len4 = ref7.length; m < len4; m++) {
-                param = ref7[m];
-                if (param.isComplex()) {
-                    val = ref = param.asReference(o);
-                    if (param.value) {
-                        val = new Op('?', ref, param.value);
-                    }
-                    exprs.push(new Assign(new Value(param.name), val, '=', {
-                        param: true
-                    }));
-                } else {
-                    ref = param;
-                    if (param.value) {
-                        lit = new Literal(ref.name.value + ' == null');
-                        val = new Assign(new Value(param.name), param.value, '=');
-                        exprs.push(new If(lit, val));
-                    }
-                }
-                if (!splats) {
-                    params.push(ref);
-                }
-            }
-            wasEmpty = this.body.isEmpty();
-            if (splats) {
-                exprs.unshift(splats);
-            }
-            if (exprs.length) {
-                (ref8 = this.body.expressions).unshift.apply(ref8, exprs);
-            }
-            for (i = q = 0, len5 = params.length; q < len5; i = ++q) {
-                p = params[i];
-                params[i] = p.compileToFragments(o);
-                o.scope.parameter(fragmentsToText(params[i]));
-            }
-            uniqs = [];
-            this.eachParamName(function(name, node) {
-                if (indexOf.call(uniqs, name) >= 0) {
-                    node.error("multiple parameters named " + name);
-                }
-                return uniqs.push(name);
-            });
-            if (!(wasEmpty || this.noReturn)) {
-                this.body.makeReturn();
-            }
-            code = 'function';
-            if (this.isGenerator) {
-                code += '*';
-            }
-            if (this.ctor) {
-                code += ' ' + this.name;
-            }
-            code += '(';
-            answer = [this.makeCode(code)];
-            for (i = r = 0, len6 = params.length; r < len6; i = ++r) {
-                p = params[i];
-                if (i) {
-                    answer.push(this.makeCode(", "));
-                }
-                answer.push.apply(answer, p);
-            }
-            answer.push(this.makeCode(') {'));
-            if (!this.body.isEmpty()) {
-                answer = answer.concat(this.makeCode("\n"), this.body.compileWithDeclarations(o), this.makeCode("\n" + this.tab));
-            }
-            answer.push(this.makeCode('}'));
-            if (this.ctor) {
-                return [this.makeCode(this.tab)].concat(slice.call(answer));
-            }
-            if (this.front || (o.level >= LEVEL_ACCESS)) {
-                return this.wrapInBraces(answer);
             } else {
-                return answer;
+                to = to.compile(o, LEVEL_ACCESS) + ' - ' + fromRef;
+                if (!exclusive) {
+                    to += ' + 1';
+                }
             }
-        };
+        } else {
+            to = "9e9";
+        }
+        ref5 = this.value.cache(o, LEVEL_LIST), valDef = ref5[0], valRef = ref5[1];
+        answer = [].concat(this.makeCode("[].splice.apply(" + name + ", [" + fromDecl + ", " + to + "].concat("), valDef, this.makeCode(")), "), valRef);
+        if (o.level > LEVEL_TOP) {
+            return this.wrapInBraces(answer);
+        } else {
+            return answer;
+        }
+    };
 
-        Code.prototype.eachParamName = function(iterator) {
-            var j, len1, param, ref3, results;
-            ref3 = this.params;
-            results = [];
-            for (j = 0, len1 = ref3.length; j < len1; j++) {
-                param = ref3[j];
-                results.push(param.eachName(iterator));
-            }
-            return results;
-        };
+    return Assign;
 
-        Code.prototype.traverseChildren = function(crossScope, func) {
-            if (crossScope) {
-                return Code.__super__.traverseChildren.call(this, crossScope, func);
-            }
-        };
+})(Base);
 
-        return Code;
+exports.Code = Code = (function(superClass1) {
+    extend1(Code, superClass1);
 
-    })(Base);
+    function Code(params, body, tag) {
+        this.params = params || [];
+        this.body = body || new Block;
+        this.bound = tag === 'boundfunc';
+        this.isGenerator = !!this.body.contains(function(node) {
+            return (node instanceof Op && node.isYield()) || node instanceof YieldReturn;
+        });
+    }
 
-    exports.Param = Param = (function(superClass1) {
-        extend1(Param, superClass1);
+    Code.prototype.children = ['params', 'body'];
 
-        function Param(name1, value1, splat) {
-            var message;
-            this.name = name1;
-            this.value = value1;
-            this.splat = splat;
-            message = isUnassignable(this.name.unwrapAll().value);
-            if (message) {
-                this.name.error(message);
+    Code.prototype.isStatement = function() {
+        return !!this.ctor;
+    };
+
+    Code.prototype.jumps = NO;
+
+    Code.prototype.makeScope = function(parentScope) {
+        return new Scope(parentScope, this.body, this);
+    };
+
+    Code.prototype.compileNode = function(o) {
+        var answer, boundfunc, code, exprs, i, j, k, l, len1, len2, len3, len4, len5, len6, lit, m, p, param, params, q, r, ref, ref3, ref4, ref5, ref6, ref7, ref8, splats, uniqs, val, wasEmpty, wrapper;
+        if (this.bound && ((ref3 = o.scope.method) != null ? ref3.bound : void 0)) {
+            this.context = o.scope.method.context;
+        }
+        if (this.bound && !this.context) {
+            this.context = '_this';
+            wrapper = new Code([new Param(new IdentifierLiteral(this.context))], new Block([this]));
+            boundfunc = new Call(wrapper, [new ThisLiteral]);
+            boundfunc.updateLocationDataIfMissing(this.locationData);
+            return boundfunc.compileNode(o);
+        }
+        o.scope = del(o, 'classScope') || this.makeScope(o.scope);
+        o.scope.shared = del(o, 'sharedScope');
+        o.indent += TAB;
+        delete o.bare;
+        delete o.isExistentialEquals;
+        params = [];
+        exprs = [];
+        ref4 = this.params;
+        for (j = 0, len1 = ref4.length; j < len1; j++) {
+            param = ref4[j];
+            if (!(param instanceof Expansion)) {
+                o.scope.parameter(param.asReference(o));
             }
         }
-
-        Param.prototype.children = ['name', 'value'];
-
-        Param.prototype.compileToFragments = function(o) {
-            return this.name.compileToFragments(o, LEVEL_LIST);
-        };
-
-        Param.prototype.asReference = function(o) {
-            var name, node;
-            if (this.reference) {
-                return this.reference;
-            }
-            node = this.name;
-            if (node["this"]) {
-                name = node.properties[0].name.value;
-                if (indexOf.call(JS_FORBIDDEN, name) >= 0) {
-                    name = "_" + name;
-                }
-                node = new IdentifierLiteral(o.scope.freeVariable(name));
-            } else if (node.isComplex()) {
-                node = new IdentifierLiteral(o.scope.freeVariable('arg'));
-            }
-            node = new Value(node);
-            if (this.splat) {
-                node = new Splat(node);
-            }
-            node.updateLocationDataIfMissing(this.locationData);
-            return this.reference = node;
-        };
-
-        Param.prototype.isComplex = function() {
-            return this.name.isComplex();
-        };
-
-        Param.prototype.eachName = function(iterator, name) {
-            var atParam, j, len1, node, obj, ref3, ref4;
-            if (name == null) {
-                name = this.name;
-            }
-            atParam = function(obj) {
-                return iterator("@" + obj.properties[0].name.value, obj);
-            };
-            if (name instanceof IdentifierLiteral) {
-                if (name instanceof NullLiteral) {
-                    return;
-                }
-                return iterator(name.value, name);
-            }
-            if (name instanceof Value) {
-                return atParam(name);
-            }
-            ref4 = (ref3 = name.objects) != null ? ref3 : [];
-            for (j = 0, len1 = ref4.length; j < len1; j++) {
-                obj = ref4[j];
-                if (obj instanceof Assign && (obj.context == null)) {
-                    obj = obj.variable;
-                }
-                if (obj instanceof Assign) {
-                    if (obj.value instanceof Assign) {
-                        obj = obj.value;
-                    }
-                    this.eachName(iterator, obj.value.unwrap());
-                } else if (obj instanceof Splat) {
-                    node = obj.name.unwrap();
-                    iterator(node.value, node);
-                } else if (obj instanceof Value) {
-                    if (obj.isArray() || obj.isObject()) {
-                        this.eachName(iterator, obj.base);
-                    } else if (obj["this"]) {
-                        atParam(obj);
-                    } else {
-                        iterator(obj.base.value, obj.base);
-                    }
-                } else if (!(obj instanceof Expansion)) {
-                    obj.error("illegal parameter " + (obj.compile()));
-                }
-            }
-        };
-
-        return Param;
-
-    })(Base);
-
-    exports.Splat = Splat = (function(superClass1) {
-        extend1(Splat, superClass1);
-
-        Splat.prototype.children = ['name'];
-
-        Splat.prototype.isAssignable = YES;
-
-        function Splat(name) {
-            this.name = name.compile ? name : new Literal(name);
-        }
-
-        Splat.prototype.assigns = function(name) {
-            return this.name.assigns(name);
-        };
-
-        Splat.prototype.compileNode = function(o) {
-            return this.name.compileToFragments(o);
-        };
-
-        Splat.prototype.unwrap = function() {
-            return this.name;
-        };
-
-        Splat.compileSplattedArray = function(o, list, apply) {
-            var args, base, compiledNode, concatPart, fragments, i, index, j, last, len1, node;
-            index = -1;
-            while ((node = list[++index]) && !(node instanceof Splat)) {
+        ref5 = this.params;
+        for (k = 0, len2 = ref5.length; k < len2; k++) {
+            param = ref5[k];
+            if (!(param.splat || param instanceof Expansion)) {
                 continue;
             }
-            if (index >= list.length) {
-                return [];
-            }
-            if (list.length === 1) {
-                node = list[0];
-                fragments = node.compileToFragments(o, LEVEL_LIST);
-                if (apply) {
-                    return fragments;
+            ref6 = this.params;
+            for (l = 0, len3 = ref6.length; l < len3; l++) {
+                p = ref6[l];
+                if (!(p instanceof Expansion) && p.name.value) {
+                    o.scope.add(p.name.value, 'var', true);
                 }
-                return [].concat(node.makeCode((utility('slice', o)) + ".call("), fragments, node.makeCode(")"));
             }
-            args = list.slice(index);
-            for (i = j = 0, len1 = args.length; j < len1; i = ++j) {
-                node = args[i];
-                compiledNode = node.compileToFragments(o, LEVEL_LIST);
-                args[i] = node instanceof Splat ? [].concat(node.makeCode((utility('slice', o)) + ".call("), compiledNode, node.makeCode(")")) : [].concat(node.makeCode("["), compiledNode, node.makeCode("]"));
-            }
-            if (index === 0) {
-                node = list[0];
-                concatPart = node.joinFragmentArrays(args.slice(1), ', ');
-                return args[0].concat(node.makeCode(".concat("), concatPart, node.makeCode(")"));
-            }
-            base = (function() {
-                var k, len2, ref3, results;
-                ref3 = list.slice(0, index);
+            splats = new Assign(new Value(new Arr((function() {
+                var len4, m, ref7, results;
+                ref7 = this.params;
                 results = [];
-                for (k = 0, len2 = ref3.length; k < len2; k++) {
-                    node = ref3[k];
-                    results.push(node.compileToFragments(o, LEVEL_LIST));
+                for (m = 0, len4 = ref7.length; m < len4; m++) {
+                    p = ref7[m];
+                    results.push(p.asReference(o));
                 }
                 return results;
-            })();
-            base = list[0].joinFragmentArrays(base, ', ');
-            concatPart = list[index].joinFragmentArrays(args, ', ');
-            last = list[list.length - 1];
-            return [].concat(list[0].makeCode("["), base, list[index].makeCode("].concat("), concatPart, last.makeCode(")"));
-        };
-
-        return Splat;
-
-    })(Base);
-
-    exports.Expansion = Expansion = (function(superClass1) {
-        extend1(Expansion, superClass1);
-
-        function Expansion() {
-            return Expansion.__super__.constructor.apply(this, arguments);
+            }).call(this))), new Value(new IdentifierLiteral('arguments')));
+            break;
         }
-
-        Expansion.prototype.isComplex = NO;
-
-        Expansion.prototype.compileNode = function(o) {
-            return this.error('Expansion must be used inside a destructuring assignment or parameter list');
-        };
-
-        Expansion.prototype.asReference = function(o) {
-            return this;
-        };
-
-        Expansion.prototype.eachName = function(iterator) {};
-
-        return Expansion;
-
-    })(Base);
-
-    exports.While = While = (function(superClass1) {
-        extend1(While, superClass1);
-
-        function While(condition, options) {
-            this.condition = (options != null ? options.invert : void 0) ? condition.invert() : condition;
-            this.guard = options != null ? options.guard : void 0;
-        }
-
-        While.prototype.children = ['condition', 'guard', 'body'];
-
-        While.prototype.isStatement = YES;
-
-        While.prototype.makeReturn = function(res) {
-            if (res) {
-                return While.__super__.makeReturn.apply(this, arguments);
-            } else {
-                this.returns = !this.jumps({
-                    loop: true
-                });
-                return this;
-            }
-        };
-
-        While.prototype.addBody = function(body1) {
-            this.body = body1;
-            return this;
-        };
-
-        While.prototype.jumps = function() {
-            var expressions, j, jumpNode, len1, node;
-            expressions = this.body.expressions;
-            if (!expressions.length) {
-                return false;
-            }
-            for (j = 0, len1 = expressions.length; j < len1; j++) {
-                node = expressions[j];
-                if (jumpNode = node.jumps({
-                    loop: true
-                })) {
-                    return jumpNode;
-                }
-            }
-            return false;
-        };
-
-        While.prototype.compileNode = function(o) {
-            var answer, body, rvar, set;
-            o.indent += TAB;
-            set = '';
-            body = this.body;
-            if (body.isEmpty()) {
-                body = this.makeCode('');
-            } else {
-                if (this.returns) {
-                    body.makeReturn(rvar = o.scope.freeVariable('results'));
-                    set = "" + this.tab + rvar + " = [];\n";
-                }
-                if (this.guard) {
-                    if (body.expressions.length > 1) {
-                        body.expressions.unshift(new If((new Parens(this.guard)).invert(), new StatementLiteral("continue")));
-                    } else {
-                        if (this.guard) {
-                            body = Block.wrap([new If(this.guard, body)]);
-                        }
-                    }
-                }
-                body = [].concat(this.makeCode("\n"), body.compileToFragments(o, LEVEL_TOP), this.makeCode("\n" + this.tab));
-            }
-            answer = [].concat(this.makeCode(set + this.tab + "while ("), this.condition.compileToFragments(o, LEVEL_PAREN), this.makeCode(") {"), body, this.makeCode("}"));
-            if (this.returns) {
-                answer.push(this.makeCode("\n" + this.tab + "return " + rvar + ";"));
-            }
-            return answer;
-        };
-
-        return While;
-
-    })(Base);
-
-    exports.Op = Op = (function(superClass1) {
-        var CONVERSIONS, INVERSIONS;
-
-        extend1(Op, superClass1);
-
-        function Op(op, first, second, flip) {
-            if (op === 'in') {
-                return new In(first, second);
-            }
-            if (op === 'do') {
-                return this.generateDo(first);
-            }
-            if (op === 'new') {
-                if (first instanceof Call && !first["do"] && !first.isNew) {
-                    return first.newInstance();
-                }
-                if (first instanceof Code && first.bound || first["do"]) {
-                    first = new Parens(first);
-                }
-            }
-            this.operator = CONVERSIONS[op] || op;
-            this.first = first;
-            this.second = second;
-            this.flip = !!flip;
-            return this;
-        }
-
-        CONVERSIONS = {
-            '==': '===',
-            '!=': '!==',
-            'of': 'in',
-            'yieldfrom': 'yield*'
-        };
-
-        INVERSIONS = {
-            '!==': '===',
-            '===': '!=='
-        };
-
-        Op.prototype.children = ['first', 'second'];
-
-        Op.prototype.isNumber = function() {
-            var ref3;
-            return this.isUnary() && ((ref3 = this.operator) === '+' || ref3 === '-') && this.first instanceof Value && this.first.isNumber();
-        };
-
-        Op.prototype.isYield = function() {
-            var ref3;
-            return (ref3 = this.operator) === 'yield' || ref3 === 'yield*';
-        };
-
-        Op.prototype.isUnary = function() {
-            return !this.second;
-        };
-
-        Op.prototype.isComplex = function() {
-            return !this.isNumber();
-        };
-
-        Op.prototype.isChainable = function() {
-            var ref3;
-            return (ref3 = this.operator) === '<' || ref3 === '>' || ref3 === '>=' || ref3 === '<=' || ref3 === '===' || ref3 === '!==';
-        };
-
-        Op.prototype.invert = function() {
-            var allInvertable, curr, fst, op, ref3;
-            if (this.isChainable() && this.first.isChainable()) {
-                allInvertable = true;
-                curr = this;
-                while (curr && curr.operator) {
-                    allInvertable && (allInvertable = curr.operator in INVERSIONS);
-                    curr = curr.first;
-                }
-                if (!allInvertable) {
-                    return new Parens(this).invert();
-                }
-                curr = this;
-                while (curr && curr.operator) {
-                    curr.invert = !curr.invert;
-                    curr.operator = INVERSIONS[curr.operator];
-                    curr = curr.first;
-                }
-                return this;
-            } else if (op = INVERSIONS[this.operator]) {
-                this.operator = op;
-                if (this.first.unwrap() instanceof Op) {
-                    this.first.invert();
-                }
-                return this;
-            } else if (this.second) {
-                return new Parens(this).invert();
-            } else if (this.operator === '!' && (fst = this.first.unwrap()) instanceof Op && ((ref3 = fst.operator) === '!' || ref3 === 'in' || ref3 === 'instanceof')) {
-                return fst;
-            } else {
-                return new Op('!', this);
-            }
-        };
-
-        Op.prototype.unfoldSoak = function(o) {
-            var ref3;
-            return ((ref3 = this.operator) === '++' || ref3 === '--' || ref3 === 'delete') && unfoldSoak(o, this, 'first');
-        };
-
-        Op.prototype.generateDo = function(exp) {
-            var call, func, j, len1, param, passedParams, ref, ref3;
-            passedParams = [];
-            func = exp instanceof Assign && (ref = exp.value.unwrap()) instanceof Code ? ref : exp;
-            ref3 = func.params || [];
-            for (j = 0, len1 = ref3.length; j < len1; j++) {
-                param = ref3[j];
+        ref7 = this.params;
+        for (m = 0, len4 = ref7.length; m < len4; m++) {
+            param = ref7[m];
+            if (param.isComplex()) {
+                val = ref = param.asReference(o);
                 if (param.value) {
-                    passedParams.push(param.value);
-                    delete param.value;
-                } else {
-                    passedParams.push(param);
+                    val = new Op('?', ref, param.value);
                 }
-            }
-            call = new Call(exp, passedParams);
-            call["do"] = true;
-            return call;
-        };
-
-        Op.prototype.compileNode = function(o) {
-            var answer, isChain, lhs, message, ref3, rhs;
-            isChain = this.isChainable() && this.first.isChainable();
-            if (!isChain) {
-                this.first.front = this.front;
-            }
-            if (this.operator === 'delete' && o.scope.check(this.first.unwrapAll().value)) {
-                this.error('delete operand may not be argument or var');
-            }
-            if ((ref3 = this.operator) === '--' || ref3 === '++') {
-                message = isUnassignable(this.first.unwrapAll().value);
-                if (message) {
-                    this.first.error(message);
-                }
-            }
-            if (this.isYield()) {
-                return this.compileYield(o);
-            }
-            if (this.isUnary()) {
-                return this.compileUnary(o);
-            }
-            if (isChain) {
-                return this.compileChain(o);
-            }
-            switch (this.operator) {
-                case '?':
-                    return this.compileExistence(o);
-                case '**':
-                    return this.compilePower(o);
-                case '//':
-                    return this.compileFloorDivision(o);
-                case '%%':
-                    return this.compileModulo(o);
-                default:
-                    lhs = this.first.compileToFragments(o, LEVEL_OP);
-                    rhs = this.second.compileToFragments(o, LEVEL_OP);
-                    answer = [].concat(lhs, this.makeCode(" " + this.operator + " "), rhs);
-                    if (o.level <= LEVEL_OP) {
-                        return answer;
-                    } else {
-                        return this.wrapInBraces(answer);
-                    }
-            }
-        };
-
-        Op.prototype.compileChain = function(o) {
-            var fragments, fst, ref3, shared;
-            ref3 = this.first.second.cache(o), this.first.second = ref3[0], shared = ref3[1];
-            fst = this.first.compileToFragments(o, LEVEL_OP);
-            fragments = fst.concat(this.makeCode(" " + (this.invert ? '&&' : '||') + " "), shared.compileToFragments(o), this.makeCode(" " + this.operator + " "), this.second.compileToFragments(o, LEVEL_OP));
-            return this.wrapInBraces(fragments);
-        };
-
-        Op.prototype.compileExistence = function(o) {
-            var fst, ref;
-            if (this.first.isComplex()) {
-                ref = new IdentifierLiteral(o.scope.freeVariable('ref'));
-                fst = new Parens(new Assign(ref, this.first));
-            } else {
-                fst = this.first;
-                ref = fst;
-            }
-            return new If(new Existence(fst), ref, {
-                type: 'if'
-            }).addElse(this.second).compileToFragments(o);
-        };
-
-        Op.prototype.compileUnary = function(o) {
-            var op, parts, plusMinus;
-            parts = [];
-            op = this.operator;
-            parts.push([this.makeCode(op)]);
-            if (op === '!' && this.first instanceof Existence) {
-                this.first.negated = !this.first.negated;
-                return this.first.compileToFragments(o);
-            }
-            if (o.level >= LEVEL_ACCESS) {
-                return (new Parens(this)).compileToFragments(o);
-            }
-            plusMinus = op === '+' || op === '-';
-            if ((op === 'new' || op === 'typeof' || op === 'delete') || plusMinus && this.first instanceof Op && this.first.operator === op) {
-                parts.push([this.makeCode(' ')]);
-            }
-            if ((plusMinus && this.first instanceof Op) || (op === 'new' && this.first.isStatement(o))) {
-                this.first = new Parens(this.first);
-            }
-            parts.push(this.first.compileToFragments(o, LEVEL_OP));
-            if (this.flip) {
-                parts.reverse();
-            }
-            return this.joinFragmentArrays(parts, '');
-        };
-
-        Op.prototype.compileYield = function(o) {
-            var op, parts, ref3;
-            parts = [];
-            op = this.operator;
-            if (o.scope.parent == null) {
-                this.error('yield can only occur inside functions');
-            }
-            if (indexOf.call(Object.keys(this.first), 'expression') >= 0 && !(this.first instanceof Throw)) {
-                if (this.first.expression != null) {
-                    parts.push(this.first.expression.compileToFragments(o, LEVEL_OP));
-                }
-            } else {
-                if (o.level >= LEVEL_PAREN) {
-                    parts.push([this.makeCode("(")]);
-                }
-                parts.push([this.makeCode(op)]);
-                if (((ref3 = this.first.base) != null ? ref3.value : void 0) !== '') {
-                    parts.push([this.makeCode(" ")]);
-                }
-                parts.push(this.first.compileToFragments(o, LEVEL_OP));
-                if (o.level >= LEVEL_PAREN) {
-                    parts.push([this.makeCode(")")]);
-                }
-            }
-            return this.joinFragmentArrays(parts, '');
-        };
-
-        Op.prototype.compilePower = function(o) {
-            var pow;
-            pow = new Value(new IdentifierLiteral('Math'), [new Access(new PropertyName('pow'))]);
-            return new Call(pow, [this.first, this.second]).compileToFragments(o);
-        };
-
-        Op.prototype.compileFloorDivision = function(o) {
-            var div, floor, second;
-            floor = new Value(new IdentifierLiteral('Math'), [new Access(new PropertyName('floor'))]);
-            second = this.second.isComplex() ? new Parens(this.second) : this.second;
-            div = new Op('/', this.first, second);
-            return new Call(floor, [div]).compileToFragments(o);
-        };
-
-        Op.prototype.compileModulo = function(o) {
-            var mod;
-            mod = new Value(new Literal(utility('modulo', o)));
-            return new Call(mod, [this.first, this.second]).compileToFragments(o);
-        };
-
-        Op.prototype.toString = function(idt) {
-            return Op.__super__.toString.call(this, idt, this.constructor.name + ' ' + this.operator);
-        };
-
-        return Op;
-
-    })(Base);
-
-    exports.In = In = (function(superClass1) {
-        extend1(In, superClass1);
-
-        function In(object, array) {
-            this.object = object;
-            this.array = array;
-        }
-
-        In.prototype.children = ['object', 'array'];
-
-        In.prototype.invert = NEGATE;
-
-        In.prototype.compileNode = function(o) {
-            var hasSplat, j, len1, obj, ref3;
-            if (this.array instanceof Value && this.array.isArray() && this.array.base.objects.length) {
-                ref3 = this.array.base.objects;
-                for (j = 0, len1 = ref3.length; j < len1; j++) {
-                    obj = ref3[j];
-                    if (!(obj instanceof Splat)) {
-                        continue;
-                    }
-                    hasSplat = true;
-                    break;
-                }
-                if (!hasSplat) {
-                    return this.compileOrTest(o);
-                }
-            }
-            return this.compileLoopTest(o);
-        };
-
-        In.prototype.compileOrTest = function(o) {
-            var cmp, cnj, i, item, j, len1, ref, ref3, ref4, ref5, sub, tests;
-            ref3 = this.object.cache(o, LEVEL_OP), sub = ref3[0], ref = ref3[1];
-            ref4 = this.negated ? [' !== ', ' && '] : [' === ', ' || '], cmp = ref4[0], cnj = ref4[1];
-            tests = [];
-            ref5 = this.array.base.objects;
-            for (i = j = 0, len1 = ref5.length; j < len1; i = ++j) {
-                item = ref5[i];
-                if (i) {
-                    tests.push(this.makeCode(cnj));
-                }
-                tests = tests.concat((i ? ref : sub), this.makeCode(cmp), item.compileToFragments(o, LEVEL_ACCESS));
-            }
-            if (o.level < LEVEL_OP) {
-                return tests;
-            } else {
-                return this.wrapInBraces(tests);
-            }
-        };
-
-        In.prototype.compileLoopTest = function(o) {
-            var fragments, ref, ref3, sub;
-            ref3 = this.object.cache(o, LEVEL_LIST), sub = ref3[0], ref = ref3[1];
-            fragments = [].concat(this.makeCode(utility('indexOf', o) + ".call("), this.array.compileToFragments(o, LEVEL_LIST), this.makeCode(", "), ref, this.makeCode(") " + (this.negated ? '< 0' : '>= 0')));
-            if (fragmentsToText(sub) === fragmentsToText(ref)) {
-                return fragments;
-            }
-            fragments = sub.concat(this.makeCode(', '), fragments);
-            if (o.level < LEVEL_LIST) {
-                return fragments;
-            } else {
-                return this.wrapInBraces(fragments);
-            }
-        };
-
-        In.prototype.toString = function(idt) {
-            return In.__super__.toString.call(this, idt, this.constructor.name + (this.negated ? '!' : ''));
-        };
-
-        return In;
-
-    })(Base);
-
-    exports.Try = Try = (function(superClass1) {
-        extend1(Try, superClass1);
-
-        function Try(attempt, errorVariable, recovery, ensure) {
-            this.attempt = attempt;
-            this.errorVariable = errorVariable;
-            this.recovery = recovery;
-            this.ensure = ensure;
-        }
-
-        Try.prototype.children = ['attempt', 'recovery', 'ensure'];
-
-        Try.prototype.isStatement = YES;
-
-        Try.prototype.jumps = function(o) {
-            var ref3;
-            return this.attempt.jumps(o) || ((ref3 = this.recovery) != null ? ref3.jumps(o) : void 0);
-        };
-
-        Try.prototype.makeReturn = function(res) {
-            if (this.attempt) {
-                this.attempt = this.attempt.makeReturn(res);
-            }
-            if (this.recovery) {
-                this.recovery = this.recovery.makeReturn(res);
-            }
-            return this;
-        };
-
-        Try.prototype.compileNode = function(o) {
-            var catchPart, ensurePart, generatedErrorVariableName, message, placeholder, tryPart;
-            o.indent += TAB;
-            tryPart = this.attempt.compileToFragments(o, LEVEL_TOP);
-            catchPart = this.recovery ? (generatedErrorVariableName = o.scope.freeVariable('error', {
-                reserve: false
-            }), placeholder = new IdentifierLiteral(generatedErrorVariableName), this.errorVariable ? (message = isUnassignable(this.errorVariable.unwrapAll().value), message ? this.errorVariable.error(message) : void 0, this.recovery.unshift(new Assign(this.errorVariable, placeholder))) : void 0, [].concat(this.makeCode(" catch ("), placeholder.compileToFragments(o), this.makeCode(") {\n"), this.recovery.compileToFragments(o, LEVEL_TOP), this.makeCode("\n" + this.tab + "}"))) : !(this.ensure || this.recovery) ? (generatedErrorVariableName = o.scope.freeVariable('error', {
-                reserve: false
-            }), [this.makeCode(" catch (" + generatedErrorVariableName + ") {}")]) : [];
-            ensurePart = this.ensure ? [].concat(this.makeCode(" finally {\n"), this.ensure.compileToFragments(o, LEVEL_TOP), this.makeCode("\n" + this.tab + "}")) : [];
-            return [].concat(this.makeCode(this.tab + "try {\n"), tryPart, this.makeCode("\n" + this.tab + "}"), catchPart, ensurePart);
-        };
-
-        return Try;
-
-    })(Base);
-
-    exports.Throw = Throw = (function(superClass1) {
-        extend1(Throw, superClass1);
-
-        function Throw(expression) {
-            this.expression = expression;
-        }
-
-        Throw.prototype.children = ['expression'];
-
-        Throw.prototype.isStatement = YES;
-
-        Throw.prototype.jumps = NO;
-
-        Throw.prototype.makeReturn = THIS;
-
-        Throw.prototype.compileNode = function(o) {
-            return [].concat(this.makeCode(this.tab + "throw "), this.expression.compileToFragments(o), this.makeCode(";"));
-        };
-
-        return Throw;
-
-    })(Base);
-
-    exports.Existence = Existence = (function(superClass1) {
-        extend1(Existence, superClass1);
-
-        function Existence(expression) {
-            this.expression = expression;
-        }
-
-        Existence.prototype.children = ['expression'];
-
-        Existence.prototype.invert = NEGATE;
-
-        Existence.prototype.compileNode = function(o) {
-            var cmp, cnj, code, ref3;
-            this.expression.front = this.front;
-            code = this.expression.compile(o, LEVEL_OP);
-            if (this.expression.unwrap() instanceof IdentifierLiteral && !o.scope.check(code)) {
-                ref3 = this.negated ? ['===', '||'] : ['!==', '&&'], cmp = ref3[0], cnj = ref3[1];
-                code = "typeof " + code + " " + cmp + " \"undefined\" " + cnj + " " + code + " " + cmp + " null";
-            } else {
-                code = code + " " + (this.negated ? '==' : '!=') + " null";
-            }
-            return [this.makeCode(o.level <= LEVEL_COND ? code : "(" + code + ")")];
-        };
-
-        return Existence;
-
-    })(Base);
-
-    exports.Parens = Parens = (function(superClass1) {
-        extend1(Parens, superClass1);
-
-        function Parens(body1) {
-            this.body = body1;
-        }
-
-        Parens.prototype.children = ['body'];
-
-        Parens.prototype.unwrap = function() {
-            return this.body;
-        };
-
-        Parens.prototype.isComplex = function() {
-            return this.body.isComplex();
-        };
-
-        Parens.prototype.compileNode = function(o) {
-            var bare, expr, fragments;
-            expr = this.body.unwrap();
-            if (expr instanceof Value && expr.isAtomic()) {
-                expr.front = this.front;
-                return expr.compileToFragments(o);
-            }
-            fragments = expr.compileToFragments(o, LEVEL_PAREN);
-            bare = o.level < LEVEL_OP && (expr instanceof Op || expr instanceof Call || (expr instanceof For && expr.returns)) && (o.level < LEVEL_COND || fragments.length <= 3);
-            if (bare) {
-                return fragments;
-            } else {
-                return this.wrapInBraces(fragments);
-            }
-        };
-
-        return Parens;
-
-    })(Base);
-
-    exports.StringWithInterpolations = StringWithInterpolations = (function(superClass1) {
-        extend1(StringWithInterpolations, superClass1);
-
-        function StringWithInterpolations() {
-            return StringWithInterpolations.__super__.constructor.apply(this, arguments);
-        }
-
-        StringWithInterpolations.prototype.compileNode = function(o) {
-            var element, elements, expr, fragments, j, len1, value;
-            if (!o.inTaggedTemplateCall) {
-                return StringWithInterpolations.__super__.compileNode.apply(this, arguments);
-            }
-            expr = this.body.unwrap();
-            elements = [];
-            expr.traverseChildren(false, function(node) {
-                if (node instanceof StringLiteral) {
-                    elements.push(node);
-                    return true;
-                } else if (node instanceof Parens) {
-                    elements.push(node);
-                    return false;
-                }
-                return true;
-            });
-            fragments = [];
-            fragments.push(this.makeCode('`'));
-            for (j = 0, len1 = elements.length; j < len1; j++) {
-                element = elements[j];
-                if (element instanceof StringLiteral) {
-                    value = element.value.slice(1, -1);
-                    value = value.replace(/(\\*)(`|\$\{)/g, function(match, backslashes, toBeEscaped) {
-                        if (backslashes.length % 2 === 0) {
-                            return backslashes + "\\" + toBeEscaped;
-                        } else {
-                            return match;
-                        }
-                    });
-                    fragments.push(this.makeCode(value));
-                } else {
-                    fragments.push(this.makeCode('${'));
-                    fragments.push.apply(fragments, element.compileToFragments(o, LEVEL_PAREN));
-                    fragments.push(this.makeCode('}'));
-                }
-            }
-            fragments.push(this.makeCode('`'));
-            return fragments;
-        };
-
-        return StringWithInterpolations;
-
-    })(Parens);
-
-    exports.For = For = (function(superClass1) {
-        extend1(For, superClass1);
-
-        function For(body, source) {
-            var ref3;
-            this.source = source.source, this.guard = source.guard, this.step = source.step, this.name = source.name, this.index = source.index;
-            this.body = Block.wrap([body]);
-            this.own = !!source.own;
-            this.object = !!source.object;
-            this.from = !!source.from;
-            if (this.from && this.index) {
-                this.index.error('cannot use index with for-from');
-            }
-            if (this.own && !this.object) {
-                source.ownTag.error("cannot use own with for-" + (this.from ? 'from' : 'in'));
-            }
-            if (this.object) {
-                ref3 = [this.index, this.name], this.name = ref3[0], this.index = ref3[1];
-            }
-            if (this.index instanceof Value && !this.index.isAssignable()) {
-                this.index.error('index cannot be a pattern matching expression');
-            }
-            this.range = this.source instanceof Value && this.source.base instanceof Range && !this.source.properties.length && !this.from;
-            this.pattern = this.name instanceof Value;
-            if (this.range && this.index) {
-                this.index.error('indexes do not apply to range loops');
-            }
-            if (this.range && this.pattern) {
-                this.name.error('cannot pattern match over range loops');
-            }
-            this.returns = false;
-        }
-
-        For.prototype.children = ['body', 'source', 'guard', 'step'];
-
-        For.prototype.compileNode = function(o) {
-            var body, bodyFragments, compare, compareDown, declare, declareDown, defPart, defPartFragments, down, forPartFragments, guardPart, idt1, increment, index, ivar, kvar, kvarAssign, last, lvar, name, namePart, ref, ref3, ref4, resultPart, returnResult, rvar, scope, source, step, stepNum, stepVar, svar, varPart;
-            body = Block.wrap([this.body]);
-            ref3 = body.expressions, last = ref3[ref3.length - 1];
-            if ((last != null ? last.jumps() : void 0) instanceof Return) {
-                this.returns = false;
-            }
-            source = this.range ? this.source.base : this.source;
-            scope = o.scope;
-            if (!this.pattern) {
-                name = this.name && (this.name.compile(o, LEVEL_LIST));
-            }
-            index = this.index && (this.index.compile(o, LEVEL_LIST));
-            if (name && !this.pattern) {
-                scope.find(name);
-            }
-            if (index && !(this.index instanceof Value)) {
-                scope.find(index);
-            }
-            if (this.returns) {
-                rvar = scope.freeVariable('results');
-            }
-            if (this.from) {
-                if (this.pattern) {
-                    ivar = scope.freeVariable('x', {
-                        single: true
-                    });
-                }
-            } else {
-                ivar = (this.object && index) || scope.freeVariable('i', {
-                    single: true
-                });
-            }
-            kvar = ((this.range || this.from) && name) || index || ivar;
-            kvarAssign = kvar !== ivar ? kvar + " = " : "";
-            if (this.step && !this.range) {
-                ref4 = this.cacheToCodeFragments(this.step.cache(o, LEVEL_LIST, isComplexOrAssignable)), step = ref4[0], stepVar = ref4[1];
-                if (this.step.isNumber()) {
-                    stepNum = Number(stepVar);
-                }
-            }
-            if (this.pattern) {
-                name = ivar;
-            }
-            varPart = '';
-            guardPart = '';
-            defPart = '';
-            idt1 = this.tab + TAB;
-            if (this.range) {
-                forPartFragments = source.compileToFragments(merge(o, {
-                    index: ivar,
-                    name: name,
-                    step: this.step,
-                    isComplex: isComplexOrAssignable
+                exprs.push(new Assign(new Value(param.name), val, '=', {
+                    param: true
                 }));
             } else {
-                svar = this.source.compile(o, LEVEL_LIST);
-                if ((name || this.own) && !(this.source.unwrap() instanceof IdentifierLiteral)) {
-                    defPart += "" + this.tab + (ref = scope.freeVariable('ref')) + " = " + svar + ";\n";
-                    svar = ref;
-                }
-                if (name && !this.pattern && !this.from) {
-                    namePart = name + " = " + svar + "[" + kvar + "]";
-                }
-                if (!this.object && !this.from) {
-                    if (step !== stepVar) {
-                        defPart += "" + this.tab + step + ";\n";
-                    }
-                    down = stepNum < 0;
-                    if (!(this.step && (stepNum != null) && down)) {
-                        lvar = scope.freeVariable('len');
-                    }
-                    declare = "" + kvarAssign + ivar + " = 0, " + lvar + " = " + svar + ".length";
-                    declareDown = "" + kvarAssign + ivar + " = " + svar + ".length - 1";
-                    compare = ivar + " < " + lvar;
-                    compareDown = ivar + " >= 0";
-                    if (this.step) {
-                        if (stepNum != null) {
-                            if (down) {
-                                compare = compareDown;
-                                declare = declareDown;
-                            }
-                        } else {
-                            compare = stepVar + " > 0 ? " + compare + " : " + compareDown;
-                            declare = "(" + stepVar + " > 0 ? (" + declare + ") : " + declareDown + ")";
-                        }
-                        increment = ivar + " += " + stepVar;
-                    } else {
-                        increment = "" + (kvar !== ivar ? "++" + ivar : ivar + "++");
-                    }
-                    forPartFragments = [this.makeCode(declare + "; " + compare + "; " + kvarAssign + increment)];
+                ref = param;
+                if (param.value) {
+                    lit = new Literal(ref.name.value + ' == null');
+                    val = new Assign(new Value(param.name), param.value, '=');
+                    exprs.push(new If(lit, val));
                 }
             }
+            if (!splats) {
+                params.push(ref);
+            }
+        }
+        wasEmpty = this.body.isEmpty();
+        if (splats) {
+            exprs.unshift(splats);
+        }
+        if (exprs.length) {
+            (ref8 = this.body.expressions).unshift.apply(ref8, exprs);
+        }
+        for (i = q = 0, len5 = params.length; q < len5; i = ++q) {
+            p = params[i];
+            params[i] = p.compileToFragments(o);
+            o.scope.parameter(fragmentsToText(params[i]));
+        }
+        uniqs = [];
+        this.eachParamName(function(name, node) {
+            if (indexOf.call(uniqs, name) >= 0) {
+                node.error("multiple parameters named " + name);
+            }
+            return uniqs.push(name);
+        });
+        if (!(wasEmpty || this.noReturn)) {
+            this.body.makeReturn();
+        }
+        code = 'function';
+        if (this.isGenerator) {
+            code += '*';
+        }
+        if (this.ctor) {
+            code += ' ' + this.name;
+        }
+        code += '(';
+        answer = [this.makeCode(code)];
+        for (i = r = 0, len6 = params.length; r < len6; i = ++r) {
+            p = params[i];
+            if (i) {
+                answer.push(this.makeCode(", "));
+            }
+            answer.push.apply(answer, p);
+        }
+        answer.push(this.makeCode(') {'));
+        if (!this.body.isEmpty()) {
+            answer = answer.concat(this.makeCode("\n"), this.body.compileWithDeclarations(o), this.makeCode("\n" + this.tab));
+        }
+        answer.push(this.makeCode('}'));
+        if (this.ctor) {
+            return [this.makeCode(this.tab)].concat(slice.call(answer));
+        }
+        if (this.front || (o.level >= LEVEL_ACCESS)) {
+            return this.wrapInBraces(answer);
+        } else {
+            return answer;
+        }
+    };
+
+    Code.prototype.eachParamName = function(iterator) {
+        var j, len1, param, ref3, results;
+        ref3 = this.params;
+        results = [];
+        for (j = 0, len1 = ref3.length; j < len1; j++) {
+            param = ref3[j];
+            results.push(param.eachName(iterator));
+        }
+        return results;
+    };
+
+    Code.prototype.traverseChildren = function(crossScope, func) {
+        if (crossScope) {
+            return Code.__super__.traverseChildren.call(this, crossScope, func);
+        }
+    };
+
+    return Code;
+
+})(Base);
+
+exports.Param = Param = (function(superClass1) {
+    extend1(Param, superClass1);
+
+    function Param(name1, value1, splat) {
+        var message;
+        this.name = name1;
+        this.value = value1;
+        this.splat = splat;
+        message = isUnassignable(this.name.unwrapAll().value);
+        if (message) {
+            this.name.error(message);
+        }
+    }
+
+    Param.prototype.children = ['name', 'value'];
+
+    Param.prototype.compileToFragments = function(o) {
+        return this.name.compileToFragments(o, LEVEL_LIST);
+    };
+
+    Param.prototype.asReference = function(o) {
+        var name, node;
+        if (this.reference) {
+            return this.reference;
+        }
+        node = this.name;
+        if (node["this"]) {
+            name = node.properties[0].name.value;
+            if (indexOf.call(JS_FORBIDDEN, name) >= 0) {
+                name = "_" + name;
+            }
+            node = new IdentifierLiteral(o.scope.freeVariable(name));
+        } else if (node.isComplex()) {
+            node = new IdentifierLiteral(o.scope.freeVariable('arg'));
+        }
+        node = new Value(node);
+        if (this.splat) {
+            node = new Splat(node);
+        }
+        node.updateLocationDataIfMissing(this.locationData);
+        return this.reference = node;
+    };
+
+    Param.prototype.isComplex = function() {
+        return this.name.isComplex();
+    };
+
+    Param.prototype.eachName = function(iterator, name) {
+        var atParam, j, len1, node, obj, ref3, ref4;
+        if (name == null) {
+            name = this.name;
+        }
+        atParam = function(obj) {
+            return iterator("@" + obj.properties[0].name.value, obj);
+        };
+        if (name instanceof IdentifierLiteral) {
+            if (name instanceof NullLiteral) {
+                return;
+            }
+            return iterator(name.value, name);
+        }
+        if (name instanceof Value) {
+            return atParam(name);
+        }
+        ref4 = (ref3 = name.objects) != null ? ref3 : [];
+        for (j = 0, len1 = ref4.length; j < len1; j++) {
+            obj = ref4[j];
+            if (obj instanceof Assign && (obj.context == null)) {
+                obj = obj.variable;
+            }
+            if (obj instanceof Assign) {
+                if (obj.value instanceof Assign) {
+                    obj = obj.value;
+                }
+                this.eachName(iterator, obj.value.unwrap());
+            } else if (obj instanceof Splat) {
+                node = obj.name.unwrap();
+                iterator(node.value, node);
+            } else if (obj instanceof Value) {
+                if (obj.isArray() || obj.isObject()) {
+                    this.eachName(iterator, obj.base);
+                } else if (obj["this"]) {
+                    atParam(obj);
+                } else {
+                    iterator(obj.base.value, obj.base);
+                }
+            } else if (!(obj instanceof Expansion)) {
+                obj.error("illegal parameter " + (obj.compile()));
+            }
+        }
+    };
+
+    return Param;
+
+})(Base);
+
+exports.Splat = Splat = (function(superClass1) {
+    extend1(Splat, superClass1);
+
+    Splat.prototype.children = ['name'];
+
+    Splat.prototype.isAssignable = YES;
+
+    function Splat(name) {
+        this.name = name.compile ? name : new Literal(name);
+    }
+
+    Splat.prototype.assigns = function(name) {
+        return this.name.assigns(name);
+    };
+
+    Splat.prototype.compileNode = function(o) {
+        return this.name.compileToFragments(o);
+    };
+
+    Splat.prototype.unwrap = function() {
+        return this.name;
+    };
+
+    Splat.compileSplattedArray = function(o, list, apply) {
+        var args, base, compiledNode, concatPart, fragments, i, index, j, last, len1, node;
+        index = -1;
+        while ((node = list[++index]) && !(node instanceof Splat)) {
+            continue;
+        }
+        if (index >= list.length) {
+            return [];
+        }
+        if (list.length === 1) {
+            node = list[0];
+            fragments = node.compileToFragments(o, LEVEL_LIST);
+            if (apply) {
+                return fragments;
+            }
+            return [].concat(node.makeCode((utility('slice', o)) + ".call("), fragments, node.makeCode(")"));
+        }
+        args = list.slice(index);
+        for (i = j = 0, len1 = args.length; j < len1; i = ++j) {
+            node = args[i];
+            compiledNode = node.compileToFragments(o, LEVEL_LIST);
+            args[i] = node instanceof Splat ? [].concat(node.makeCode((utility('slice', o)) + ".call("), compiledNode, node.makeCode(")")) : [].concat(node.makeCode("["), compiledNode, node.makeCode("]"));
+        }
+        if (index === 0) {
+            node = list[0];
+            concatPart = node.joinFragmentArrays(args.slice(1), ', ');
+            return args[0].concat(node.makeCode(".concat("), concatPart, node.makeCode(")"));
+        }
+        base = (function() {
+            var k, len2, ref3, results;
+            ref3 = list.slice(0, index);
+            results = [];
+            for (k = 0, len2 = ref3.length; k < len2; k++) {
+                node = ref3[k];
+                results.push(node.compileToFragments(o, LEVEL_LIST));
+            }
+            return results;
+        })();
+        base = list[0].joinFragmentArrays(base, ', ');
+        concatPart = list[index].joinFragmentArrays(args, ', ');
+        last = list[list.length - 1];
+        return [].concat(list[0].makeCode("["), base, list[index].makeCode("].concat("), concatPart, last.makeCode(")"));
+    };
+
+    return Splat;
+
+})(Base);
+
+exports.Expansion = Expansion = (function(superClass1) {
+    extend1(Expansion, superClass1);
+
+    function Expansion() {
+        return Expansion.__super__.constructor.apply(this, arguments);
+    }
+
+    Expansion.prototype.isComplex = NO;
+
+    Expansion.prototype.compileNode = function(o) {
+        return this.error('Expansion must be used inside a destructuring assignment or parameter list');
+    };
+
+    Expansion.prototype.asReference = function(o) {
+        return this;
+    };
+
+    Expansion.prototype.eachName = function(iterator) {};
+
+    return Expansion;
+
+})(Base);
+
+exports.While = While = (function(superClass1) {
+    extend1(While, superClass1);
+
+    function While(condition, options) {
+        this.condition = (options != null ? options.invert : void 0) ? condition.invert() : condition;
+        this.guard = options != null ? options.guard : void 0;
+    }
+
+    While.prototype.children = ['condition', 'guard', 'body'];
+
+    While.prototype.isStatement = YES;
+
+    While.prototype.makeReturn = function(res) {
+        if (res) {
+            return While.__super__.makeReturn.apply(this, arguments);
+        } else {
+            this.returns = !this.jumps({
+                loop: true
+            });
+            return this;
+        }
+    };
+
+    While.prototype.addBody = function(body1) {
+        this.body = body1;
+        return this;
+    };
+
+    While.prototype.jumps = function() {
+        var expressions, j, jumpNode, len1, node;
+        expressions = this.body.expressions;
+        if (!expressions.length) {
+            return false;
+        }
+        for (j = 0, len1 = expressions.length; j < len1; j++) {
+            node = expressions[j];
+            if (jumpNode = node.jumps({
+                loop: true
+            })) {
+                return jumpNode;
+            }
+        }
+        return false;
+    };
+
+    While.prototype.compileNode = function(o) {
+        var answer, body, rvar, set;
+        o.indent += TAB;
+        set = '';
+        body = this.body;
+        if (body.isEmpty()) {
+            body = this.makeCode('');
+        } else {
             if (this.returns) {
-                resultPart = "" + this.tab + rvar + " = [];\n";
-                returnResult = "\n" + this.tab + "return " + rvar + ";";
-                body.makeReturn(rvar);
+                body.makeReturn(rvar = o.scope.freeVariable('results'));
+                set = "" + this.tab + rvar + " = [];\n";
             }
             if (this.guard) {
                 if (body.expressions.length > 1) {
@@ -3623,229 +2936,1058 @@
                     }
                 }
             }
-            if (this.pattern) {
-                body.expressions.unshift(new Assign(this.name, this.from ? new IdentifierLiteral(kvar) : new Literal(svar + "[" + kvar + "]")));
-            }
-            defPartFragments = [].concat(this.makeCode(defPart), this.pluckDirectCall(o, body));
-            if (namePart) {
-                varPart = "\n" + idt1 + namePart + ";";
-            }
-            if (this.object) {
-                forPartFragments = [this.makeCode(kvar + " in " + svar)];
-                if (this.own) {
-                    guardPart = "\n" + idt1 + "if (!" + (utility('hasProp', o)) + ".call(" + svar + ", " + kvar + ")) continue;";
-                }
-            } else if (this.from) {
-                forPartFragments = [this.makeCode(kvar + " of " + svar)];
-            }
-            bodyFragments = body.compileToFragments(merge(o, {
-                indent: idt1
-            }), LEVEL_TOP);
-            if (bodyFragments && bodyFragments.length > 0) {
-                bodyFragments = [].concat(this.makeCode("\n"), bodyFragments, this.makeCode("\n"));
-            }
-            return [].concat(defPartFragments, this.makeCode("" + (resultPart || '') + this.tab + "for ("), forPartFragments, this.makeCode(") {" + guardPart + varPart), bodyFragments, this.makeCode(this.tab + "}" + (returnResult || '')));
-        };
-
-        For.prototype.pluckDirectCall = function(o, body) {
-            var base, defs, expr, fn, idx, j, len1, ref, ref3, ref4, ref5, ref6, ref7, ref8, ref9, val;
-            defs = [];
-            ref3 = body.expressions;
-            for (idx = j = 0, len1 = ref3.length; j < len1; idx = ++j) {
-                expr = ref3[idx];
-                expr = expr.unwrapAll();
-                if (!(expr instanceof Call)) {
-                    continue;
-                }
-                val = (ref4 = expr.variable) != null ? ref4.unwrapAll() : void 0;
-                if (!((val instanceof Code) || (val instanceof Value && ((ref5 = val.base) != null ? ref5.unwrapAll() : void 0) instanceof Code && val.properties.length === 1 && ((ref6 = (ref7 = val.properties[0].name) != null ? ref7.value : void 0) === 'call' || ref6 === 'apply')))) {
-                    continue;
-                }
-                fn = ((ref8 = val.base) != null ? ref8.unwrapAll() : void 0) || val;
-                ref = new IdentifierLiteral(o.scope.freeVariable('fn'));
-                base = new Value(ref);
-                if (val.base) {
-                    ref9 = [base, val], val.base = ref9[0], base = ref9[1];
-                }
-                body.expressions[idx] = new Call(base, expr.args);
-                defs = defs.concat(this.makeCode(this.tab), new Assign(ref, fn).compileToFragments(o, LEVEL_TOP), this.makeCode(';\n'));
-            }
-            return defs;
-        };
-
-        return For;
-
-    })(While);
-
-    exports.Switch = Switch = (function(superClass1) {
-        extend1(Switch, superClass1);
-
-        function Switch(subject, cases, otherwise) {
-            this.subject = subject;
-            this.cases = cases;
-            this.otherwise = otherwise;
+            body = [].concat(this.makeCode("\n"), body.compileToFragments(o, LEVEL_TOP), this.makeCode("\n" + this.tab));
         }
+        answer = [].concat(this.makeCode(set + this.tab + "while ("), this.condition.compileToFragments(o, LEVEL_PAREN), this.makeCode(") {"), body, this.makeCode("}"));
+        if (this.returns) {
+            answer.push(this.makeCode("\n" + this.tab + "return " + rvar + ";"));
+        }
+        return answer;
+    };
 
-        Switch.prototype.children = ['subject', 'cases', 'otherwise'];
+    return While;
 
-        Switch.prototype.isStatement = YES;
+})(Base);
 
-        Switch.prototype.jumps = function(o) {
-            var block, conds, j, jumpNode, len1, ref3, ref4, ref5;
-            if (o == null) {
-                o = {
-                    block: true
-                };
-            }
-            ref3 = this.cases;
-            for (j = 0, len1 = ref3.length; j < len1; j++) {
-                ref4 = ref3[j], conds = ref4[0], block = ref4[1];
-                if (jumpNode = block.jumps(o)) {
-                    return jumpNode;
-                }
-            }
-            return (ref5 = this.otherwise) != null ? ref5.jumps(o) : void 0;
-        };
+exports.Op = Op = (function(superClass1) {
+    var CONVERSIONS, INVERSIONS;
 
-        Switch.prototype.makeReturn = function(res) {
-            var j, len1, pair, ref3, ref4;
-            ref3 = this.cases;
-            for (j = 0, len1 = ref3.length; j < len1; j++) {
-                pair = ref3[j];
-                pair[1].makeReturn(res);
+    extend1(Op, superClass1);
+
+    function Op(op, first, second, flip) {
+        if (op === 'in') {
+            return new In(first, second);
+        }
+        if (op === 'do') {
+            return this.generateDo(first);
+        }
+        if (op === 'new') {
+            if (first instanceof Call && !first["do"] && !first.isNew) {
+                return first.newInstance();
             }
-            if (res) {
-                this.otherwise || (this.otherwise = new Block([new Literal('void 0')]));
+            if (first instanceof Code && first.bound || first["do"]) {
+                first = new Parens(first);
             }
-            if ((ref4 = this.otherwise) != null) {
-                ref4.makeReturn(res);
+        }
+        this.operator = CONVERSIONS[op] || op;
+        this.first = first;
+        this.second = second;
+        this.flip = !!flip;
+        return this;
+    }
+
+    CONVERSIONS = {
+        '==': '===',
+        '!=': '!==',
+        'of': 'in',
+        'yieldfrom': 'yield*'
+    };
+
+    INVERSIONS = {
+        '!==': '===',
+        '===': '!=='
+    };
+
+    Op.prototype.children = ['first', 'second'];
+
+    Op.prototype.isNumber = function() {
+        var ref3;
+        return this.isUnary() && ((ref3 = this.operator) === '+' || ref3 === '-') && this.first instanceof Value && this.first.isNumber();
+    };
+
+    Op.prototype.isYield = function() {
+        var ref3;
+        return (ref3 = this.operator) === 'yield' || ref3 === 'yield*';
+    };
+
+    Op.prototype.isUnary = function() {
+        return !this.second;
+    };
+
+    Op.prototype.isComplex = function() {
+        return !this.isNumber();
+    };
+
+    Op.prototype.isChainable = function() {
+        var ref3;
+        return (ref3 = this.operator) === '<' || ref3 === '>' || ref3 === '>=' || ref3 === '<=' || ref3 === '===' || ref3 === '!==';
+    };
+
+    Op.prototype.invert = function() {
+        var allInvertable, curr, fst, op, ref3;
+        if (this.isChainable() && this.first.isChainable()) {
+            allInvertable = true;
+            curr = this;
+            while (curr && curr.operator) {
+                allInvertable && (allInvertable = curr.operator in INVERSIONS);
+                curr = curr.first;
+            }
+            if (!allInvertable) {
+                return new Parens(this).invert();
+            }
+            curr = this;
+            while (curr && curr.operator) {
+                curr.invert = !curr.invert;
+                curr.operator = INVERSIONS[curr.operator];
+                curr = curr.first;
             }
             return this;
-        };
+        } else if (op = INVERSIONS[this.operator]) {
+            this.operator = op;
+            if (this.first.unwrap() instanceof Op) {
+                this.first.invert();
+            }
+            return this;
+        } else if (this.second) {
+            return new Parens(this).invert();
+        } else if (this.operator === '!' && (fst = this.first.unwrap()) instanceof Op && ((ref3 = fst.operator) === '!' || ref3 === 'in' || ref3 === 'instanceof')) {
+            return fst;
+        } else {
+            return new Op('!', this);
+        }
+    };
 
-        Switch.prototype.compileNode = function(o) {
-            var block, body, cond, conditions, expr, fragments, i, idt1, idt2, j, k, len1, len2, ref3, ref4, ref5;
-            idt1 = o.indent + TAB;
-            idt2 = o.indent = idt1 + TAB;
-            fragments = [].concat(this.makeCode(this.tab + "switch ("), (this.subject ? this.subject.compileToFragments(o, LEVEL_PAREN) : this.makeCode("false")), this.makeCode(") {\n"));
-            ref3 = this.cases;
-            for (i = j = 0, len1 = ref3.length; j < len1; i = ++j) {
-                ref4 = ref3[i], conditions = ref4[0], block = ref4[1];
-                ref5 = flatten([conditions]);
-                for (k = 0, len2 = ref5.length; k < len2; k++) {
-                    cond = ref5[k];
-                    if (!this.subject) {
-                        cond = cond.invert();
-                    }
-                    fragments = fragments.concat(this.makeCode(idt1 + "case "), cond.compileToFragments(o, LEVEL_PAREN), this.makeCode(":\n"));
+    Op.prototype.unfoldSoak = function(o) {
+        var ref3;
+        return ((ref3 = this.operator) === '++' || ref3 === '--' || ref3 === 'delete') && unfoldSoak(o, this, 'first');
+    };
+
+    Op.prototype.generateDo = function(exp) {
+        var call, func, j, len1, param, passedParams, ref, ref3;
+        passedParams = [];
+        func = exp instanceof Assign && (ref = exp.value.unwrap()) instanceof Code ? ref : exp;
+        ref3 = func.params || [];
+        for (j = 0, len1 = ref3.length; j < len1; j++) {
+            param = ref3[j];
+            if (param.value) {
+                passedParams.push(param.value);
+                delete param.value;
+            } else {
+                passedParams.push(param);
+            }
+        }
+        call = new Call(exp, passedParams);
+        call["do"] = true;
+        return call;
+    };
+
+    Op.prototype.compileNode = function(o) {
+        var answer, isChain, lhs, message, ref3, rhs;
+        isChain = this.isChainable() && this.first.isChainable();
+        if (!isChain) {
+            this.first.front = this.front;
+        }
+        if (this.operator === 'delete' && o.scope.check(this.first.unwrapAll().value)) {
+            this.error('delete operand may not be argument or var');
+        }
+        if ((ref3 = this.operator) === '--' || ref3 === '++') {
+            message = isUnassignable(this.first.unwrapAll().value);
+            if (message) {
+                this.first.error(message);
+            }
+        }
+        if (this.isYield()) {
+            return this.compileYield(o);
+        }
+        if (this.isUnary()) {
+            return this.compileUnary(o);
+        }
+        if (isChain) {
+            return this.compileChain(o);
+        }
+        switch (this.operator) {
+            case '?':
+                return this.compileExistence(o);
+            case '**':
+                return this.compilePower(o);
+            case '//':
+                return this.compileFloorDivision(o);
+            case '%%':
+                return this.compileModulo(o);
+            default:
+                lhs = this.first.compileToFragments(o, LEVEL_OP);
+                rhs = this.second.compileToFragments(o, LEVEL_OP);
+                answer = [].concat(lhs, this.makeCode(" " + this.operator + " "), rhs);
+                if (o.level <= LEVEL_OP) {
+                    return answer;
+                } else {
+                    return this.wrapInBraces(answer);
                 }
-                if ((body = block.compileToFragments(o, LEVEL_TOP)).length > 0) {
-                    fragments = fragments.concat(body, this.makeCode('\n'));
-                }
-                if (i === this.cases.length - 1 && !this.otherwise) {
-                    break;
-                }
-                expr = this.lastNonComment(block.expressions);
-                if (expr instanceof Return || (expr instanceof Literal && expr.jumps() && expr.value !== 'debugger')) {
+        }
+    };
+
+    Op.prototype.compileChain = function(o) {
+        var fragments, fst, ref3, shared;
+        ref3 = this.first.second.cache(o), this.first.second = ref3[0], shared = ref3[1];
+        fst = this.first.compileToFragments(o, LEVEL_OP);
+        fragments = fst.concat(this.makeCode(" " + (this.invert ? '&&' : '||') + " "), shared.compileToFragments(o), this.makeCode(" " + this.operator + " "), this.second.compileToFragments(o, LEVEL_OP));
+        return this.wrapInBraces(fragments);
+    };
+
+    Op.prototype.compileExistence = function(o) {
+        var fst, ref;
+        if (this.first.isComplex()) {
+            ref = new IdentifierLiteral(o.scope.freeVariable('ref'));
+            fst = new Parens(new Assign(ref, this.first));
+        } else {
+            fst = this.first;
+            ref = fst;
+        }
+        return new If(new Existence(fst), ref, {
+            type: 'if'
+        }).addElse(this.second).compileToFragments(o);
+    };
+
+    Op.prototype.compileUnary = function(o) {
+        var op, parts, plusMinus;
+        parts = [];
+        op = this.operator;
+        parts.push([this.makeCode(op)]);
+        if (op === '!' && this.first instanceof Existence) {
+            this.first.negated = !this.first.negated;
+            return this.first.compileToFragments(o);
+        }
+        if (o.level >= LEVEL_ACCESS) {
+            return (new Parens(this)).compileToFragments(o);
+        }
+        plusMinus = op === '+' || op === '-';
+        if ((op === 'new' || op === 'typeof' || op === 'delete') || plusMinus && this.first instanceof Op && this.first.operator === op) {
+            parts.push([this.makeCode(' ')]);
+        }
+        if ((plusMinus && this.first instanceof Op) || (op === 'new' && this.first.isStatement(o))) {
+            this.first = new Parens(this.first);
+        }
+        parts.push(this.first.compileToFragments(o, LEVEL_OP));
+        if (this.flip) {
+            parts.reverse();
+        }
+        return this.joinFragmentArrays(parts, '');
+    };
+
+    Op.prototype.compileYield = function(o) {
+        var op, parts, ref3;
+        parts = [];
+        op = this.operator;
+        if (o.scope.parent == null) {
+            this.error('yield can only occur inside functions');
+        }
+        if (indexOf.call(Object.keys(this.first), 'expression') >= 0 && !(this.first instanceof Throw)) {
+            if (this.first.expression != null) {
+                parts.push(this.first.expression.compileToFragments(o, LEVEL_OP));
+            }
+        } else {
+            if (o.level >= LEVEL_PAREN) {
+                parts.push([this.makeCode("(")]);
+            }
+            parts.push([this.makeCode(op)]);
+            if (((ref3 = this.first.base) != null ? ref3.value : void 0) !== '') {
+                parts.push([this.makeCode(" ")]);
+            }
+            parts.push(this.first.compileToFragments(o, LEVEL_OP));
+            if (o.level >= LEVEL_PAREN) {
+                parts.push([this.makeCode(")")]);
+            }
+        }
+        return this.joinFragmentArrays(parts, '');
+    };
+
+    Op.prototype.compilePower = function(o) {
+        var pow;
+        pow = new Value(new IdentifierLiteral('Math'), [new Access(new PropertyName('pow'))]);
+        return new Call(pow, [this.first, this.second]).compileToFragments(o);
+    };
+
+    Op.prototype.compileFloorDivision = function(o) {
+        var div, floor, second;
+        floor = new Value(new IdentifierLiteral('Math'), [new Access(new PropertyName('floor'))]);
+        second = this.second.isComplex() ? new Parens(this.second) : this.second;
+        div = new Op('/', this.first, second);
+        return new Call(floor, [div]).compileToFragments(o);
+    };
+
+    Op.prototype.compileModulo = function(o) {
+        var mod;
+        mod = new Value(new Literal(utility('modulo', o)));
+        return new Call(mod, [this.first, this.second]).compileToFragments(o);
+    };
+
+    Op.prototype.toString = function(idt) {
+        return Op.__super__.toString.call(this, idt, this.constructor.name + ' ' + this.operator);
+    };
+
+    return Op;
+
+})(Base);
+
+exports.In = In = (function(superClass1) {
+    extend1(In, superClass1);
+
+    function In(object, array) {
+        this.object = object;
+        this.array = array;
+    }
+
+    In.prototype.children = ['object', 'array'];
+
+    In.prototype.invert = NEGATE;
+
+    In.prototype.compileNode = function(o) {
+        var hasSplat, j, len1, obj, ref3;
+        if (this.array instanceof Value && this.array.isArray() && this.array.base.objects.length) {
+            ref3 = this.array.base.objects;
+            for (j = 0, len1 = ref3.length; j < len1; j++) {
+                obj = ref3[j];
+                if (!(obj instanceof Splat)) {
                     continue;
                 }
-                fragments.push(cond.makeCode(idt2 + 'break;\n'));
+                hasSplat = true;
+                break;
             }
-            if (this.otherwise && this.otherwise.expressions.length) {
-                fragments.push.apply(fragments, [this.makeCode(idt1 + "default:\n")].concat(slice.call(this.otherwise.compileToFragments(o, LEVEL_TOP)), [this.makeCode("\n")]));
+            if (!hasSplat) {
+                return this.compileOrTest(o);
             }
-            fragments.push(this.makeCode(this.tab + '}'));
+        }
+        return this.compileLoopTest(o);
+    };
+
+    In.prototype.compileOrTest = function(o) {
+        var cmp, cnj, i, item, j, len1, ref, ref3, ref4, ref5, sub, tests;
+        ref3 = this.object.cache(o, LEVEL_OP), sub = ref3[0], ref = ref3[1];
+        ref4 = this.negated ? [' !== ', ' && '] : [' === ', ' || '], cmp = ref4[0], cnj = ref4[1];
+        tests = [];
+        ref5 = this.array.base.objects;
+        for (i = j = 0, len1 = ref5.length; j < len1; i = ++j) {
+            item = ref5[i];
+            if (i) {
+                tests.push(this.makeCode(cnj));
+            }
+            tests = tests.concat((i ? ref : sub), this.makeCode(cmp), item.compileToFragments(o, LEVEL_ACCESS));
+        }
+        if (o.level < LEVEL_OP) {
+            return tests;
+        } else {
+            return this.wrapInBraces(tests);
+        }
+    };
+
+    In.prototype.compileLoopTest = function(o) {
+        var fragments, ref, ref3, sub;
+        ref3 = this.object.cache(o, LEVEL_LIST), sub = ref3[0], ref = ref3[1];
+        fragments = [].concat(this.makeCode(utility('indexOf', o) + ".call("), this.array.compileToFragments(o, LEVEL_LIST), this.makeCode(", "), ref, this.makeCode(") " + (this.negated ? '< 0' : '>= 0')));
+        if (fragmentsToText(sub) === fragmentsToText(ref)) {
             return fragments;
-        };
-
-        return Switch;
-
-    })(Base);
-
-    exports.If = If = (function(superClass1) {
-        extend1(If, superClass1);
-
-        function If(condition, body1, options) {
-            this.body = body1;
-            if (options == null) {
-                options = {};
-            }
-            this.condition = options.type === 'unless' ? condition.invert() : condition;
-            this.elseBody = null;
-            this.isChain = false;
-            this.soak = options.soak;
         }
+        fragments = sub.concat(this.makeCode(', '), fragments);
+        if (o.level < LEVEL_LIST) {
+            return fragments;
+        } else {
+            return this.wrapInBraces(fragments);
+        }
+    };
 
-        If.prototype.children = ['condition', 'body', 'elseBody'];
+    In.prototype.toString = function(idt) {
+        return In.__super__.toString.call(this, idt, this.constructor.name + (this.negated ? '!' : ''));
+    };
 
-        If.prototype.bodyNode = function() {
-            var ref3;
-            return (ref3 = this.body) != null ? ref3.unwrap() : void 0;
-        };
+    return In;
 
-        If.prototype.elseBodyNode = function() {
-            var ref3;
-            return (ref3 = this.elseBody) != null ? ref3.unwrap() : void 0;
-        };
+})(Base);
 
-        If.prototype.addElse = function(elseBody) {
-            if (this.isChain) {
-                this.elseBodyNode().addElse(elseBody);
+exports.Try = Try = (function(superClass1) {
+    extend1(Try, superClass1);
+
+    function Try(attempt, errorVariable, recovery, ensure) {
+        this.attempt = attempt;
+        this.errorVariable = errorVariable;
+        this.recovery = recovery;
+        this.ensure = ensure;
+    }
+
+    Try.prototype.children = ['attempt', 'recovery', 'ensure'];
+
+    Try.prototype.isStatement = YES;
+
+    Try.prototype.jumps = function(o) {
+        var ref3;
+        return this.attempt.jumps(o) || ((ref3 = this.recovery) != null ? ref3.jumps(o) : void 0);
+    };
+
+    Try.prototype.makeReturn = function(res) {
+        if (this.attempt) {
+            this.attempt = this.attempt.makeReturn(res);
+        }
+        if (this.recovery) {
+            this.recovery = this.recovery.makeReturn(res);
+        }
+        return this;
+    };
+
+    Try.prototype.compileNode = function(o) {
+        var catchPart, ensurePart, generatedErrorVariableName, message, placeholder, tryPart;
+        o.indent += TAB;
+        tryPart = this.attempt.compileToFragments(o, LEVEL_TOP);
+        catchPart = this.recovery ? (generatedErrorVariableName = o.scope.freeVariable('error', {
+            reserve: false
+        }), placeholder = new IdentifierLiteral(generatedErrorVariableName), this.errorVariable ? (message = isUnassignable(this.errorVariable.unwrapAll().value), message ? this.errorVariable.error(message) : void 0, this.recovery.unshift(new Assign(this.errorVariable, placeholder))) : void 0, [].concat(this.makeCode(" catch ("), placeholder.compileToFragments(o), this.makeCode(") {\n"), this.recovery.compileToFragments(o, LEVEL_TOP), this.makeCode("\n" + this.tab + "}"))) : !(this.ensure || this.recovery) ? (generatedErrorVariableName = o.scope.freeVariable('error', {
+            reserve: false
+        }), [this.makeCode(" catch (" + generatedErrorVariableName + ") {}")]) : [];
+        ensurePart = this.ensure ? [].concat(this.makeCode(" finally {\n"), this.ensure.compileToFragments(o, LEVEL_TOP), this.makeCode("\n" + this.tab + "}")) : [];
+        return [].concat(this.makeCode(this.tab + "try {\n"), tryPart, this.makeCode("\n" + this.tab + "}"), catchPart, ensurePart);
+    };
+
+    return Try;
+
+})(Base);
+
+exports.Throw = Throw = (function(superClass1) {
+    extend1(Throw, superClass1);
+
+    function Throw(expression) {
+        this.expression = expression;
+    }
+
+    Throw.prototype.children = ['expression'];
+
+    Throw.prototype.isStatement = YES;
+
+    Throw.prototype.jumps = NO;
+
+    Throw.prototype.makeReturn = THIS;
+
+    Throw.prototype.compileNode = function(o) {
+        return [].concat(this.makeCode(this.tab + "throw "), this.expression.compileToFragments(o), this.makeCode(";"));
+    };
+
+    return Throw;
+
+})(Base);
+
+exports.Existence = Existence = (function(superClass1) {
+    extend1(Existence, superClass1);
+
+    function Existence(expression) {
+        this.expression = expression;
+    }
+
+    Existence.prototype.children = ['expression'];
+
+    Existence.prototype.invert = NEGATE;
+
+    Existence.prototype.compileNode = function(o) {
+        var cmp, cnj, code, ref3;
+        this.expression.front = this.front;
+        code = this.expression.compile(o, LEVEL_OP);
+        if (this.expression.unwrap() instanceof IdentifierLiteral && !o.scope.check(code)) {
+            ref3 = this.negated ? ['===', '||'] : ['!==', '&&'], cmp = ref3[0], cnj = ref3[1];
+            code = "typeof " + code + " " + cmp + " \"undefined\" " + cnj + " " + code + " " + cmp + " null";
+        } else {
+            code = code + " " + (this.negated ? '==' : '!=') + " null";
+        }
+        return [this.makeCode(o.level <= LEVEL_COND ? code : "(" + code + ")")];
+    };
+
+    return Existence;
+
+})(Base);
+
+exports.Parens = Parens = (function(superClass1) {
+    extend1(Parens, superClass1);
+
+    function Parens(body1) {
+        this.body = body1;
+    }
+
+    Parens.prototype.children = ['body'];
+
+    Parens.prototype.unwrap = function() {
+        return this.body;
+    };
+
+    Parens.prototype.isComplex = function() {
+        return this.body.isComplex();
+    };
+
+    Parens.prototype.compileNode = function(o) {
+        var bare, expr, fragments;
+        expr = this.body.unwrap();
+        if (expr instanceof Value && expr.isAtomic()) {
+            expr.front = this.front;
+            return expr.compileToFragments(o);
+        }
+        fragments = expr.compileToFragments(o, LEVEL_PAREN);
+        bare = o.level < LEVEL_OP && (expr instanceof Op || expr instanceof Call || (expr instanceof For && expr.returns)) && (o.level < LEVEL_COND || fragments.length <= 3);
+        if (bare) {
+            return fragments;
+        } else {
+            return this.wrapInBraces(fragments);
+        }
+    };
+
+    return Parens;
+
+})(Base);
+
+exports.StringWithInterpolations = StringWithInterpolations = (function(superClass1) {
+    extend1(StringWithInterpolations, superClass1);
+
+    function StringWithInterpolations() {
+        return StringWithInterpolations.__super__.constructor.apply(this, arguments);
+    }
+
+    StringWithInterpolations.prototype.compileNode = function(o) {
+        var element, elements, expr, fragments, j, len1, value;
+        if (!o.inTaggedTemplateCall) {
+            return StringWithInterpolations.__super__.compileNode.apply(this, arguments);
+        }
+        expr = this.body.unwrap();
+        elements = [];
+        expr.traverseChildren(false, function(node) {
+            if (node instanceof StringLiteral) {
+                elements.push(node);
+                return true;
+            } else if (node instanceof Parens) {
+                elements.push(node);
+                return false;
+            }
+            return true;
+        });
+        fragments = [];
+        fragments.push(this.makeCode('`'));
+        for (j = 0, len1 = elements.length; j < len1; j++) {
+            element = elements[j];
+            if (element instanceof StringLiteral) {
+                value = element.value.slice(1, -1);
+                value = value.replace(/(\\*)(`|\$\{)/g, function(match, backslashes, toBeEscaped) {
+                    if (backslashes.length % 2 === 0) {
+                        return backslashes + "\\" + toBeEscaped;
+                    } else {
+                        return match;
+                    }
+                });
+                fragments.push(this.makeCode(value));
             } else {
-                this.isChain = elseBody instanceof If;
-                this.elseBody = this.ensureBlock(elseBody);
-                this.elseBody.updateLocationDataIfMissing(elseBody.locationData);
+                fragments.push(this.makeCode('${'));
+                fragments.push.apply(fragments, element.compileToFragments(o, LEVEL_PAREN));
+                fragments.push(this.makeCode('}'));
             }
-            return this;
-        };
+        }
+        fragments.push(this.makeCode('`'));
+        return fragments;
+    };
 
-        If.prototype.isStatement = function(o) {
-            var ref3;
-            return (o != null ? o.level : void 0) === LEVEL_TOP || this.bodyNode().isStatement(o) || ((ref3 = this.elseBodyNode()) != null ? ref3.isStatement(o) : void 0);
-        };
+    return StringWithInterpolations;
 
-        If.prototype.jumps = function(o) {
-            var ref3;
-            return this.body.jumps(o) || ((ref3 = this.elseBody) != null ? ref3.jumps(o) : void 0);
-        };
+})(Parens);
 
-        If.prototype.compileNode = function(o) {
-            if (this.isStatement(o)) {
-                return this.compileStatement(o);
+exports.For = For = (function(superClass1) {
+    extend1(For, superClass1);
+
+    function For(body, source) {
+        var ref3;
+        this.source = source.source, this.guard = source.guard, this.step = source.step, this.name = source.name, this.index = source.index;
+        this.body = Block.wrap([body]);
+        this.own = !!source.own;
+        this.object = !!source.object;
+        this.from = !!source.from;
+        if (this.from && this.index) {
+            this.index.error('cannot use index with for-from');
+        }
+        if (this.own && !this.object) {
+            source.ownTag.error("cannot use own with for-" + (this.from ? 'from' : 'in'));
+        }
+        if (this.object) {
+            ref3 = [this.index, this.name], this.name = ref3[0], this.index = ref3[1];
+        }
+        if (this.index instanceof Value && !this.index.isAssignable()) {
+            this.index.error('index cannot be a pattern matching expression');
+        }
+        this.range = this.source instanceof Value && this.source.base instanceof Range && !this.source.properties.length && !this.from;
+        this.pattern = this.name instanceof Value;
+        if (this.range && this.index) {
+            this.index.error('indexes do not apply to range loops');
+        }
+        if (this.range && this.pattern) {
+            this.name.error('cannot pattern match over range loops');
+        }
+        this.returns = false;
+    }
+
+    For.prototype.children = ['body', 'source', 'guard', 'step'];
+
+    For.prototype.compileNode = function(o) {
+        var body, bodyFragments, compare, compareDown, declare, declareDown, defPart, defPartFragments, down, forPartFragments, guardPart, idt1, increment, index, ivar, kvar, kvarAssign, last, lvar, name, namePart, ref, ref3, ref4, resultPart, returnResult, rvar, scope, source, step, stepNum, stepVar, svar, varPart;
+        body = Block.wrap([this.body]);
+        ref3 = body.expressions, last = ref3[ref3.length - 1];
+        if ((last != null ? last.jumps() : void 0) instanceof Return) {
+            this.returns = false;
+        }
+        source = this.range ? this.source.base : this.source;
+        scope = o.scope;
+        if (!this.pattern) {
+            name = this.name && (this.name.compile(o, LEVEL_LIST));
+        }
+        index = this.index && (this.index.compile(o, LEVEL_LIST));
+        if (name && !this.pattern) {
+            scope.find(name);
+        }
+        if (index && !(this.index instanceof Value)) {
+            scope.find(index);
+        }
+        if (this.returns) {
+            rvar = scope.freeVariable('results');
+        }
+        if (this.from) {
+            if (this.pattern) {
+                ivar = scope.freeVariable('x', {
+                    single: true
+                });
+            }
+        } else {
+            ivar = (this.object && index) || scope.freeVariable('i', {
+                single: true
+            });
+        }
+        kvar = ((this.range || this.from) && name) || index || ivar;
+        kvarAssign = kvar !== ivar ? kvar + " = " : "";
+        if (this.step && !this.range) {
+            ref4 = this.cacheToCodeFragments(this.step.cache(o, LEVEL_LIST, isComplexOrAssignable)), step = ref4[0], stepVar = ref4[1];
+            if (this.step.isNumber()) {
+                stepNum = Number(stepVar);
+            }
+        }
+        if (this.pattern) {
+            name = ivar;
+        }
+        varPart = '';
+        guardPart = '';
+        defPart = '';
+        idt1 = this.tab + TAB;
+        if (this.range) {
+            forPartFragments = source.compileToFragments(merge(o, {
+                index: ivar,
+                name: name,
+                step: this.step,
+                isComplex: isComplexOrAssignable
+            }));
+        } else {
+            svar = this.source.compile(o, LEVEL_LIST);
+            if ((name || this.own) && !(this.source.unwrap() instanceof IdentifierLiteral)) {
+                defPart += "" + this.tab + (ref = scope.freeVariable('ref')) + " = " + svar + ";\n";
+                svar = ref;
+            }
+            if (name && !this.pattern && !this.from) {
+                namePart = name + " = " + svar + "[" + kvar + "]";
+            }
+            if (!this.object && !this.from) {
+                if (step !== stepVar) {
+                    defPart += "" + this.tab + step + ";\n";
+                }
+                down = stepNum < 0;
+                if (!(this.step && (stepNum != null) && down)) {
+                    lvar = scope.freeVariable('len');
+                }
+                declare = "" + kvarAssign + ivar + " = 0, " + lvar + " = " + svar + ".length";
+                declareDown = "" + kvarAssign + ivar + " = " + svar + ".length - 1";
+                compare = ivar + " < " + lvar;
+                compareDown = ivar + " >= 0";
+                if (this.step) {
+                    if (stepNum != null) {
+                        if (down) {
+                            compare = compareDown;
+                            declare = declareDown;
+                        }
+                    } else {
+                        compare = stepVar + " > 0 ? " + compare + " : " + compareDown;
+                        declare = "(" + stepVar + " > 0 ? (" + declare + ") : " + declareDown + ")";
+                    }
+                    increment = ivar + " += " + stepVar;
+                } else {
+                    increment = "" + (kvar !== ivar ? "++" + ivar : ivar + "++");
+                }
+                forPartFragments = [this.makeCode(declare + "; " + compare + "; " + kvarAssign + increment)];
+            }
+        }
+        if (this.returns) {
+            resultPart = "" + this.tab + rvar + " = [];\n";
+            returnResult = "\n" + this.tab + "return " + rvar + ";";
+            body.makeReturn(rvar);
+        }
+        if (this.guard) {
+            if (body.expressions.length > 1) {
+                body.expressions.unshift(new If((new Parens(this.guard)).invert(), new StatementLiteral("continue")));
             } else {
-                return this.compileExpression(o);
+                if (this.guard) {
+                    body = Block.wrap([new If(this.guard, body)]);
+                }
             }
-        };
-
-        If.prototype.makeReturn = function(res) {
-            if (res) {
-                this.elseBody || (this.elseBody = new Block([new Literal('void 0')]));
+        }
+        if (this.pattern) {
+            body.expressions.unshift(new Assign(this.name, this.from ? new IdentifierLiteral(kvar) : new Literal(svar + "[" + kvar + "]")));
+        }
+        defPartFragments = [].concat(this.makeCode(defPart), this.pluckDirectCall(o, body));
+        if (namePart) {
+            varPart = "\n" + idt1 + namePart + ";";
+        }
+        if (this.object) {
+            forPartFragments = [this.makeCode(kvar + " in " + svar)];
+            if (this.own) {
+                guardPart = "\n" + idt1 + "if (!" + (utility('hasProp', o)) + ".call(" + svar + ", " + kvar + ")) continue;";
             }
-            this.body && (this.body = new Block([this.body.makeReturn(res)]));
-            this.elseBody && (this.elseBody = new Block([this.elseBody.makeReturn(res)]));
-            return this;
-        };
+        } else if (this.from) {
+            forPartFragments = [this.makeCode(kvar + " of " + svar)];
+        }
+        bodyFragments = body.compileToFragments(merge(o, {
+            indent: idt1
+        }), LEVEL_TOP);
+        if (bodyFragments && bodyFragments.length > 0) {
+            bodyFragments = [].concat(this.makeCode("\n"), bodyFragments, this.makeCode("\n"));
+        }
+        return [].concat(defPartFragments, this.makeCode("" + (resultPart || '') + this.tab + "for ("), forPartFragments, this.makeCode(") {" + guardPart + varPart), bodyFragments, this.makeCode(this.tab + "}" + (returnResult || '')));
+    };
 
-        If.prototype.ensureBlock = function(node) {
-            if (node instanceof Block) {
-                return node;
-            } else {
-                return new Block([node]);
+    For.prototype.pluckDirectCall = function(o, body) {
+        var base, defs, expr, fn, idx, j, len1, ref, ref3, ref4, ref5, ref6, ref7, ref8, ref9, val;
+        defs = [];
+        ref3 = body.expressions;
+        for (idx = j = 0, len1 = ref3.length; j < len1; idx = ++j) {
+            expr = ref3[idx];
+            expr = expr.unwrapAll();
+            if (!(expr instanceof Call)) {
+                continue;
             }
-        };
+            val = (ref4 = expr.variable) != null ? ref4.unwrapAll() : void 0;
+            if (!((val instanceof Code) || (val instanceof Value && ((ref5 = val.base) != null ? ref5.unwrapAll() : void 0) instanceof Code && val.properties.length === 1 && ((ref6 = (ref7 = val.properties[0].name) != null ? ref7.value : void 0) === 'call' || ref6 === 'apply')))) {
+                continue;
+            }
+            fn = ((ref8 = val.base) != null ? ref8.unwrapAll() : void 0) || val;
+            ref = new IdentifierLiteral(o.scope.freeVariable('fn'));
+            base = new Value(ref);
+            if (val.base) {
+                ref9 = [base, val], val.base = ref9[0], base = ref9[1];
+            }
+            body.expressions[idx] = new Call(base, expr.args);
+            defs = defs.concat(this.makeCode(this.tab), new Assign(ref, fn).compileToFragments(o, LEVEL_TOP), this.makeCode(';\n'));
+        }
+        return defs;
+    };
 
-        If.prototype.compileStatement = function(o) {
-            var answer, body, child, cond, ifPart, indent;
-            child = del(o, 'chainChild');
+    return For;
+
+})(While);
+
+exports.Switch = Switch = (function(superClass1) {
+    extend1(Switch, superClass1);
+
+    function Switch(subject, cases, otherwise) {
+        this.subject = subject;
+        this.cases = cases;
+        this.otherwise = otherwise;
+    }
+
+    Switch.prototype.children = ['subject', 'cases', 'otherwise'];
+
+    Switch.prototype.isStatement = YES;
+
+    Switch.prototype.jumps = function(o) {
+        var block, conds, j, jumpNode, len1, ref3, ref4, ref5;
+        if (o == null) {
+            o = {
+                block: true
+            };
+        }
+        ref3 = this.cases;
+        for (j = 0, len1 = ref3.length; j < len1; j++) {
+            ref4 = ref3[j], conds = ref4[0], block = ref4[1];
+            if (jumpNode = block.jumps(o)) {
+                return jumpNode;
+            }
+        }
+        return (ref5 = this.otherwise) != null ? ref5.jumps(o) : void 0;
+    };
+
+    Switch.prototype.makeReturn = function(res) {
+        var j, len1, pair, ref3, ref4;
+        ref3 = this.cases;
+        for (j = 0, len1 = ref3.length; j < len1; j++) {
+            pair = ref3[j];
+            pair[1].makeReturn(res);
+        }
+        if (res) {
+            this.otherwise || (this.otherwise = new Block([new Literal('void 0')]));
+        }
+        if ((ref4 = this.otherwise) != null) {
+            ref4.makeReturn(res);
+        }
+        return this;
+    };
+
+    Switch.prototype.compileNode = function(o) {
+        var block, body, cond, conditions, expr, fragments, i, idt1, idt2, j, k, len1, len2, ref3, ref4, ref5;
+        idt1 = o.indent + TAB;
+        idt2 = o.indent = idt1 + TAB;
+        fragments = [].concat(this.makeCode(this.tab + "switch ("), (this.subject ? this.subject.compileToFragments(o, LEVEL_PAREN) : this.makeCode("false")), this.makeCode(") {\n"));
+        ref3 = this.cases;
+        for (i = j = 0, len1 = ref3.length; j < len1; i = ++j) {
+            ref4 = ref3[i], conditions = ref4[0], block = ref4[1];
+            ref5 = flatten([conditions]);
+            for (k = 0, len2 = ref5.length; k < len2; k++) {
+                cond = ref5[k];
+                if (!this.subject) {
+                    cond = cond.invert();
+                }
+                fragments = fragments.concat(this.makeCode(idt1 + "case "), cond.compileToFragments(o, LEVEL_PAREN), this.makeCode(":\n"));
+            }
+            if ((body = block.compileToFragments(o, LEVEL_TOP)).length > 0) {
+                fragments = fragments.concat(body, this.makeCode('\n'));
+            }
+            if (i === this.cases.length - 1 && !this.otherwise) {
+                break;
+            }
+            expr = this.lastNonComment(block.expressions);
+            if (expr instanceof Return || (expr instanceof Literal && expr.jumps() && expr.value !== 'debugger')) {
+                continue;
+            }
+            fragments.push(cond.makeCode(idt2 + 'break;\n'));
+        }
+        if (this.otherwise && this.otherwise.expressions.length) {
+            fragments.push.apply(fragments, [this.makeCode(idt1 + "default:\n")].concat(slice.call(this.otherwise.compileToFragments(o, LEVEL_TOP)), [this.makeCode("\n")]));
+        }
+        fragments.push(this.makeCode(this.tab + '}'));
+        return fragments;
+    };
+
+    return Switch;
+
+})(Base);
+
+exports.If = If = (function(superClass1) {
+    extend1(If, superClass1);
+
+    function If(condition, body1, options) {
+        this.body = body1;
+        if (options == null) {
+            options = {};
+        }
+        this.condition = options.type === 'unless' ? condition.invert() : condition;
+        this.elseBody = null;
+        this.isChain = false;
+        this.soak = options.soak;
+    }
+
+    If.prototype.children = ['condition', 'body', 'elseBody'];
+
+    If.prototype.bodyNode = function() {
+        var ref3;
+        return (ref3 = this.body) != null ? ref3.unwrap() : void 0;
+    };
+
+    If.prototype.elseBodyNode = function() {
+        var ref3;
+        return (ref3 = this.elseBody) != null ? ref3.unwrap() : void 0;
+    };
+
+    If.prototype.addElse = function(elseBody) {
+        if (this.isChain) {
+            this.elseBodyNode().addElse(elseBody);
+        } else {
+            this.isChain = elseBody instanceof If;
+            this.elseBody = this.ensureBlock(elseBody);
+            this.elseBody.updateLocationDataIfMissing(elseBody.locationData);
+        }
+        return this;
+    };
+
+    If.prototype.isStatement = function(o) {
+        var ref3;
+        return (o != null ? o.level : void 0) === LEVEL_TOP || this.bodyNode().isStatement(o) || ((ref3 = this.elseBodyNode()) != null ? ref3.isStatement(o) : void 0);
+    };
+
+    If.prototype.jumps = function(o) {
+        var ref3;
+        return this.body.jumps(o) || ((ref3 = this.elseBody) != null ? ref3.jumps(o) : void 0);
+    };
+
+    If.prototype.compileNode = function(o) {
+        if (this.isStatement(o)) {
+            return this.compileStatement(o);
+        } else {
+            return this.compileExpression(o);
+        }
+    };
+
+    If.prototype.makeReturn = function(res) {
+        if (res) {
+            this.elseBody || (this.elseBody = new Block([new Literal('void 0')]));
+        }
+        this.body && (this.body = new Block([this.body.makeReturn(res)]));
+        this.elseBody && (this.elseBody = new Block([this.elseBody.makeReturn(res)]));
+        return this;
+    };
+
+    If.prototype.ensureBlock = function(node) {
+        if (node instanceof Block) {
+            return node;
+        } else {
+            return new Block([node]);
+        }
+    };
+
+    If.prototype.compileStatement = function(o) {
+        var answer, body, child, cond, ifPart, indent;
+        child = del(o, 'chainChild');
+        indent = o.indent + TAB;
+        cond = this.condition.compileToFragments(o, LEVEL_PAREN);
+        body = this.ensureBlock(this.body).compileToFragments(merge(o, {
+            indent: indent
+        }));
+        ifPart = [].concat(this.makeCode("if ("), cond, this.makeCode(") {\n"), body, this.makeCode("\n" + this.tab + "}"));
+        if (!child) {
+            ifPart.unshift(this.makeCode(this.tab));
+        }
+        if (!this.elseBody) {
+            return ifPart;
+        }
+        answer = ifPart.concat(this.makeCode(' else '));
+        if (this.isChain) {
+            o.chainChild = true;
+            answer = answer.concat(this.elseBody.unwrap().compileToFragments(o, LEVEL_TOP));
+        } else {
+            answer = answer.concat(this.makeCode("{\n"), this.elseBody.compileToFragments(merge(o, {
+                indent: indent
+            }), LEVEL_TOP), this.makeCode("\n" + this.tab + "}"));
+        }
+        return answer;
+    };
+
+    If.prototype.compileExpression = function(o) {
+        var alt, body, cond, fragments;
+        cond = this.condition.compileToFragments(o, LEVEL_COND);
+        body = this.bodyNode().compileToFragments(o, LEVEL_LIST);
+        alt = this.elseBodyNode() ? this.elseBodyNode().compileToFragments(o, LEVEL_LIST) : [this.makeCode('void 0')];
+        fragments = cond.concat(this.makeCode(" ? "), body, this.makeCode(" : "), alt);
+        if (o.level >= LEVEL_COND) {
+            return this.wrapInBraces(fragments);
+        } else {
+            return fragments;
+        }
+    };
+
+    If.prototype.unfoldSoak = function() {
+        return this.soak && this;
+    };
+
+    return If;
+
+})(Base);
+
+exports.MetaIf = MetaIf = (function(superClass1) {
+    extend1(MetaIf, superClass1);
+
+    function MetaIf(condition1, body1, options) {
+        this.condition = condition1;
+        this.body = body1;
+        if (options == null) {
+            options = {};
+        }
+        this.elseBody = null;
+        this.isChain = false;
+        this.soak = options.soak;
+    }
+
+    MetaIf.prototype.children = ['condition', 'body', 'elseBody'];
+
+    MetaIf.prototype.addElse = function(elseBody) {
+        var ref3;
+        if (this.isChain) {
+            if ((ref3 = this.elseBody) != null) {
+                ref3.unwrap().addElse(elseBody);
+            }
+        } else {
+            this.isChain = elseBody instanceof MetaIf;
+            this.elseBody = this.ensureBlock(elseBody);
+            this.elseBody.updateLocationDataIfMissing(elseBody.locationData);
+        }
+        return this;
+    };
+
+    MetaIf.prototype.makeReturn = function(res) {
+        if (res) {
+            this.elseBody || (this.elseBody = new Block([new Literal('void 0')]));
+        }
+        this.elseBody && (this.elseBody = new Block([this.elseBody.makeReturn(res)]));
+        return this;
+    };
+
+    MetaIf.prototype.compileNode = function(o) {
+        var answer, args, body, bodyFragments, err, fragments, ifPart, indent, info, metaKey, ref10, ref11, ref3, ref4, ref5, ref6, ref7, ref8, ref9;
+        info = {
+            reduce: true
+        };
+        if (((ref3 = this.condition.base) != null ? ref3.value : void 0) === 'this') {
+            metaKey = (ref4 = this.condition.properties) != null ? (ref5 = ref4[0]) != null ? (ref6 = ref5.name) != null ? ref6.value : void 0 : void 0 : void 0;
+            if (typeof o.meta[metaKey] === 'function') {
+                info = o.meta[metaKey]({
+                    options: o,
+                    node: this,
+                    args: []
+                });
+            }
+        } else if (((ref7 = this.condition.variable) != null ? (ref8 = ref7.base) != null ? ref8.value : void 0 : void 0) === 'this') {
+            metaKey = (ref9 = this.condition.variable.properties) != null ? (ref10 = ref9[0]) != null ? (ref11 = ref10.name) != null ? ref11.value : void 0 : void 0 : void 0;
+            if (typeof o.meta[metaKey] === 'function') {
+                args = this.condition.args.map(function(a) {
+                    var ref12;
+                    return (ref12 = a.base) != null ? ref12.value : void 0;
+                });
+                info = o.meta[metaKey]({
+                    options: o,
+                    node: this,
+                    args: args
+                });
+            }
+        }
+        if ((info.code == null) && (info.body == null)) {
+            fragments = this.condition.compileToFragments(o, LEVEL_PAREN);
+            info.code = fragmentsToText(fragments);
+            try {
+                info.body = eval(info.code);
+            } catch (error) {
+                err = error;
+                console.error(err);
+            }
+        }
+        if (info.reduce) {
+            fragments = [];
+            if (info.before) {
+                fragments.push(this.makeCode(info.before));
+            }
+            if (info.body) {
+                body = this.ensureBlock(this.body);
+                bodyFragments = body.compileToFragments(o);
+                fragments = fragments.concat(bodyFragments);
+            } else if (this.elseBody) {
+                if (this.isChain) {
+                    fragments = fragments.concat(this.elseBody.unwrap().compileToFragments(o));
+                } else {
+                    fragments = fragments.concat(this.elseBody.compileToFragments(o));
+                }
+            }
+            if (info.after) {
+                fragments.push(this.makeCode(info.after));
+            }
+            if (!fragments.length) {
+                fragments.push(this.makeCode(''));
+            }
+            return fragments;
+        } else {
             indent = o.indent + TAB;
-            cond = this.condition.compileToFragments(o, LEVEL_PAREN);
             body = this.ensureBlock(this.body).compileToFragments(merge(o, {
                 indent: indent
             }));
-            ifPart = [].concat(this.makeCode("if ("), cond, this.makeCode(") {\n"), body, this.makeCode("\n" + this.tab + "}"));
-            if (!child) {
-                ifPart.unshift(this.makeCode(this.tab));
+            if (info.after) {
+                body.push(this.makeCode('\n' + indent + info.after));
             }
+            ifPart = [].concat(this.makeCode("if ("), this.makeCode(info.code), this.makeCode(") {\n"), body, this.makeCode("\n" + this.tab + "}"));
             if (!this.elseBody) {
                 return ifPart;
             }
@@ -3859,248 +4001,105 @@
                 }), LEVEL_TOP), this.makeCode("\n" + this.tab + "}"));
             }
             return answer;
-        };
-
-        If.prototype.compileExpression = function(o) {
-            var alt, body, cond, fragments;
-            cond = this.condition.compileToFragments(o, LEVEL_COND);
-            body = this.bodyNode().compileToFragments(o, LEVEL_LIST);
-            alt = this.elseBodyNode() ? this.elseBodyNode().compileToFragments(o, LEVEL_LIST) : [this.makeCode('void 0')];
-            fragments = cond.concat(this.makeCode(" ? "), body, this.makeCode(" : "), alt);
-            if (o.level >= LEVEL_COND) {
-                return this.wrapInBraces(fragments);
-            } else {
-                return fragments;
-            }
-        };
-
-        If.prototype.unfoldSoak = function() {
-            return this.soak && this;
-        };
-
-        return If;
-
-    })(Base);
-
-    exports.MetaIf = MetaIf = (function(superClass1) {
-        extend1(MetaIf, superClass1);
-
-        function MetaIf(condition1, body1, options) {
-            this.condition = condition1;
-            this.body = body1;
-            if (options == null) {
-                options = {};
-            }
-            this.elseBody = null;
-            this.isChain = false;
-            this.soak = options.soak;
-        }
-
-        MetaIf.prototype.children = ['condition', 'body', 'elseBody'];
-
-        MetaIf.prototype.addElse = function(elseBody) {
-            var ref3;
-            if (this.isChain) {
-                if ((ref3 = this.elseBody) != null) {
-                    ref3.unwrap().addElse(elseBody);
-                }
-            } else {
-                this.isChain = elseBody instanceof MetaIf;
-                this.elseBody = this.ensureBlock(elseBody);
-                this.elseBody.updateLocationDataIfMissing(elseBody.locationData);
-            }
-            return this;
-        };
-
-        MetaIf.prototype.makeReturn = function(res) {
-            if (res) {
-                this.elseBody || (this.elseBody = new Block([new Literal('void 0')]));
-            }
-            this.elseBody && (this.elseBody = new Block([this.elseBody.makeReturn(res)]));
-            return this;
-        };
-
-        MetaIf.prototype.compileNode = function(o) {
-            var answer, args, body, bodyFragments, err, fragments, ifPart, indent, info, metaKey, ref10, ref11, ref3, ref4, ref5, ref6, ref7, ref8, ref9;
-            info = {
-                reduce: true
-            };
-            if (((ref3 = this.condition.base) != null ? ref3.value : void 0) === 'this') {
-                metaKey = (ref4 = this.condition.properties) != null ? (ref5 = ref4[0]) != null ? (ref6 = ref5.name) != null ? ref6.value : void 0 : void 0 : void 0;
-                if (typeof o.meta[metaKey] === 'function') {
-                    info = o.meta[metaKey]({
-                        options: o,
-                        node: this,
-                        args: []
-                    });
-                }
-            } else if (((ref7 = this.condition.variable) != null ? (ref8 = ref7.base) != null ? ref8.value : void 0 : void 0) === 'this') {
-                metaKey = (ref9 = this.condition.variable.properties) != null ? (ref10 = ref9[0]) != null ? (ref11 = ref10.name) != null ? ref11.value : void 0 : void 0 : void 0;
-                if (typeof o.meta[metaKey] === 'function') {
-                    args = this.condition.args.map(function(a) {
-                        var ref12;
-                        return (ref12 = a.base) != null ? ref12.value : void 0;
-                    });
-                    info = o.meta[metaKey]({
-                        options: o,
-                        node: this,
-                        args: args
-                    });
-                }
-            }
-            if ((info.code == null) && (info.body == null)) {
-                fragments = this.condition.compileToFragments(o, LEVEL_PAREN);
-                info.code = fragmentsToText(fragments);
-                try {
-                    info.body = eval(info.code);
-                } catch (error) {
-                    err = error;
-                    console.error(err);
-                }
-            }
-            if (info.reduce) {
-                fragments = [];
-                if (info.before) {
-                    fragments.push(this.makeCode(info.before));
-                }
-                if (info.body) {
-                    body = this.ensureBlock(this.body);
-                    bodyFragments = body.compileToFragments(o);
-                    fragments = fragments.concat(bodyFragments);
-                } else if (this.elseBody) {
-                    if (this.isChain) {
-                        fragments = fragments.concat(this.elseBody.unwrap().compileToFragments(o));
-                    } else {
-                        fragments = fragments.concat(this.elseBody.compileToFragments(o));
-                    }
-                }
-                if (info.after) {
-                    fragments.push(this.makeCode(info.after));
-                }
-                if (!fragments.length) {
-                    fragments.push(this.makeCode(''));
-                }
-                return fragments;
-            } else {
-                indent = o.indent + TAB;
-                body = this.ensureBlock(this.body).compileToFragments(merge(o, {
-                    indent: indent
-                }));
-                if (info.after) {
-                    body.push(this.makeCode('\n' + indent + info.after));
-                }
-                ifPart = [].concat(this.makeCode("if ("), this.makeCode(info.code), this.makeCode(") {\n"), body, this.makeCode("\n" + this.tab + "}"));
-                if (!this.elseBody) {
-                    return ifPart;
-                }
-                answer = ifPart.concat(this.makeCode(' else '));
-                if (this.isChain) {
-                    o.chainChild = true;
-                    answer = answer.concat(this.elseBody.unwrap().compileToFragments(o, LEVEL_TOP));
-                } else {
-                    answer = answer.concat(this.makeCode("{\n"), this.elseBody.compileToFragments(merge(o, {
-                        indent: indent
-                    }), LEVEL_TOP), this.makeCode("\n" + this.tab + "}"));
-                }
-                return answer;
-            }
-        };
-
-        MetaIf.prototype.ensureBlock = function(node) {
-            if (node instanceof Block) {
-                return node;
-            } else {
-                return new Block([node]);
-            }
-        };
-
-        MetaIf.prototype.unfoldSoak = function() {
-            return this.soak && this;
-        };
-
-        MetaIf.prototype.jumps = function(o) {
-            var ref3;
-            return this.body.jumps(o) || ((ref3 = this.elseBody) != null ? ref3.jumps(o) : void 0);
-        };
-
-        return MetaIf;
-
-    })(Base);
-
-    UTILITIES = {
-        extend: function(o) {
-            return "function(child, parent) { for (var key in parent) { if (" + (utility('hasProp', o)) + ".call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; }";
-        },
-        bind: function() {
-            return 'function(fn, me){ return function(){ return fn.apply(me, arguments); }; }';
-        },
-        indexOf: function() {
-            return "[].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; }";
-        },
-        modulo: function() {
-            return "function(a, b) { return (+a % (b = +b) + b) % b; }";
-        },
-        hasProp: function() {
-            return '{}.hasOwnProperty';
-        },
-        slice: function() {
-            return '[].slice';
         }
     };
 
-    LEVEL_TOP = 1;
-
-    LEVEL_PAREN = 2;
-
-    LEVEL_LIST = 3;
-
-    LEVEL_COND = 4;
-
-    LEVEL_OP = 5;
-
-    LEVEL_ACCESS = 6;
-
-    TAB = '    ';
-
-    SIMPLENUM = /^[+-]?\d+$/;
-
-    utility = function(name, o) {
-        var ref, root;
-        root = o.scope.root;
-        if (name in root.utilities) {
-            return root.utilities[name];
+    MetaIf.prototype.ensureBlock = function(node) {
+        if (node instanceof Block) {
+            return node;
         } else {
-            ref = root.freeVariable(name);
-            root.assign(ref, UTILITIES[name](o));
-            return root.utilities[name] = ref;
+            return new Block([node]);
         }
     };
 
-    multident = function(code, tab) {
-        code = code.replace(/\n/g, '$&' + tab);
-        return code.replace(/\s+$/, '');
+    MetaIf.prototype.unfoldSoak = function() {
+        return this.soak && this;
     };
 
-    isLiteralArguments = function(node) {
-        return node instanceof IdentifierLiteral && node.value === 'arguments';
+    MetaIf.prototype.jumps = function(o) {
+        var ref3;
+        return this.body.jumps(o) || ((ref3 = this.elseBody) != null ? ref3.jumps(o) : void 0);
     };
 
-    isLiteralThis = function(node) {
-        return node instanceof ThisLiteral || (node instanceof Code && node.bound) || node instanceof SuperCall;
-    };
+    return MetaIf;
 
-    isComplexOrAssignable = function(node) {
-        return node.isComplex() || (typeof node.isAssignable === "function" ? node.isAssignable() : void 0);
-    };
+})(Base);
 
-    unfoldSoak = function(o, parent, name) {
-        var ifn;
-        if (!(ifn = parent[name].unfoldSoak(o))) {
-            return;
-        }
-        parent[name] = ifn.body;
-        ifn.body = new Value(parent);
-        return ifn;
-    };
+UTILITIES = {
+    extend: function(o) {
+        return "function(child, parent) { for (var key in parent) { if (" + (utility('hasProp', o)) + ".call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; }";
+    },
+    bind: function() {
+        return 'function(fn, me){ return function(){ return fn.apply(me, arguments); }; }';
+    },
+    indexOf: function() {
+        return "[].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; }";
+    },
+    modulo: function() {
+        return "function(a, b) { return (+a % (b = +b) + b) % b; }";
+    },
+    hasProp: function() {
+        return '{}.hasOwnProperty';
+    },
+    slice: function() {
+        return '[].slice';
+    }
+};
 
-}).call(this);
+LEVEL_TOP = 1;
+
+LEVEL_PAREN = 2;
+
+LEVEL_LIST = 3;
+
+LEVEL_COND = 4;
+
+LEVEL_OP = 5;
+
+LEVEL_ACCESS = 6;
+
+TAB = '    ';
+
+SIMPLENUM = /^[+-]?\d+$/;
+
+utility = function(name, o) {
+    var ref, root;
+    root = o.scope.root;
+    if (name in root.utilities) {
+        return root.utilities[name];
+    } else {
+        ref = root.freeVariable(name);
+        root.assign(ref, UTILITIES[name](o));
+        return root.utilities[name] = ref;
+    }
+};
+
+multident = function(code, tab) {
+    code = code.replace(/\n/g, '$&' + tab);
+    return code.replace(/\s+$/, '');
+};
+
+isLiteralArguments = function(node) {
+    return node instanceof IdentifierLiteral && node.value === 'arguments';
+};
+
+isLiteralThis = function(node) {
+    return node instanceof ThisLiteral || (node instanceof Code && node.bound) || node instanceof SuperCall;
+};
+
+isComplexOrAssignable = function(node) {
+    return node.isComplex() || (typeof node.isAssignable === "function" ? node.isAssignable() : void 0);
+};
+
+unfoldSoak = function(o, parent, name) {
+    var ifn;
+    if (!(ifn = parent[name].unfoldSoak(o))) {
+        return;
+    }
+    parent[name] = ifn.body;
+    ifn.body = new Value(parent);
+    return ifn;
+};
+
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoibm9kZXMuanMiLCJzb3VyY2VSb290IjoiLiIsInNvdXJjZXMiOlsiIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7O0FBQUE7Ozs7Ozs7QUFBQSxJQUFBLGd3Q0FBQTtJQUFBOzs7OztBQWFBLEtBQUssQ0FBQyxlQUFOLEdBQXdCOztBQUV0QixRQUFVLE9BQUEsQ0FBUSxTQUFSOztBQUNaLE9BQW1DLE9BQUEsQ0FBUSxTQUFSLENBQW5DLEVBQUUsb0NBQUYsRUFBa0I7O0FBRWxCLE9BQzJFLE9BQUEsQ0FBUSxXQUFSLENBRDNFLEVBQUUsc0JBQUYsRUFBVyxzQkFBWCxFQUFvQixvQkFBcEIsRUFBNEIsa0JBQTVCLEVBQW1DLGNBQW5DLEVBQXdDLG9CQUF4QyxFQUFnRCxnQkFBaEQsRUFBc0QsZ0JBQXRELEVBQTRELGtDQUE1RCxFQUEyRSw0QkFBM0UsRUFBdUYsNEJBQXZGLEVBQ0UsMENBREYsRUFDcUIsZ0RBRHJCLEVBQzJDLHdDQUQzQyxFQUM2RDs7QUFFN0QsT0FBTyxDQUFDLE1BQVIsR0FBaUI7O0FBQ2pCLE9BQU8sQ0FBQyxpQkFBUixHQUE0Qjs7QUFFNUIsR0FBQSxHQUFVLFNBQUE7V0FBRztBQUFIOztBQUNWLEVBQUEsR0FBVSxTQUFBO1dBQUc7QUFBSDs7QUFDVixJQUFBLEdBQVUsU0FBQTtXQUFHO0FBQUg7O0FBQ1YsTUFBQSxHQUFVLFNBQUE7SUFBRyxJQUFDLENBQUEsT0FBRCxHQUFXLENBQUksSUFBQyxDQUFBO1dBQVM7QUFBNUI7O0FBYVYsT0FBTyxDQUFDLFlBQVIsR0FBNkI7SUFFdEIsc0JBQUMsTUFBRCxFQUFTLElBQVQ7QUFFQyxZQUFBO1FBQUEsSUFBQyxDQUFBLElBQUQsR0FBUSxFQUFBLEdBQUc7UUFDWCxJQUFDLENBQUEsWUFBRCxvQkFBZ0IsTUFBTSxDQUFFO1FBQ3hCLElBQUMsQ0FBQSxJQUFELCtEQUEyQixDQUFFLHVCQUFyQixJQUE2QjtJQUp0Qzs7MkJBTUgsUUFBQSxHQUFVLFNBQUE7ZUFFTixFQUFBLEdBQUcsSUFBQyxDQUFB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ICAgMDAwMDAwMCAgXG4wMDAwICAwMDAgIDAwMCAgIDAwMCAgMDAwICAgMDAwICAwMDAgICAgICAgMDAwICAgICAgIFxuMDAwIDAgMDAwICAwMDAgICAwMDAgIDAwMCAgIDAwMCAgMDAwMDAwMCAgIDAwMDAwMDAgICBcbjAwMCAgMDAwMCAgMDAwICAgMDAwICAwMDAgICAwMDAgIDAwMCAgICAgICAgICAgIDAwMCAgXG4wMDAgICAwMDAgICAwMDAwMDAwICAgMDAwMDAwMCAgICAwMDAwMDAwMCAgMDAwMDAwMCAgIFxuIyMjXG5cbiMgQ29udGFpbnMgYWxsIG9mIHRoZSBub2RlIGNsYXNzZXMgZm9yIHRoZSBzeW50YXggdHJlZS4gXG4jIE1vc3Qgbm9kZXMgYXJlIGNyZWF0ZWQgYXMgdGhlIHJlc3VsdCBvZiBhY3Rpb25zIGluIHRoZSBncmFtbWFyLFxuIyBidXQgc29tZSBhcmUgY3JlYXRlZCBieSBvdGhlciBub2RlcyBhcyBhIG1ldGhvZCBvZiBjb2RlIGdlbmVyYXRpb24uIFxuIyBUbyBjb252ZXJ0IHRoZSBzeW50YXggdHJlZSBpbnRvIGEgc3RyaW5nIG9mIEphdmFTY3JpcHQgY29kZSwgY2FsbCBgY29tcGlsZSgpYCBvbiB0aGUgcm9vdC5cblxuRXJyb3Iuc3RhY2tUcmFjZUxpbWl0ID0gSW5maW5pdHlcblxueyBTY29wZSB9ID0gcmVxdWlyZSAnLi9zY29wZSdcbnsgaXNVbmFzc2lnbmFibGUsIEpTX0ZPUkJJRERFTiB9ID0gcmVxdWlyZSAnLi9sZXhlcidcblxueyBjb21wYWN0LCBmbGF0dGVuLCBleHRlbmQsIG1lcmdlLCBkZWwsIHN0YXJ0cywgZW5kcywgc29tZSwgaW5qZWN0RmVhdHVyZSwgaGFzRmVhdHVyZSwgaW5qZWN0TWV0YSxcbiAgYWRkTG9jYXRpb25EYXRhRm4sIGxvY2F0aW9uRGF0YVRvU3RyaW5nLCB0aHJvd1N5bnRheEVycm9yLCBzdHJpbmdpZnkgfSA9IHJlcXVpcmUgJy4vaGVscGVycydcblxuZXhwb3J0cy5leHRlbmQgPSBleHRlbmRcbmV4cG9ydHMuYWRkTG9jYXRpb25EYXRhRm4gPSBhZGRMb2NhdGlvbkRhdGFGblxuXG5ZRVMgICAgID0gLT4geWVzXG5OTyAgICAgID0gLT4gbm9cblRISVMgICAgPSAtPiB0aGlzXG5ORUdBVEUgID0gLT4gQG5lZ2F0ZWQgPSBub3QgQG5lZ2F0ZWQ7IHRoaXNcblxuIyAwMDAwMDAwMCAgMDAwMDAwMDAgICAgMDAwMDAwMCAgICAwMDAwMDAwICAgMDAgICAgIDAwICAwMDAwMDAwMCAgMDAwICAgMDAwICAwMDAwMDAwMDAgIFxuIyAwMDAgICAgICAgMDAwICAgMDAwICAwMDAgICAwMDAgIDAwMCAgICAgICAgMDAwICAgMDAwICAwMDAgICAgICAgMDAwMCAgMDAwICAgICAwMDAgICAgIFxuIyAwMDAwMDAgICAgMDAwMDAwMCAgICAwMDAwMDAwMDAgIDAwMCAgMDAwMCAgMDAwMDAwMDAwICAwMDAwMDAwICAgMDAwIDAgMDAwICAgICAwMDAgICAgIFxuIyAwMDAgICAgICAgMDAwICAgMDAwICAwMDAgICAwMDAgIDAwMCAgIDAwMCAgMDAwIDAgMDAwICAwMDAgICAgICAgMDAwICAwMDAwICAgICAwMDAgICAgIFxuIyAwMDAgICAgICAgMDAwICAgMDAwICAwMDAgICAwMDAgICAwMDAwMDAwICAgMDAwICAgMDAwICAwMDAwMDAwMCAgMDAwICAgMDAwICAgICAwMDAgICAgIFxuXG4jIFRoZSB2YXJpb3VzIG5vZGVzIGRlZmluZWQgYmVsb3cgYWxsIGNvbXBpbGUgdG8gYSBjb2xsZWN0aW9uIG9mIENvZGVGcmFnbWVudCBvYmplY3RzLlxuIyBBIENvZGVGcmFnbWVudHMgaXMgYSBibG9jayBvZiBnZW5lcmF0ZWQgY29kZSwgYW5kIHRoZSBsb2NhdGlvbiBpbiB0aGUgc291cmNlIGZpbGUgd2hlcmUgdGhlIGNvZGVcbiMgY2FtZSBmcm9tLiBDb2RlRnJhZ21lbnRzIGNhbiBiZSBhc3NlbWJsZWQgdG9nZXRoZXIgaW50byB3b3JraW5nIGNvZGUganVzdCBieSBjYXR0aW5nIHRvZ2V0aGVyXG4jIGFsbCB0aGUgQ29kZUZyYWdtZW50cycgYGNvZGVgIHNuaXBwZXRzLCBpbiBvcmRlci5cblxuZXhwb3J0cy5Db2RlRnJhZ21lbnQgPSBjbGFzcyBDb2RlRnJhZ21lbnRcbiAgICBcbiAgICBAOiAocGFyZW50LCBjb2RlKSAtPlxuICAgICAgICBcbiAgICAgICAgQGNvZGUgPSBcIiN7Y29kZX1cIlxuICAgICAgICBAbG9jYXRpb25EYXRhID0gcGFyZW50Py5sb2NhdGlvbkRhdGFcbiAgICAgICAgQHR5cGUgPSBwYXJlbnQ/LmNvbnN0cnVjdG9yPy5uYW1lIG9yICd1bmtub3duJ1xuXG4gICAgdG9TdHJpbmc6IC0+XG4gICAgICAgIFxuICAgICAgICBcIiN7QGNvZGV9I3tpZiBAbG9jYXRpb25EYXRhIHRoZW4gXCI6IFwiICsgbG9jYXRpb25EYXRhVG9TdHJpbmcoQGxvY2F0aW9uRGF0YSkgZWxzZSAnJ31cIlxuXG5mcmFnbWVudHNUb1RleHQgPSAoZnJhZ21lbnRzKSAtPiAjIENvbnZlcnQgYW4gYXJyYXkgb2YgQ29kZUZyYWdtZW50cyBpbnRvIGEgc3RyaW5nLlxuICAgIFxuICAgIChmcmFnbWVudC5jb2RlIGZvciBmcmFnbWVudCBpbiBmcmFnbWVudHMpLmpvaW4oJycpXG5cbiMgMDAwMDAwMCAgICAgMDAwMDAwMCAgICAwMDAwMDAwICAwMDAwMDAwMCAgXG4jIDAwMCAgIDAwMCAgMDAwICAgMDAwICAwMDAgICAgICAgMDAwICAgICAgIFxuIyAwMDAwMDAwICAgIDAwMDAwMDAwMCAgMDAwMDAwMCAgIDAwMDAwMDAgICBcbiMgMDAwICAgMDAwICAwMDAgICAwMDAgICAgICAgMDAwICAwMDAgICAgICAgXG4jIDAwMDAwMDAgICAgMDAwICAgMDAwICAwMDAwMDAwICAgMDAwMDAwMDAgIFxuXG4jIFRoZSAqKkJhc2UqKiBpcyB0aGUgYWJzdHJhY3QgYmFzZSBjbGFzcyBmb3IgYWxsIG5vZGVzIGluIHRoZSBzeW50YXggdHJlZS5cbiMgRWFjaCBzdWJjbGFzcyBpbXBsZW1lbnRzIHRoZSBgY29tcGlsZU5vZGVgIG1ldGhvZCwgd2hpY2ggcGVyZm9ybXMgdGhlXG4jIGNvZGUgZ2VuZXJhdGlvbiBmb3IgdGhhdCBub2RlLiBUbyBjb21waWxlIGEgbm9kZSB0byBKYXZhU2NyaXB0LFxuIyBjYWxsIGBjb21waWxlYCBvbiBpdCwgd2hpY2ggd3JhcHMgYGNvbXBpbGVOb2RlYCBpbiBzb21lIGdlbmVyaWMgZXh0cmEgc21hcnRzLFxuIyB0byBrbm93IHdoZW4gdGhlIGdlbmVyYXRlZCBjb2RlIG5lZWRzIHRvIGJlIHdyYXBwZWQgdXAgaW4gYSBjbG9zdXJlLlxuIyBBbiBvcHRpb25zIGhhc2ggaXMgcGFzc2VkIGFuZCBjbG9uZWQgdGhyb3VnaG91dCwgY29udGFpbmluZyBpbmZvcm1hdGlvbiBhYm91dFxuIyB0aGUgZW52aXJvbm1lbnQgZnJvbSBoaWdoZXIgaW4gdGhlIHRyZWUgKHN1Y2ggYXMgaWYgYSByZXR1cm5lZCB2YWx1ZSBpc1xuIyBiZWluZyByZXF1ZXN0ZWQgYnkgdGhlIHN1cnJvdW5kaW5nIGZ1bmN0aW9uKSwgaW5mb3JtYXRpb24gYWJvdXQgdGhlIGN1cnJlbnRcbiMgc2NvcGUsIGFuZCBpbmRlbnRhdGlvbiBsZXZlbC5cblxuZXhwb3J0cy5CYXNlID0gY2xhc3MgQmFzZVxuXG4gICAgY29tcGlsZTogKG8sIGx2bCkgLT4gZnJhZ21lbnRzVG9UZXh0IEBjb21waWxlVG9GcmFnbWVudHMgbywgbHZsXG5cbiAgICAjIENvbW1vbiBsb2dpYyBmb3IgZGV0ZXJtaW5pbmcgd2hldGhlciB0byB3cmFwIHRoaXMgbm9kZSBpbiBhIGNsb3N1cmUgYmVmb3JlIGNvbXBpbGluZyBpdCwgb3IgdG8gY29tcGlsZSBkaXJlY3RseS4gXG4gICAgIyBXZSBuZWVkIHRvIHdyYXAgaWYgdGhpcyBub2RlIGlzIGEgc3RhdGVtZW50LCBhbmQgaXQncyBub3QgYSBwdXJlU3RhdGVtZW50LCBhbmQgd2UncmUgbm90IGF0IHRoZSB0b3AgbGV2ZWwgb2YgYSBibG9jayAod2hpY2ggd291bGQgYmUgdW5uZWNlc3NhcnkpLCBcbiAgICAjIGFuZCB3ZSBoYXZlbid0IGFscmVhZHkgYmVlbiBhc2tlZCB0byByZXR1cm4gdGhlIHJlc3VsdCAoYmVjYXVzZSBzdGF0ZW1lbnRzIGtub3cgaG93IHRvIHJldHVybiByZXN1bHRzKS5cbiAgICBcbiAgICBjb21waWxlVG9GcmFnbWVudHM6IChvLCBsdmwpIC0+XG4gICAgICAgIFxuICAgICAgICBvID0gaW5qZWN0RmVhdHVyZSBvXG4gICAgICAgIG8gPSBpbmplY3RNZXRhICAgIG9cbiAgICAgICAgIyBsb2cgJ2NvbXBpbGVUb0ZyYWdtZW50cycsIG8ubGV2ZWxcbiAgICAgICAgby5sZXZlbCAgPSBsdmwgaWYgbHZsXG4gICAgICAgIG5vZGUgICAgID0gQHVuZm9sZFNvYWsobykgb3IgdGhpc1xuICAgICAgICBub2RlLnRhYiA9IG8uaW5kZW50XG4gICAgICAgIGlmIG8ubGV2ZWwgaXMgTEVWRUxfVE9QIG9yIG5vdCBub2RlLmlzU3RhdGVtZW50KG8pXG4gICAgICAgICAgICBub2RlLmNvbXBpbGVOb2RlIG9cbiAgICAgICAgZWxzZVxuICAgICAgICAgICAgbm9kZS5jb21waWxlQ2xvc3VyZSBvXG5cbiAgICAjIFN0YXRlbWVudHMgY29udmVydGVkIGludG8gZXhwcmVzc2lvbnMgdmlhIGNsb3N1cmUtd3JhcHBpbmcgc2hhcmUgYSBzY29wZVxuICAgICMgb2JqZWN0IHdpdGggdGhlaXIgcGFyZW50IGNsb3N1cmUsIHRvIHByZXNlcnZlIHRoZSBleHBlY3RlZCBsZXhpY2FsIHNjb3BlLlxuICAgIFxuICAgIGNvbXBpbGVDbG9zdXJlOiAobykgLT5cbiAgICAgICAgXG4gICAgICAgIGlmIGp1bXBOb2RlID0gQGp1bXBzKClcbiAgICAgICAgICAgIGp1bXBOb2RlLmVycm9yICdjYW5ub3QgdXNlIGEgcHVyZSBzdGF0ZW1lbnQgaW4gYW4gZXhwcmVzc2lvbidcbiAgICAgICAgby5zaGFyZWRTY29wZSA9IHllc1xuICAgICAgICBmdW5jID0gbmV3IENvZGUgW10sIEJsb2NrLndyYXAgW3RoaXNdXG4gICAgICAgIGFyZ3MgPSBbXVxuICAgICAgICBpZiAoYXJndW1lbnRzTm9kZSA9IEBjb250YWlucyBpc0xpdGVyYWxBcmd1bWVudHMpIG9yIEBjb250YWlucyBpc0xpdGVyYWxUaGlzXG4gICAgICAgICAgICBhcmdzID0gW25ldyBUaGlzTGl0ZXJhbF1cbiAgICAgICAgICAgIGlmIGFyZ3VtZW50c05vZGVcbiAgICAgICAgICAgICAgICBtZXRoID0gJ2FwcGx5J1xuICAgICAgICAgICAgICAgIGFyZ3MucHVzaCBuZXcgSWRlbnRpZmllckxpdGVyYWwgJ2FyZ3VtZW50cydcbiAgICAgICAgICAgIGVsc2VcbiAgICAgICAgICAgICAgICBtZXRoID0gJ2NhbGwnXG4gICAgICAgICAgICBmdW5jID0gbmV3IFZhbHVlIGZ1bmMsIFtuZXcgQWNjZXNzIG5ldyBQcm9wZXJ0eU5hbWUgbWV0aF1cbiAgICAgICAgcGFydHMgPSAobmV3IENhbGwgZnVuYywgYXJncykuY29tcGlsZU5vZGUgb1xuICAgICAgICBpZiBmdW5jLmlzR2VuZXJhdG9yIG9yIGZ1bmMuYmFzZT8uaXNHZW5lcmF0b3JcbiAgICAgICAgICAgIHBhcnRzLnVuc2hpZnQgQG1ha2VDb2RlIFwiKHlpZWxkKiBcIlxuICAgICAgICAgICAgcGFydHMucHVzaCAgICBAbWFrZUNvZGUgXCIpXCJcbiAgICAgICAgcGFydHNcblxuICAgICMgSWYgdGhlIGNvZGUgZ2VuZXJhdGlvbiB3aXNoZXMgdG8gdXNlIHRoZSByZXN1bHQgb2YgYSBjb21wbGV4IGV4cHJlc3Npb25cbiAgICAjIGluIG11bHRpcGxlIHBsYWNlcywgZW5zdXJlIHRoYXQgdGhlIGV4cHJlc3Npb24gaXMgb25seSBldmVyIGV2YWx1YXRlZCBvbmNlLFxuICAgICMgYnkgYXNzaWduaW5nIGl0IHRvIGEgdGVtcG9yYXJ5IHZhcmlhYmxlLiBQYXNzIGEgbGV2ZWwgdG8gcHJlY29tcGlsZS5cbiAgICAjXG4gICAgIyBJZiBgbGV2ZWxgIGlzIHBhc3NlZCwgdGhlbiByZXR1cm5zIGBbdmFsLCByZWZdYCwgd2hlcmUgYHZhbGAgaXMgdGhlIGNvbXBpbGVkIHZhbHVlLCBhbmQgYHJlZmBcbiAgICAjIGlzIHRoZSBjb21waWxlZCByZWZlcmVuY2UuIElmIGBsZXZlbGAgaXMgbm90IHBhc3NlZCwgdGhpcyByZXR1cm5zIGBbdmFsLCByZWZdYCB3aGVyZVxuICAgICMgdGhlIHR3byB2YWx1ZXMgYXJlIHJhdyBub2RlcyB3aGljaCBoYXZlIG5vdCBiZWVuIGNvbXBpbGVkLlxuICAgIFxuICAgIGNhY2hlOiAobywgbGV2ZWwsIGlzQ29tcGxleCkgLT5cbiAgICAgICAgXG4gICAgICAgIGNvbXBsZXggPSBpZiBpc0NvbXBsZXg/IHRoZW4gaXNDb21wbGV4IHRoaXMgZWxzZSBAaXNDb21wbGV4KClcbiAgICAgICAgaWYgY29tcGxleFxuICAgICAgICAgICAgcmVmID0gbmV3IElkZW50aWZpZXJMaXRlcmFsIG8uc2NvcGUuZnJlZVZhcmlhYmxlICdyZWYnXG4gICAgICAgICAgICBzdWIgPSBuZXcgQXNzaWduIHJlZiwgdGhpc1xuICAgICAgICAgICAgaWYgbGV2ZWwgdGhlbiBbc3ViLmNvbXBpbGVUb0ZyYWdtZW50cyhvLCBsZXZlbCksIFtAbWFrZUNvZGUocmVmLnZhbHVlKV1dIGVsc2UgW3N1YiwgcmVmXVxuICAgICAgICBlbHNlXG4gICAgICAgICAgICByZWYgPSBpZiBsZXZlbCB0aGVuIEBjb21waWxlVG9GcmFnbWVudHMgbywgbGV2ZWwgZWxzZSB0aGlzXG4gICAgICAgICAgICBbcmVmLCByZWZdXG5cbiAgICBjYWNoZVRvQ29kZUZyYWdtZW50czogKGNhY2hlVmFsdWVzKSAtPlxuICAgICAgICBcbiAgICAgICAgW2ZyYWdtZW50c1RvVGV4dChjYWNoZVZhbHVlc1swXSksIGZyYWdtZW50c1RvVGV4dChjYWNoZVZhbHVlc1sxXSldXG5cbiAgICAjIENvbnN0cnVjdCBhIG5vZGUgdGhhdCByZXR1cm5zIHRoZSBjdXJyZW50IG5vZGUncyByZXN1bHQuXG4gICAgIyBUaGlzIGlzIG92ZXJyaWRkZW4gZm9yIHNtYXJ0ZXIgYmVoYXZpb3IgZm9yIG1hbnkgc3RhdGVtZW50IG5vZGVzIChlLmcuIElmLCBGb3IpLi4uXG4gICAgXG4gICAgbWFrZVJldHVybjogKHJlcykgLT5cbiAgICAgICAgbWUgPSBAdW53cmFwQWxsKClcbiAgICAgICAgaWYgcmVzXG4gICAgICAgICAgICBuZXcgQ2FsbCBuZXcgTGl0ZXJhbChcIiN7cmVzfS5wdXNoXCIpLCBbbWVdXG4gICAgICAgIGVsc2VcbiAgICAgICAgICAgIG5ldyBSZXR1cm4gbWVcblxuICAgICMgRG9lcyB0aGlzIG5vZGUsIG9yIGFueSBvZiBpdHMgY2hpbGRyZW4sIGNvbnRhaW4gYSBub2RlIG9mIGEgY2VydGFpbiBraW5kP1xuICAgICMgUmVjdXJzaXZlbHkgdHJhdmVyc2VzIGRvd24gdGhlICpjaGlsZHJlbiogbm9kZXMgYW5kIHJldHVybnMgdGhlIGZpcnN0IG9uZVxuICAgICMgdGhhdCB2ZXJpZmllcyBgcHJlZGAuIE90aGVyd2lzZSByZXR1cm4gdW5kZWZpbmVkLiBgY29udGFpbnNgIGRvZXMgbm90IGNyb3NzXG4gICAgIyBzY29wZSBib3VuZGFyaWVzLlxuICAgIFxuICAgIGNvbnRhaW5zOiAocHJlZCkgLT5cbiAgICAgICAgbm9kZSA9IHVuZGVmaW5lZFxuICAgICAgICBAdHJhdmVyc2VDaGlsZHJlbiBubywgKG4pIC0+XG4gICAgICAgICAgICBpZiBwcmVkIG5cbiAgICAgICAgICAgICAgICBub2RlID0gblxuICAgICAgICAgICAgICAgIHJldHVybiBub1xuICAgICAgICBub2RlXG5cbiAgICBsYXN0Tm9uQ29tbWVudDogKGxpc3QpIC0+ICMgUHVsbCBvdXQgdGhlIGxhc3Qgbm9uLWNvbW1lbnQgbm9kZSBvZiBhIG5vZGUgbGlzdC5cbiAgICAgICAgaSA9IGxpc3QubGVuZ3RoXG4gICAgICAgIHJldHVybiBsaXN0W2ldIHdoaWxlIGktLSB3aGVuIGxpc3RbaV0gbm90IGluc3RhbmNlb2YgQ29tbWVudFxuICAgICAgICBudWxsXG5cbiAgICAjIGB0b1N0cmluZ2AgcmVwcmVzZW50YXRpb24gb2YgdGhlIG5vZGUsIGZvciBpbnNwZWN0aW5nIHRoZSBwYXJzZSB0cmVlLlxuICAgICMgVGhpcyBpcyB3aGF0IGBjb2ZmZWUgLS1ub2Rlc2AgcHJpbnRzIG91dC5cbiAgICBcbiAgICB0b1N0cmluZzogKGlkdCA9ICcnLCBuYW1lID0gQGNvbnN0cnVjdG9yLm5hbWUpIC0+XG4gICAgICAgIHRyZWUgPSAnXFxuJyArIGlkdCArIG5hbWVcbiAgICAgICAgdHJlZSArPSAnPycgaWYgQHNvYWtcbiAgICAgICAgQGVhY2hDaGlsZCAobm9kZSkgLT4gdHJlZSArPSBub2RlLnRvU3RyaW5nIGlkdCArIFRBQlxuICAgICAgICB0cmVlXG5cbiAgICAjIFBhc3NlcyBlYWNoIGNoaWxkIHRvIGEgZnVuY3Rpb24sIGJyZWFraW5nIHdoZW4gdGhlIGZ1bmN0aW9uIHJldHVybnMgYGZhbHNlYC5cbiAgICBcbiAgICBlYWNoQ2hpbGQ6IChmdW5jKSAtPlxuICAgICAgICByZXR1cm4gdGhpcyB1bmxlc3MgQGNoaWxkcmVuXG4gICAgICAgIGZvciBhdHRyIGluIEBjaGlsZHJlbiB3aGVuIEBbYXR0cl1cbiAgICAgICAgICAgIGZvciBjaGlsZCBpbiBmbGF0dGVuIFtAW2F0dHJdXVxuICAgICAgICAgICAgICAgIHJldHVybiB0aGlzIGlmIGZ1bmMoY2hpbGQpIGlzIGZhbHNlXG4gICAgICAgIHRoaXNcblxuICAgIHRyYXZlcnNlQ2hpbGRyZW46IChjcm9zc1Njb3BlLCBmdW5jKSAtPlxuICAgICAgICBcbiAgICAgICAgQGVhY2hDaGlsZCAoY2hpbGQpIC0+XG4gICAgICAgICAgICByZWN1ciA9IGZ1bmMoY2hpbGQpXG4gICAgICAgICAgICBjaGlsZC50cmF2ZXJzZUNoaWxkcmVuKGNyb3NzU2NvcGUsIGZ1bmMpIHVubGVzcyByZWN1ciBpcyBub1xuXG4gICAgaW52ZXJ0OiAtPlxuICAgICAgICBuZXcgT3AgJyEnLCB0aGlzXG5cbiAgICB1bndyYXBBbGw6IC0+XG4gICAgICAgIG5vZGUgPSB0aGlzXG4gICAgICAgIGNvbnRpbnVlIHVudGlsIG5vZGUgaXMgbm9kZSA9IG5vZGUudW53cmFwKClcbiAgICAgICAgbm9kZVxuXG4gICAgIyBEZWZhdWx0IGltcGxlbWVudGF0aW9ucyBvZiB0aGUgY29tbW9uIG5vZGUgcHJvcGVydGllcyBhbmQgbWV0aG9kcy4gTm9kZXNcbiAgICAjIHdpbGwgb3ZlcnJpZGUgdGhlc2Ugd2l0aCBjdXN0b20gbG9naWMsIGlmIG5lZWRlZC5cbiAgICBcbiAgICBjaGlsZHJlbjogICAgIFtdXG4gICAgaXNTdGF0ZW1lbnQ6ICBOT1xuICAgIGp1bXBzOiAgICAgICAgTk9cbiAgICBpc0NvbXBsZXg6ICAgIFlFU1xuICAgIGlzQ2hhaW5hYmxlOiAgTk9cbiAgICBpc0Fzc2lnbmFibGU6IE5PXG4gICAgaXNOdW1iZXI6ICAgICBOT1xuICAgIHVud3JhcDogICAgICAgVEhJU1xuICAgIHVuZm9sZFNvYWs6ICAgTk9cblxuICAgIGFzc2lnbnM6ICAgICAgTk8gIyBJcyB0aGlzIG5vZGUgdXNlZCB0byBhc3NpZ24gYSBjZXJ0YWluIHZhcmlhYmxlP1xuXG4gICAgIyBGb3IgdGhpcyBub2RlIGFuZCBhbGwgZGVzY2VuZGVudHMsIHNldCB0aGUgbG9jYXRpb24gZGF0YSB0byBgbG9jYXRpb25EYXRhYFxuICAgICMgaWYgdGhlIGxvY2F0aW9uIGRhdGEgaXMgbm90IGFscmVhZHkgc2V0LlxuICAgIFxuICAgIHVwZGF0ZUxvY2F0aW9uRGF0YUlmTWlzc2luZzogKGxvY2F0aW9uRGF0YSkgLT5cbiAgICAgICAgcmV0dXJuIHRoaXMgaWYgQGxvY2F0aW9uRGF0YVxuICAgICAgICBAbG9jYXRpb25EYXRhID0gbG9jYXRpb25EYXRhXG5cbiAgICAgICAgQGVhY2hDaGlsZCAoY2hpbGQpIC0+XG4gICAgICAgICAgICBjaGlsZC51cGRhdGVMb2NhdGlvbkRhdGFJZk1pc3NpbmcgbG9jYXRpb25EYXRhXG5cbiAgICBlcnJvcjogKG1lc3NhZ2UpIC0+ICMgVGhyb3cgYSBTeW50YXhFcnJvciBhc3NvY2lhdGVkIHdpdGggdGhpcyBub2RlJ3MgbG9jYXRpb24uXG4gICAgICAgIFxuICAgICAgICB0aHJvd1N5bnRheEVycm9yIG1lc3NhZ2UsIEBsb2NhdGlvbkRhdGFcblxuICAgIG1ha2VDb2RlOiAoY29kZSkgLT5cbiAgICAgICAgbmV3IENvZGVGcmFnbWVudCB0aGlzLCBjb2RlXG5cbiAgICB3cmFwSW5CcmFjZXM6IChmcmFnbWVudHMpIC0+XG4gICAgICAgIFtdLmNvbmNhdCBAbWFrZUNvZGUoJygnKSwgZnJhZ21lbnRzLCBAbWFrZUNvZGUoJyknKVxuXG4gICAgIyBgZnJhZ21lbnRzTGlzdGAgaXMgYW4gYXJyYXkgb2YgYXJyYXlzIG9mIGZyYWdtZW50cy4gRWFjaCBhcnJheSBpbiBmcmFnbWVudHNMaXN0IHdpbGwgYmVcbiAgICAjIGNvbmNhdG9uYXRlZCB0b2dldGhlciwgd2l0aCBgam9pblN0cmAgYWRkZWQgaW4gYmV0d2VlbiBlYWNoLCB0byBwcm9kdWNlIGEgZmluYWwgZmxhdCBhcnJheVxuICAgICMgb2YgZnJhZ21lbnRzLlxuICAgIFxuICAgIGpvaW5GcmFnbWVudEFycmF5czogKGZyYWdtZW50c0xpc3QsIGpvaW5TdHIpIC0+XG4gICAgICAgIGFuc3dlciA9IFtdXG4gICAgICAgIGZvciBmcmFnbWVudHMsaSBpbiBmcmFnbWVudHNMaXN0XG4gICAgICAgICAgICBpZiBpIHRoZW4gYW5zd2VyLnB1c2ggQG1ha2VDb2RlIGpvaW5TdHJcbiAgICAgICAgICAgIGFuc3dlciA9IGFuc3dlci5jb25jYXQgZnJhZ21lbnRzXG4gICAgICAgIGFuc3dlclxuXG4jIDAwMDAwMDAgICAgMDAwICAgICAgIDAwMDAwMDAgICAgMDAwMDAwMCAgMDAwICAgMDAwICBcbiMgMDAwICAgMDAwICAwMDAgICAgICAwMDAgICAwMDAgIDAwMCAgICAgICAwMDAgIDAwMCAgIFxuIyAwMDAwMDAwICAgIDAwMCAgICAgIDAwMCAgIDAwMCAgMDAwICAgICAgIDAwMDAwMDAgICAgXG4jIDAwMCAgIDAwMCAgMDAwICAgICAgMDAwICAgMDAwICAwMDAgICAgICAgMDAwICAwMDAgICBcbiMgMDAwMDAwMCAgICAwMDAwMDAwICAgMDAwMDAwMCAgICAwMDAwMDAwICAwMDAgICAwMDAgIFxuXG4jIFRoZSBibG9jayBpcyB0aGUgbGlzdCBvZiBleHByZXNzaW9ucyB0aGF0IGZvcm1zIHRoZSBib2R5IG9mIGFuIGluZGVudGVkIGJsb2NrIG9mIGNvZGUgXG4jIC0tIHRoZSBpbXBsZW1lbnRhdGlvbiBvZiBhIGZ1bmN0aW9uLCBhIGNsYXVzZSBpbiBhbiBgaWZgLCBgc3dpdGNoYCwgb3IgYHRyeWAsIGFuZCBzbyBvbi4uLlxuXG5leHBvcnRzLkJsb2NrID0gY2xhc3MgQmxvY2sgZXh0ZW5kcyBCYXNlXG4gICAgXG4gICAgQDogKG5vZGVzKSAtPiBAZXhwcmVzc2lvbnMgPSBjb21wYWN0IGZsYXR0ZW4gbm9kZXMgb3IgW11cblxuICAgIGNoaWxkcmVuOiBbJ2V4cHJlc3Npb25zJ11cblxuICAgIHB1c2g6IChub2RlKSAtPiAjIFRhY2sgYW4gZXhwcmVzc2lvbiBvbiB0byB0aGUgZW5kIG9mIHRoaXMgZXhwcmVzc2lvbiBsaXN0LlxuICAgICAgICBcbiAgICAgICAgQGV4cHJlc3Npb25zLnB1c2ggbm9kZVxuICAgICAgICB0aGlzXG5cbiAgICBwb3A6IC0+ICMgUmVtb3ZlIGFuZCByZXR1cm4gdGhlIGxhc3QgZXhwcmVzc2lvbiBvZiB0aGlzIGV4cHJlc3Npb24gbGlzdC5cbiAgICAgICAgXG4gICAgICAgIEBleHByZXNzaW9ucy5wb3AoKVxuXG4gICAgdW5zaGlmdDogKG5vZGUpIC0+ICMgQWRkIGFuIGV4cHJlc3Npb24gYXQgdGhlIGJlZ2lubmluZyBvZiB0aGlzIGV4cHJlc3Npb24gbGlzdC5cbiAgICAgICAgXG4gICAgICAgIEBleHByZXNzaW9ucy51bnNoaWZ0IG5vZGVcbiAgICAgICAgdGhpc1xuXG4gICAgIyBJZiB0aGlzIEJsb2NrIGNvbnNpc3RzIG9mIGp1c3QgYSBzaW5nbGUgbm9kZSwgdW53cmFwIGl0IGJ5IHB1bGxpbmcgaXQgYmFjayBvdXQuXG4gICAgXG4gICAgdW53cmFwOiAtPlxuICAgICAgICBpZiBAZXhwcmVzc2lvbnMubGVuZ3RoIGlzIDEgdGhlbiBAZXhwcmVzc2lvbnNbMF0gZWxzZSB0aGlzXG5cbiAgICBpc0VtcHR5OiAtPiAjIElzIHRoaXMgYW4gZW1wdHkgYmxvY2sgb2YgY29kZT9cbiAgICAgICAgbm90IEBleHByZXNzaW9ucy5sZW5ndGhcblxuICAgIGlzU3RhdGVtZW50OiAobykgLT5cbiAgICAgICAgZm9yIGV4cCBpbiBAZXhwcmVzc2lvbnMgd2hlbiBleHAuaXNTdGF0ZW1lbnQgb1xuICAgICAgICAgICAgcmV0dXJuIHllc1xuICAgICAgICBub1xuXG4gICAganVtcHM6IChvKSAtPlxuICAgICAgICBmb3IgZXhwIGluIEBleHByZXNzaW9uc1xuICAgICAgICAgICAgcmV0dXJuIGp1bXBOb2RlIGlmIGp1bXBOb2RlID0gZXhwLmp1bXBzIG9cblxuICAgICMgQSBCbG9jayBub2RlIGRvZXMgbm90IHJldHVybiBpdHMgZW50aXJlIGJvZHksIHJhdGhlciBpdCBlbnN1cmVzIHRoYXQgdGhlIGZpbmFsIGV4cHJlc3Npb24gaXMgcmV0dXJuZWQuXG4gICAgXG4gICAgbWFrZVJldHVybjogKHJlcykgLT5cbiAgICAgICAgXG4gICAgICAgIGxlbiA9IEBleHByZXNzaW9ucy5sZW5ndGhcbiAgICAgICAgd2hpbGUgbGVuLS1cbiAgICAgICAgICAgIGV4cHIgPSBAZXhwcmVzc2lvbnNbbGVuXVxuICAgICAgICAgICAgaWYgZXhwciBub3QgaW5zdGFuY2VvZiBDb21tZW50XG4gICAgICAgICAgICAgICAgQGV4cHJlc3Npb25zW2xlbl0gPSBleHByLm1ha2VSZXR1cm4gcmVzXG4gICAgICAgICAgICAgICAgQGV4cHJlc3Npb25zLnNwbGljZShsZW4sIDEpIGlmIGV4cHIgaW5zdGFuY2VvZiBSZXR1cm4gYW5kIG5vdCBleHByLmV4cHJlc3Npb25cbiAgICAgICAgICAgICAgICBicmVha1xuICAgICAgICB0aGlzXG5cbiAgICAjIEEgQmxvY2sgaXMgdGhlIG9ubHkgbm9kZSB0aGF0IGNhbiBzZXJ2ZSBhcyB0aGUgcm9vdC5cbiAgICBcbiAgICBjb21waWxlVG9GcmFnbWVudHM6IChvID0ge30sIGxldmVsKSAtPlxuICAgICAgICBpZiBvLnNjb3BlIHRoZW4gc3VwZXIgbywgbGV2ZWwgZWxzZSBAY29tcGlsZVJvb3Qgb1xuXG4gICAgIyBDb21waWxlIGFsbCBleHByZXNzaW9ucyB3aXRoaW4gdGhlIEJsb2NrIGJvZHkuIFxuICAgICMgSWYgd2UgbmVlZCB0byByZXR1cm4gdGhlIHJlc3VsdCwgYW5kIGl0J3MgYW4gZXhwcmVzc2lvbiwgc2ltcGx5IHJldHVybiBpdC4gXG4gICAgIyBJZiBpdCdzIGEgc3RhdGVtZW50LCBhc2sgdGhlIHN0YXRlbWVudCB0byBkbyBzby5cbiAgICBcbiAgICBjb21waWxlTm9kZTogKG8pIC0+XG4gICAgICAgIFxuICAgICAgICBAdGFiID0gby5pbmRlbnRcbiAgICAgICAgdG9wICA9IG8ubGV2ZWwgaXMgTEVWRUxfVE9QXG4gICAgICAgIGNvbXBpbGVkTm9kZXMgPSBbXVxuXG4gICAgICAgIGZvciBub2RlLCBpbmRleCBpbiBAZXhwcmVzc2lvbnNcblxuICAgICAgICAgICAgbm9kZSA9IG5vZGUudW53cmFwQWxsKClcbiAgICAgICAgICAgIG5vZGUgPSAobm9kZS51bmZvbGRTb2FrKG8pIG9yIG5vZGUpXG4gICAgICAgICAgICBpZiBub2RlIGluc3RhbmNlb2YgQmxvY2tcbiAgICAgICAgICAgICAgICAjIFRoaXMgaXMgYSBuZXN0ZWQgYmxvY2suIFdlIGRvbid0IGRvIGFueXRoaW5nIHNwZWNpYWwgaGVyZSBsaWtlIGVuY2xvc2UgaXQgaW4gYSBuZXcgc2NvcGUuXG4gICAgICAgICAgICAgICAgIyBXZSBqdXN0IGNvbXBpbGUgdGhlIHN0YXRlbWVudHMgaW4gdGhpcyBibG9jayBhbG9uZyB3aXRoIG91ciBvd25cbiAgICAgICAgICAgICAgICBjb21waWxlZE5vZGVzLnB1c2ggbm9kZS5jb21waWxlTm9kZSBvXG4gICAgICAgICAgICBlbHNlIGlmIHRvcFxuICAgICAgICAgICAgICAgIG5vZGUuZnJvbnQgPSB0cnVlXG4gICAgICAgICAgICAgICAgZnJhZ21lbnRzID0gbm9kZS5jb21waWxlVG9GcmFnbWVudHMgb1xuICAgICAgICAgICAgICAgIHVubGVzcyBub2RlLmlzU3RhdGVtZW50IG9cbiAgICAgICAgICAgICAgICAgICAgZnJhZ21lbnRzLnVuc2hpZnQgQG1ha2VDb2RlIFwiI3tAdGFifVwiXG4gICAgICAgICAgICAgICAgICAgIGZyYWdtZW50cy5wdXNoIEBtYWtlQ29kZSBcIjtcIlxuICAgICAgICAgICAgICAgIGNvbXBpbGVkTm9kZXMucHVzaCBmcmFnbWVudHNcbiAgICAgICAgICAgIGVsc2VcbiAgICAgICAgICAgICAgICBjb21waWxlZE5vZGVzLnB1c2ggbm9kZS5jb21waWxlVG9GcmFnbWVudHMgbywgTEVWRUxfTElTVFxuICAgICAgICBpZiB0b3BcbiAgICAgICAgICAgIGlmIEBzcGFjZWRcbiAgICAgICAgICAgICAgICByZXR1cm4gW10uY29uY2F0IEBqb2luRnJhZ21lbnRBcnJheXMoY29tcGlsZWROb2RlcywgJ1xcblxcbicpLCBAbWFrZUNvZGUoXCJcXG5cIilcbiAgICAgICAgICAgIGVsc2VcbiAgICAgICAgICAgICAgICByZXR1cm4gQGpvaW5GcmFnbWVudEFycmF5cyhjb21waWxlZE5vZGVzLCAnXFxuJylcbiAgICAgICAgaWYgY29tcGlsZWROb2Rlcy5sZW5ndGhcbiAgICAgICAgICAgIGFuc3dlciA9IEBqb2luRnJhZ21lbnRBcnJheXMoY29tcGlsZWROb2RlcywgJywgJylcbiAgICAgICAgZWxzZVxuICAgICAgICAgICAgYW5zd2VyID0gW0BtYWtlQ29kZSBcInZvaWQgMFwiXVxuICAgICAgICBpZiBjb21waWxlZE5vZGVzLmxlbmd0aCA+IDEgYW5kIG8ubGV2ZWwgPj0gTEVWRUxfTElTVCB0aGVuIEB3cmFwSW5CcmFjZXMgYW5zd2VyIGVsc2UgYW5zd2VyXG5cbiAgICAjICAwMDAwMDAwICAgMDAwMDAwMCAgIDAwICAgICAwMCAgMDAwMDAwMDAgICAwMDAgIDAwMCAgICAgIDAwMDAwMDAwICAwMDAwMDAwMCAgICAwMDAwMDAwICAgIDAwMDAwMDAgICAwMDAwMDAwMDAgIFxuICAgICMgMDAwICAgICAgIDAwMCAgIDAwMCAgMDAwICAgMDAwICAwMDAgICAwMDAgIDAwMCAgMDAwICAgICAgMDAwICAgICAgIDAwMCAgIDAwMCAgMDAwICAgMDAwICAwMDAgICAwMDAgICAgIDAwMCAgICAgXG4gICAgIyAwMDAgICAgICAgMDAwICAgMDAwICAwMDAwMDAwMDAgIDAwMDAwMDAwICAgMDAwICAwMDAgICAgICAwMDAwMDAwICAgMDAwMDAwMCAgICAwMDAgICAwMDAgIDAwMCAgIDAwMCAgICAgMDAwICAgICBcbiAgICAjIDAwMCAgICAgICAwMDAgICAwMDAgIDAwMCAwIDAwMCAgMDAwICAgICAgICAwMDAgIDAwMCAgICAgIDAwMCAgICAgICAwMDAgICAwMDAgIDAwMCAgIDAwMCAgMDAwICAgMDAwICAgICAwMDAgICAgIFxuICAgICMgIDAwMDAwMDAgICAwMDAwMDAwICAgMDAwICAgMDAwICAwMDAgICAgICAgIDAwMCAgMDAwMDAwMCAgMDAwMDAwMDAgIDAwMCAgIDAwMCAgIDAwMDAwMDAgICAgMDAwMDAwMCAgICAgIDAwMCAgICAgXG4gICAgXG4gICAgIyBJZiB3ZSBoYXBwZW4gdG8gYmUgdGhlIHRvcC1sZXZlbCBCbG9jaywgd3JhcCBldmVyeXRoaW5nIGluIGEgc2FmZXR5IGNsb3N1cmUsIHVubGVzcyByZXF1ZXN0ZWQgbm90IHRvLlxuICAgICMgSXQgd291bGQgYmUgYmV0dGVyIG5vdCB0byBnZW5lcmF0ZSB0aGVtIGluIHRoZSBmaXJzdCBwbGFjZSwgYnV0IGZvciBub3csIGNsZWFuIHVwIG9idmlvdXMgZG91YmxlLXBhcmVudGhlc2VzLlxuICAgIFxuICAgIGNvbXBpbGVSb290OiAobykgLT5cbiAgICAgICAgXG4gICAgICAgICMgbzIgPSBPYmplY3QuYXNzaWduIHt9LCBvXG4gICAgICAgICMgZGVsZXRlIG8yLnJlZmVyZW5jZWRWYXJzIFxuICAgICAgICAjIGxvZyAnQmxvY2suY29tcGlsZVJvb3QnLCBvMlxuICAgICAgICBcbiAgICAgICAgby5pbmRlbnQgPSBpZiBvLmJhcmUgdGhlbiAnJyBlbHNlIFRBQlxuICAgICAgICBvLmxldmVsICA9IExFVkVMX1RPUFxuICAgICAgICBAc3BhY2VkICA9IHllc1xuICAgICAgICBvLnNjb3BlICA9IG5ldyBTY29wZSBudWxsLCB0aGlzLCBudWxsLCBvLnJlZmVyZW5jZWRWYXJzID8gW11cbiAgICAgICAgXG4gICAgICAgICMgTWFyayBnaXZlbiBsb2NhbCB2YXJpYWJsZXMgaW4gdGhlIHJvb3Qgc2NvcGUgYXMgcGFyYW1ldGVycyBzbyB0aGV5IGRvbid0IGVuZCB1cCBiZWluZyBkZWNsYXJlZCBvbiB0aGlzIGJsb2NrLlxuICAgICAgICBcbiAgICAgICAgby5zY29wZS5wYXJhbWV0ZXIgbmFtZSBmb3IgbmFtZSBpbiBvLmxvY2FscyBvciBbXVxuICAgICAgICBwcmVsdWRlID0gW11cbiAgICAgICAgaWYgbm90IG8uYmFyZVxuICAgICAgICAgICAgcHJlbHVkZUV4cHMgPSBmb3IgZXhwLCBpIGluIEBleHByZXNzaW9uc1xuICAgICAgICAgICAgICAgIGJyZWFrIHVubGVzcyBleHAudW53cmFwKCkgaW5zdGFuY2VvZiBDb21tZW50XG4gICAgICAgICAgICAgICAgZXhwXG4gICAgICAgICAgICByZXN0ID0gQGV4cHJlc3Npb25zW3ByZWx1ZGVFeHBzLmxlbmd0aC4uLl1cbiAgICAgICAgICAgIEBleHByZXNzaW9ucyA9IHByZWx1ZGVFeHBzXG4gICAgICAgICAgICBpZiBwcmVsdWRlRXhwcy5sZW5ndGhcbiAgICAgICAgICAgICAgICBwcmVsdWRlID0gQGNvbXBpbGVOb2RlIG1lcmdlKG8sIGluZGVudDogJycpXG4gICAgICAgICAgICAgICAgcHJlbHVkZS5wdXNoIEBtYWtlQ29kZSBcIlxcblwiXG4gICAgICAgICAgICBAZXhwcmVzc2lvbnMgPSByZXN0XG4gICAgICAgIGZyYWdtZW50cyA9IEBjb21waWxlV2l0aERlY2xhcmF0aW9ucyBvXG4gICAgICAgIHJldHVybiBmcmFnbWVudHMgaWYgby5iYXJlXG4gICAgICAgIFtdLmNvbmNhdCBwcmVsdWRlLCBAbWFrZUNvZGUoXCIoZnVuY3Rpb24oKSB7XFxuXCIpLCBmcmFnbWVudHMsIEBtYWtlQ29kZShcIlxcbn0pLmNhbGwodGhpcyk7XFxuXCIpXG5cbiAgICAjIENvbXBpbGUgdGhlIGV4cHJlc3Npb25zIGJvZHkgZm9yIHRoZSBjb250ZW50cyBvZiBhIGZ1bmN0aW9uLCB3aXRoIGRlY2xhcmF0aW9ucyBvZiBhbGwgaW5uZXIgdmFyaWFibGVzIHB1c2hlZCB1cCB0byB0aGUgdG9wLlxuICAgIFxuICAgIGNvbXBpbGVXaXRoRGVjbGFyYXRpb25zOiAobykgLT5cbiAgICAgICAgXG4gICAgICAgIGZyYWdtZW50cyA9IFtdXG4gICAgICAgIHBvc3QgPSBbXVxuICAgICAgICBmb3IgZXhwLCBpIGluIEBleHByZXNzaW9uc1xuICAgICAgICAgICAgZXhwID0gZXhwLnVud3JhcCgpXG4gICAgICAgICAgICBicmVhayB1bmxlc3MgZXhwIGluc3RhbmNlb2YgQ29tbWVudCBvciBleHAgaW5zdGFuY2VvZiBMaXRlcmFsXG4gICAgICAgIG8gPSBtZXJnZShvLCBsZXZlbDogTEVWRUxfVE9QKVxuICAgICAgICBpZiBpXG4gICAgICAgICAgICByZXN0ID0gQGV4cHJlc3Npb25zLnNwbGljZSBpLCA5ZTlcbiAgICAgICAgICAgIFtzcGFjZWQsICAgICAgICBAc3BhY2VkXSA9IFtAc3BhY2VkLCBub11cbiAgICAgICAgICAgIFtmcmFnbWVudHMsIEBzcGFjZWRdID0gW0Bjb21waWxlTm9kZShvKSwgc3BhY2VkXVxuICAgICAgICAgICAgQGV4cHJlc3Npb25zID0gcmVzdFxuICAgICAgICBwb3N0ID0gQGNvbXBpbGVOb2RlIG9cbiAgICAgICAge3Njb3BlfSA9IG9cbiAgICAgICAgaWYgc2NvcGUuZXhwcmVzc2lvbnMgaXMgdGhpc1xuICAgICAgICAgICAgZGVjbGFycyA9IG8uc2NvcGUuaGFzRGVjbGFyYXRpb25zKClcbiAgICAgICAgICAgIGFzc2lnbnMgPSBzY29wZS5oYXNBc3NpZ25tZW50c1xuICAgICAgICAgICAgaWYgZGVjbGFycyBvciBhc3NpZ25zXG4gICAgICAgICAgICAgICAgZnJhZ21lbnRzLnB1c2ggQG1ha2VDb2RlICdcXG4nIGlmIGlcbiAgICAgICAgICAgICAgICBmcmFnbWVudHMucHVzaCBAbWFrZUNvZGUgXCIje0B0YWJ9dmFyIFwiXG4gICAgICAgICAgICAgICAgaWYgZGVjbGFyc1xuICAgICAgICAgICAgICAgICAgICBmcmFnbWVudHMucHVzaCBAbWFrZUNvZGUgc2NvcGUuZGVjbGFyZWRWYXJpYWJsZXMoKS5qb2luKCcsICcpXG4gICAgICAgICAgICAgICAgaWYgYXNzaWduc1xuICAgICAgICAgICAgICAgICAgICBmcmFnbWVudHMucHVzaCBAbWFrZUNvZGUgXCIsXFxuI3tAdGFiICsgVEFCfVwiIGlmIGRlY2xhcnNcbiAgICAgICAgICAgICAgICAgICAgZnJhZ21lbnRzLnB1c2ggQG1ha2VDb2RlIHNjb3BlLmFzc2lnbmVkVmFyaWFibGVzKCkuam9pbihcIixcXG4je0B0YWIgKyBUQUJ9XCIpXG4gICAgICAgICAgICAgICAgZnJhZ21lbnRzLnB1c2ggQG1ha2VDb2RlIFwiO1xcbiN7aWYgQHNwYWNlZCB0aGVuICdcXG4nIGVsc2UgJyd9XCJcbiAgICAgICAgICAgIGVsc2UgaWYgZnJhZ21lbnRzLmxlbmd0aCBhbmQgcG9zdC5sZW5ndGhcbiAgICAgICAgICAgICAgICBmcmFnbWVudHMucHVzaCBAbWFrZUNvZGUgXCJcXG5cIlxuICAgICAgICBmcmFnbWVudHMuY29uY2F0IHBvc3RcblxuICAgICMgV3JhcCB1cCB0aGUgZ2l2ZW4gbm9kZXMgYXMgYSAqKkJsb2NrKiosIHVubGVzcyBpdCBhbHJlYWR5IGhhcHBlbnMgdG8gYmUgb25lLlxuICAgIFxuICAgIEB3cmFwOiAobm9kZXMpIC0+XG4gICAgICAgIFxuICAgICAgICByZXR1cm4gbm9kZXNbMF0gaWYgbm9kZXMubGVuZ3RoIGlzIDEgYW5kIG5vZGVzWzBdIGluc3RhbmNlb2YgQmxvY2tcbiAgICAgICAgbmV3IEJsb2NrIG5vZGVzXG5cbiMgMDAwICAgICAgMDAwICAwMDAwMDAwMDAgIDAwMDAwMDAwICAwMDAwMDAwMCAgICAwMDAwMDAwICAgMDAwICAgICAgXG4jIDAwMCAgICAgIDAwMCAgICAgMDAwICAgICAwMDAgICAgICAgMDAwICAgMDAwICAwMDAgICAwMDAgIDAwMCAgICAgIFxuIyAwMDAgICAgICAwMDAgICAgIDAwMCAgICAgMDAwMDAwMCAgIDAwMDAwMDAgICAgMDAwMDAwMDAwICAwMDAgICAgICBcbiMgMDAwICAgICAgMDAwICAgICAwMDAgICAgIDAwMCAgICAgICAwMDAgICAwMDAgIDAwMCAgIDAwMCAgMDAwICAgICAgXG4jIDAwMDAwMDAgIDAwMCAgICAgMDAwICAgICAwMDAwMDAwMCAgMDAwICAgMDAwICAwMDAgICAwMDAgIDAwMDAwMDAgIFxuXG4jIGBMaXRlcmFsYCBpcyBhIGJhc2UgY2xhc3MgZm9yIHN0YXRpYyB2YWx1ZXMgdGhhdCBjYW4gYmUgcGFzc2VkIHRocm91Z2ggZGlyZWN0bHkgaW50byBKYXZhU2NyaXB0IHdpdGhvdXQgdHJhbnNsYXRpb24sIFxuIyBzdWNoIGFzOiBzdHJpbmdzLCBudW1iZXJzLCBgdHJ1ZWAsIGBmYWxzZWAsIGBudWxsYC4uLlxuXG5leHBvcnRzLkxpdGVyYWwgPSBjbGFzcyBMaXRlcmFsIGV4dGVuZHMgQmFzZVxuICAgIFxuICAgIEA6IChAdmFsdWUpIC0+XG5cbiAgICBpc0NvbXBsZXg6IE5PXG5cbiAgICBhc3NpZ25zOiAobmFtZSkgLT5cbiAgICAgICAgbmFtZSBpcyBAdmFsdWVcblxuICAgIGNvbXBpbGVOb2RlOiAobykgLT5cbiAgICAgICAgW0BtYWtlQ29kZSBAdmFsdWVdXG5cbiAgICB0b1N0cmluZzogLT5cbiAgICAgICAgXCIgI3tpZiBAaXNTdGF0ZW1lbnQoKSB0aGVuIHN1cGVyIGVsc2UgQGNvbnN0cnVjdG9yLm5hbWV9OiAje0B2YWx1ZX1cIlxuXG5leHBvcnRzLk51bWJlckxpdGVyYWwgPSBjbGFzcyBOdW1iZXJMaXRlcmFsIGV4dGVuZHMgTGl0ZXJhbFxuXG5leHBvcnRzLkluZmluaXR5TGl0ZXJhbCA9IGNsYXNzIEluZmluaXR5TGl0ZXJhbCBleHRlbmRzIE51bWJlckxpdGVyYWxcbiAgICBjb21waWxlTm9kZTogLT5cbiAgICAgICAgW0BtYWtlQ29kZSAnMmUzMDgnXVxuXG5leHBvcnRzLk5hTkxpdGVyYWwgPSBjbGFzcyBOYU5MaXRlcmFsIGV4dGVuZHMgTnVtYmVyTGl0ZXJhbFxuICAgIEA6IC0+XG4gICAgICAgIHN1cGVyICdOYU4nXG5cbiAgICBjb21waWxlTm9kZTogKG8pIC0+XG4gICAgICAgIGNvZGUgPSBbQG1ha2VDb2RlICcwLzAnXVxuICAgICAgICBpZiBvLmxldmVsID49IExFVkVMX09QIHRoZW4gQHdyYXBJbkJyYWNlcyBjb2RlIGVsc2UgY29kZVxuXG5leHBvcnRzLlN0cmluZ0xpdGVyYWwgPSBjbGFzcyBTdHJpbmdMaXRlcmFsIGV4dGVuZHMgTGl0ZXJhbFxuXG5leHBvcnRzLlJlZ2V4TGl0ZXJhbCA9IGNsYXNzIFJlZ2V4TGl0ZXJhbCBleHRlbmRzIExpdGVyYWxcblxuZXhwb3J0cy5QYXNzdGhyb3VnaExpdGVyYWwgPSBjbGFzcyBQYXNzdGhyb3VnaExpdGVyYWwgZXh0ZW5kcyBMaXRlcmFsXG5cbmV4cG9ydHMuSWRlbnRpZmllckxpdGVyYWwgPSBjbGFzcyBJZGVudGlmaWVyTGl0ZXJhbCBleHRlbmRzIExpdGVyYWxcbiAgICBpc0Fzc2lnbmFibGU6IFlFU1xuXG5leHBvcnRzLlByb3BlcnR5TmFtZSA9IGNsYXNzIFByb3BlcnR5TmFtZSBleHRlbmRzIExpdGVyYWxcbiAgICBpc0Fzc2lnbmFibGU6IFlFU1xuXG5leHBvcnRzLlN0YXRlbWVudExpdGVyYWwgPSBjbGFzcyBTdGF0ZW1lbnRMaXRlcmFsIGV4dGVuZHMgTGl0ZXJhbFxuICAgIGlzU3RhdGVtZW50OiBZRVNcblxuICAgIG1ha2VSZXR1cm46IFRISVNcblxuICAgIGp1bXBzOiAobykgLT5cbiAgICAgICAgcmV0dXJuIHRoaXMgaWYgQHZhbHVlIGlzICdicmVhaycgYW5kIG5vdCAobz8ubG9vcCBvciBvPy5ibG9jaylcbiAgICAgICAgcmV0dXJuIHRoaXMgaWYgQHZhbHVlIGlzICdjb250aW51ZScgYW5kIG5vdCBvPy5sb29wXG5cbiAgICBjb21waWxlTm9kZTogKG8pIC0+XG4gICAgICAgIFtAbWFrZUNvZGUgXCIje0B0YWJ9I3tAdmFsdWV9O1wiXVxuXG5leHBvcnRzLlRoaXNMaXRlcmFsID0gY2xhc3MgVGhpc0xpdGVyYWwgZXh0ZW5kcyBMaXRlcmFsXG4gICAgQDogLT5cbiAgICAgICAgc3VwZXIgJ3RoaXMnXG5cbiAgICBjb21waWxlTm9kZTogKG8pIC0+XG4gICAgICAgIGNvZGUgPSBpZiBvLnNjb3BlLm1ldGhvZD8uYm91bmQgdGhlbiBvLnNjb3BlLm1ldGhvZC5jb250ZXh0IGVsc2UgQHZhbHVlXG4gICAgICAgIFtAbWFrZUNvZGUgY29kZV1cblxuZXhwb3J0cy5VbmRlZmluZWRMaXRlcmFsID0gY2xhc3MgVW5kZWZpbmVkTGl0ZXJhbCBleHRlbmRzIExpdGVyYWxcbiAgICBAOiAtPlxuICAgICAgICBzdXBlciAndW5kZWZpbmVkJ1xuXG4gICAgY29tcGlsZU5vZGU6IChvKSAtPlxuICAgICAgICBbQG1ha2VDb2RlIGlmIG8ubGV2ZWwgPj0gTEVWRUxfQUNDRVNTIHRoZW4gJyh2b2lkIDApJyBlbHNlICd2b2lkIDAnXVxuXG5leHBvcnRzLk51bGxMaXRlcmFsID0gY2xhc3MgTnVsbExpdGVyYWwgZXh0ZW5kcyBMaXRlcmFsXG4gICAgQDogLT5cbiAgICAgICAgc3VwZXIgJ251bGwnXG5cbmV4cG9ydHMuQm9vbGVhbkxpdGVyYWwgPSBjbGFzcyBCb29sZWFuTGl0ZXJhbCBleHRlbmRzIExpdGVyYWxcblxuIyAwMDAwMDAwMCAgIDAwMDAwMDAwICAwMDAwMDAwMDAgIDAwMCAgIDAwMCAgMDAwMDAwMDAgICAwMDAgICAwMDAgIFxuIyAwMDAgICAwMDAgIDAwMCAgICAgICAgICAwMDAgICAgIDAwMCAgIDAwMCAgMDAwICAgMDAwICAwMDAwICAwMDAgIFxuIyAwMDAwMDAwICAgIDAwMDAwMDAgICAgICAwMDAgICAgIDAwMCAgIDAwMCAgMDAwMDAwMCAgICAwMDAgMCAwMDAgIFxuIyAwMDAgICAwMDAgIDAwMCAgICAgICAgICAwMDAgICAgIDAwMCAgIDAwMCAgMDAwICAgMDAwICAwMDAgIDAwMDAgIFxuIyAwMDAgICAwMDAgIDAwMDAwMDAwICAgICAwMDAgICAgICAwMDAwMDAwICAgMDAwICAgMDAwICAwMDAgICAwMDAgIFxuXG4jIEEgYHJldHVybmAgaXMgYSAqcHVyZVN0YXRlbWVudCogLS0gd3JhcHBpbmcgaXQgaW4gYSBjbG9zdXJlIHdvdWxkbid0IG1ha2Ugc2Vuc2UuXG5cbmV4cG9ydHMuUmV0dXJuID0gY2xhc3MgUmV0dXJuIGV4dGVuZHMgQmFzZVxuICAgIEA6IChAZXhwcmVzc2lvbikgLT5cblxuICAgIGNoaWxkcmVuOiBbJ2V4cHJlc3Npb24nXVxuXG4gICAgaXNTdGF0ZW1lbnQ6IFlFU1xuICAgIG1ha2VSZXR1cm46ICBUSElTXG4gICAganVtcHM6ICAgICAgIFRISVNcblxuICAgIGNvbXBpbGVUb0ZyYWdtZW50czogKG8sIGxldmVsKSAtPlxuICAgICAgICBleHByID0gQGV4cHJlc3Npb24/Lm1ha2VSZXR1cm4oKVxuICAgICAgICBpZiBleHByIGFuZCBleHByIG5vdCBpbnN0YW5jZW9mIFJldHVybiB0aGVuIGV4cHIuY29tcGlsZVRvRnJhZ21lbnRzIG8sIGxldmVsIGVsc2Ugc3VwZXIgbywgbGV2ZWxcblxuICAgIGNvbXBpbGVOb2RlOiAobykgLT5cbiAgICAgICAgYW5zd2VyID0gW11cbiAgICAgICAgIyBUT0RPOiBJZiB3ZSBjYWxsIGV4cHJlc3Npb24uY29tcGlsZSgpIGhlcmUgdHdpY2UsIHdlJ2xsIHNvbWV0aW1lcyBnZXQgYmFjayBkaWZmZXJlbnQgcmVzdWx0cyFcbiAgICAgICAgYW5zd2VyLnB1c2ggQG1ha2VDb2RlIEB0YWIgKyBcInJldHVybiN7aWYgQGV4cHJlc3Npb24gdGhlbiBcIiBcIiBlbHNlIFwiXCJ9XCJcbiAgICAgICAgaWYgQGV4cHJlc3Npb25cbiAgICAgICAgICAgIGFuc3dlciA9IGFuc3dlci5jb25jYXQgQGV4cHJlc3Npb24uY29tcGlsZVRvRnJhZ21lbnRzIG8sIExFVkVMX1BBUkVOXG4gICAgICAgIGFuc3dlci5wdXNoIEBtYWtlQ29kZSBcIjtcIlxuICAgICAgICByZXR1cm4gYW5zd2VyXG5cbiMgYHlpZWxkIHJldHVybmAgd29ya3MgZXhhY3RseSBsaWtlIGByZXR1cm5gLCBleGNlcHQgdGhhdCBpdCB0dXJucyB0aGUgZnVuY3Rpb24gaW50byBhIGdlbmVyYXRvci5cblxuZXhwb3J0cy5ZaWVsZFJldHVybiA9IGNsYXNzIFlpZWxkUmV0dXJuIGV4dGVuZHMgUmV0dXJuXG4gICAgY29tcGlsZU5vZGU6IChvKSAtPlxuICAgICAgICB1bmxlc3Mgby5zY29wZS5wYXJlbnQ/XG4gICAgICAgICAgICBAZXJyb3IgJ3lpZWxkIGNhbiBvbmx5IG9jY3VyIGluc2lkZSBmdW5jdGlvbnMnXG4gICAgICAgIHN1cGVyXG5cbiMgMDAwICAgMDAwICAgMDAwMDAwMCAgIDAwMCAgICAgIDAwMCAgIDAwMCAgMDAwMDAwMDAgIFxuIyAwMDAgICAwMDAgIDAwMCAgIDAwMCAgMDAwICAgICAgMDAwICAgMDAwICAwMDAgICAgICAgXG4jICAwMDAgMDAwICAgMDAwMDAwMDAwICAwMDAgICAgICAwMDAgICAwMDAgIDAwMDAwMDAgICBcbiMgICAgMDAwICAgICAwMDAgICAwMDAgIDAwMCAgICAgIDAwMCAgIDAwMCAgMDAwICAgICAgIFxuIyAgICAgMCAgICAgIDAwMCAgIDAwMCAgMDAwMDAwMCAgIDAwMDAwMDAgICAwMDAwMDAwMCAgXG5cbiMgQSB2YWx1ZSwgdmFyaWFibGUgb3IgbGl0ZXJhbCBvciBwYXJlbnRoZXNpemVkLCBpbmRleGVkIG9yIGRvdHRlZCBpbnRvLCBvciB2YW5pbGxhLlxuXG5leHBvcnRzLlZhbHVlID0gY2xhc3MgVmFsdWUgZXh0ZW5kcyBCYXNlXG4gICAgXG4gICAgQDogKGJhc2UsIHByb3BzLCB0YWcpIC0+XG4gICAgICAgIHJldHVybiBiYXNlIGlmIG5vdCBwcm9wcyBhbmQgYmFzZSBpbnN0YW5jZW9mIFZhbHVlXG4gICAgICAgIEBiYXNlICAgICAgID0gYmFzZVxuICAgICAgICBAcHJvcGVydGllcyA9IHByb3BzIG9yIFtdXG4gICAgICAgIEBbdGFnXSAgICAgID0gdHJ1ZSBpZiB0YWdcbiAgICAgICAgcmV0dXJuIHRoaXNcblxuICAgIGNoaWxkcmVuOiBbJ2Jhc2UnLCAncHJvcGVydGllcyddXG5cbiAgICAjIEFkZCBhIHByb3BlcnR5IChvciAqcHJvcGVydGllcyogKSBgQWNjZXNzYCB0byB0aGUgbGlzdC5cbiAgICBhZGQ6IChwcm9wcykgLT5cbiAgICAgICAgQHByb3BlcnRpZXMgPSBAcHJvcGVydGllcy5jb25jYXQgcHJvcHNcbiAgICAgICAgdGhpc1xuXG4gICAgaGFzUHJvcGVydGllczogLT5cbiAgICAgICAgISFAcHJvcGVydGllcy5sZW5ndGhcblxuICAgIGJhcmVMaXRlcmFsOiAodHlwZSkgLT5cbiAgICAgICAgbm90IEBwcm9wZXJ0aWVzLmxlbmd0aCBhbmQgQGJhc2UgaW5zdGFuY2VvZiB0eXBlXG5cbiAgICAjIFNvbWUgYm9vbGVhbiBjaGVja3MgZm9yIHRoZSBiZW5lZml0IG9mIG90aGVyIG5vZGVzLlxuICAgIGlzQXJyYXk6ICAgICAgLT4gQGJhcmVMaXRlcmFsKEFycilcbiAgICBpc1JhbmdlOiAgICAgIC0+IEBiYXJlTGl0ZXJhbChSYW5nZSlcbiAgICBpc0NvbXBsZXg6ICAgIC0+IEBoYXNQcm9wZXJ0aWVzKCkgb3IgQGJhc2UuaXNDb21wbGV4KClcbiAgICBpc0Fzc2lnbmFibGU6IC0+IEBoYXNQcm9wZXJ0aWVzKCkgb3IgQGJhc2UuaXNBc3NpZ25hYmxlKClcbiAgICBpc051bWJlcjogICAgIC0+IEBiYXJlTGl0ZXJhbChOdW1iZXJMaXRlcmFsKVxuICAgIGlzU3RyaW5nOiAgICAgLT4gQGJhcmVMaXRlcmFsKFN0cmluZ0xpdGVyYWwpXG4gICAgaXNSZWdleDogICAgICAtPiBAYmFyZUxpdGVyYWwoUmVnZXhMaXRlcmFsKVxuICAgIGlzVW5kZWZpbmVkOiAgLT4gQGJhcmVMaXRlcmFsKFVuZGVmaW5lZExpdGVyYWwpXG4gICAgaXNOdWxsOiAgICAgICAtPiBAYmFyZUxpdGVyYWwoTnVsbExpdGVyYWwpXG4gICAgaXNCb29sZWFuOiAgICAtPiBAYmFyZUxpdGVyYWwoQm9vbGVhbkxpdGVyYWwpXG4gICAgaXNBdG9taWM6ICAgICAtPlxuICAgICAgICBmb3Igbm9kZSBpbiBAcHJvcGVydGllcy5jb25jYXQgQGJhc2VcbiAgICAgICAgICAgIHJldHVybiBubyBpZiBub2RlLnNvYWsgb3Igbm9kZSBpbnN0YW5jZW9mIENhbGxcbiAgICAgICAgeWVzXG5cbiAgICBpc05vdENhbGxhYmxlOiAtPiBAaXNOdW1iZXIoKSBvciBAaXNTdHJpbmcoKSBvciBAaXNSZWdleCgpIG9yXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgQGlzQXJyYXkoKSBvciBAaXNSYW5nZSgpIG9yIEBpc1NwbGljZSgpIG9yIEBpc09iamVjdCgpIG9yXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgQGlzVW5kZWZpbmVkKCkgb3IgQGlzTnVsbCgpIG9yIEBpc0Jvb2xlYW4oKVxuXG4gICAgaXNTdGF0ZW1lbnQ6IChvKSAgICAtPiBub3QgQHByb3BlcnRpZXMubGVuZ3RoIGFuZCBAYmFzZS5pc1N0YXRlbWVudCBvXG4gICAgYXNzaWduczogICAgIChuYW1lKSAtPiBub3QgQHByb3BlcnRpZXMubGVuZ3RoIGFuZCBAYmFzZS5hc3NpZ25zIG5hbWVcbiAgICBqdW1wczogICAgICAgKG8pICAgIC0+IG5vdCBAcHJvcGVydGllcy5sZW5ndGggYW5kIEBiYXNlLmp1bXBzIG9cblxuICAgIGlzT2JqZWN0OiAob25seUdlbmVyYXRlZCkgLT5cbiAgICAgICAgcmV0dXJuIG5vIGlmIEBwcm9wZXJ0aWVzLmxlbmd0aFxuICAgICAgICAoQGJhc2UgaW5zdGFuY2VvZiBPYmopIGFuZCAobm90IG9ubHlHZW5lcmF0ZWQgb3IgQGJhc2UuZ2VuZXJhdGVkKVxuXG4gICAgaXNTcGxpY2U6IC0+XG4gICAgICAgIFsuLi4sIGxhc3RQcm9wXSA9IEBwcm9wZXJ0aWVzXG4gICAgICAgIGxhc3RQcm9wIGluc3RhbmNlb2YgU2xpY2VcblxuICAgIGxvb2tzU3RhdGljOiAoY2xhc3NOYW1lKSAtPlxuICAgICAgICBAYmFzZS52YWx1ZSBpcyBjbGFzc05hbWUgYW5kIEBwcm9wZXJ0aWVzLmxlbmd0aCBpcyAxIGFuZFxuICAgICAgICAgICAgQHByb3BlcnRpZXNbMF0ubmFtZT8udmFsdWUgIT0gJ3Byb3RvdHlwZSdcblxuICAgICMgVGhlIHZhbHVlIGNhbiBiZSB1bndyYXBwZWQgYXMgaXRzIGlubmVyIG5vZGUsIGlmIHRoZXJlIGFyZSBubyBhdHRhY2hlZCBwcm9wZXJ0aWVzLlxuICAgIHVud3JhcDogLT5cbiAgICAgICAgaWYgQHByb3BlcnRpZXMubGVuZ3RoIHRoZW4gdGhpcyBlbHNlIEBiYXNlXG5cbiAgICAjIEEgcmVmZXJlbmNlIGhhcyBiYXNlIHBhcnQgKGB0aGlzYCB2YWx1ZSkgYW5kIG5hbWUgcGFydC5cbiAgICAjIFdlIGNhY2hlIHRoZW0gc2VwYXJhdGVseSBmb3IgY29tcGlsaW5nIGNvbXBsZXggZXhwcmVzc2lvbnMuXG4gICAgIyBgYSgpW2IoKV0gPz0gY2AgLT4gYChfYmFzZSA9IGEoKSlbX25hbWUgPSBiKCldID8gX2Jhc2VbX25hbWVdID0gY2BcbiAgICBcbiAgICBjYWNoZVJlZmVyZW5jZTogKG8pIC0+XG4gICAgICAgIFxuICAgICAgICBbLi4uLCBuYW1lXSA9IEBwcm9wZXJ0aWVzXG4gICAgICAgIGlmIEBwcm9wZXJ0aWVzLmxlbmd0aCA8IDIgYW5kIG5vdCBAYmFzZS5pc0NvbXBsZXgoKSBhbmQgbm90IG5hbWU/LmlzQ29tcGxleCgpXG4gICAgICAgICAgICByZXR1cm4gW3RoaXMsIHRoaXNdICAjIGBhYCBgYS5iYFxuICAgICAgICBiYXNlID0gbmV3IFZhbHVlIEBiYXNlLCBAcHJvcGVydGllc1suLi4tMV1cbiAgICAgICAgaWYgYmFzZS5pc0NvbXBsZXgoKSAgIyBgYSgpLmJgXG4gICAgICAgICAgICBicmVmID0gbmV3IElkZW50aWZpZXJMaXRlcmFsIG8uc2NvcGUuZnJlZVZhcmlhYmxlICdiYXNlJ1xuICAgICAgICAgICAgYmFzZSA9IG5ldyBWYWx1ZSBuZXcgUGFyZW5zIG5ldyBBc3NpZ24gYnJlZiwgYmFzZVxuICAgICAgICByZXR1cm4gW2Jhc2UsIGJyZWZdIHVubGVzcyBuYW1lICAjIGBhKClgXG4gICAgICAgIGlmIG5hbWUuaXNDb21wbGV4KCkgICMgYGFbYigpXWBcbiAgICAgICAgICAgIG5yZWYgPSBuZXcgSWRlbnRpZmllckxpdGVyYWwgby5zY29wZS5mcmVlVmFyaWFibGUgJ25hbWUnXG4gICAgICAgICAgICBuYW1lID0gbmV3IEluZGV4IG5ldyBBc3NpZ24gbnJlZiwgbmFtZS5pbmRleFxuICAgICAgICAgICAgbnJlZiA9IG5ldyBJbmRleCBucmVmXG4gICAgICAgIFtiYXNlLmFkZChuYW1lKSwgbmV3IFZhbHVlKGJyZWYgb3IgYmFzZS5iYXNlLCBbbnJlZiBvciBuYW1lXSldXG5cbiAgICAjIFdlIGNvbXBpbGUgYSB2YWx1ZSB0byBKYXZhU2NyaXB0IGJ5IGNvbXBpbGluZyBhbmQgam9pbmluZyBlYWNoIHByb3BlcnR5LlxuICAgICMgVGhpbmdzIGdldCBtdWNoIG1vcmUgaW50ZXJlc3RpbmcgaWYgdGhlIGNoYWluIG9mIHByb3BlcnRpZXMgaGFzICpzb2FrKlxuICAgICMgb3BlcmF0b3JzIGA/LmAgaW50ZXJzcGVyc2VkLiBUaGVuIHdlIGhhdmUgdG8gdGFrZSBjYXJlIG5vdCB0byBhY2NpZGVudGFsbHlcbiAgICAjIGV2YWx1YXRlIGFueXRoaW5nIHR3aWNlIHdoZW4gYnVpbGRpbmcgdGhlIHNvYWsgY2hhaW4uXG4gICAgXG4gICAgY29tcGlsZU5vZGU6IChvKSAtPlxuICAgICAgICBcbiAgICAgICAgQGJhc2UuZnJvbnQgPSBAZnJvbnRcbiAgICAgICAgcHJvcHMgPSBAcHJvcGVydGllc1xuICAgICAgICBmcmFnbWVudHMgPSBAYmFzZS5jb21waWxlVG9GcmFnbWVudHMgbywgKGlmIHByb3BzLmxlbmd0aCB0aGVuIExFVkVMX0FDQ0VTUyBlbHNlIG51bGwpXG4gICAgICAgIGlmIHByb3BzLmxlbmd0aCBhbmQgU0lNUExFTlVNLnRlc3QgZnJhZ21lbnRzVG9UZXh0IGZyYWdtZW50c1xuICAgICAgICAgICAgZnJhZ21lbnRzLnB1c2ggQG1ha2VDb2RlICcuJ1xuICAgICAgICBmb3IgcHJvcCBpbiBwcm9wc1xuICAgICAgICAgICAgZnJhZ21lbnRzLnB1c2ggKHByb3AuY29tcGlsZVRvRnJhZ21lbnRzIG8pLi4uXG4gICAgICAgIGZyYWdtZW50c1xuXG4gICAgIyBVbmZvbGQgYSBzb2FrIGludG8gYW4gYElmYDogYGE/LmJgIC0+IGBhLmIgaWYgYT9gXG4gICAgXG4gICAgdW5mb2xkU29hazogKG8pIC0+XG4gICAgICAgIFxuICAgICAgICBAdW5mb2xkZWRTb2FrID89IGRvID0+XG4gICAgICAgICAgICBpZiBpZm4gPSBAYmFzZS51bmZvbGRTb2FrIG9cbiAgICAgICAgICAgICAgICBpZm4uYm9keS5wcm9wZXJ0aWVzLnB1c2ggQHByb3BlcnRpZXMuLi5cbiAgICAgICAgICAgICAgICByZXR1cm4gaWZuXG4gICAgICAgICAgICBmb3IgcHJvcCwgaSBpbiBAcHJvcGVydGllcyB3aGVuIHByb3Auc29ha1xuICAgICAgICAgICAgICAgIHByb3Auc29hayA9IG9mZlxuICAgICAgICAgICAgICAgIGZzdCA9IG5ldyBWYWx1ZSBAYmFzZSwgQHByb3BlcnRpZXNbLi4uaV1cbiAgICAgICAgICAgICAgICBzbmQgPSBuZXcgVmFsdWUgQGJhc2UsIEBwcm9wZXJ0aWVzW2kuLl1cbiAgICAgICAgICAgICAgICBpZiBmc3QuaXNDb21wbGV4KClcbiAgICAgICAgICAgICAgICAgICAgcmVmID0gbmV3IElkZW50aWZpZXJMaXRlcmFsIG8uc2NvcGUuZnJlZVZhcmlhYmxlICdyZWYnXG4gICAgICAgICAgICAgICAgICAgIGZzdCA9IG5ldyBQYXJlbnMgbmV3IEFzc2lnbiByZWYsIGZzdFxuICAgICAgICAgICAgICAgICAgICBzbmQuYmFzZSA9IHJlZlxuICAgICAgICAgICAgICAgIHJldHVybiBuZXcgSWYgbmV3IEV4aXN0ZW5jZShmc3QpLCBzbmQsIHNvYWs6IG9uXG4gICAgICAgICAgICBub1xuXG4jICAwMDAwMDAwICAgMDAwMDAwMCAgIDAwICAgICAwMCAgMDAgICAgIDAwICAwMDAwMDAwMCAgMDAwICAgMDAwICAwMDAwMDAwMDAgIFxuIyAwMDAgICAgICAgMDAwICAgMDAwICAwMDAgICAwMDAgIDAwMCAgIDAwMCAgMDAwICAgICAgIDAwMDAgIDAwMCAgICAgMDAwICAgICBcbiMgMDAwICAgICAgIDAwMCAgIDAwMCAgMDAwMDAwMDAwICAwMDAwMDAwMDAgIDAwMDAwMDAgICAwMDAgMCAwMDAgICAgIDAwMCAgICAgXG4jIDAwMCAgICAgICAwMDAgICAwMDAgIDAwMCAwIDAwMCAgMDAwIDAgMDAwICAwMDAgICAgICAgMDAwICAwMDAwICAgICAwMDAgICAgIFxuIyAgMDAwMDAwMCAgIDAwMDAwMDAgICAwMDAgICAwMDAgIDAwMCAgIDAwMCAgMDAwMDAwMDAgIDAwMCAgIDAwMCAgICAgMDAwICAgICBcblxuZXhwb3J0cy5Db21tZW50ID0gY2xhc3MgQ29tbWVudCBleHRlbmRzIEJhc2VcbiAgICBcbiAgICBAOiAoQGNvbW1lbnQpIC0+XG5cbiAgICBpc1N0YXRlbWVudDogWUVTXG4gICAgbWFrZVJldHVybjogIFRISVNcblxuICAgIGNvbXBpbGVOb2RlOiAobywgbGV2ZWwpIC0+XG4gICAgICAgIFxuICAgICAgICBjb21tZW50ID0gQGNvbW1lbnQucmVwbGFjZSAvXihcXHMqKSMoPz1cXHMpL2dtLCBcIiQxICpcIlxuICAgICAgICBjb2RlID0gXCIvKiN7bXVsdGlkZW50IGNvbW1lbnQsIEB0YWJ9I3tpZiAnXFxuJyBpbiBjb21tZW50IHRoZW4gXCJcXG4je0B0YWJ9XCIgZWxzZSAnJ30gKi9cIlxuICAgICAgICBjb2RlID0gby5pbmRlbnQgKyBjb2RlIGlmIChsZXZlbCBvciBvLmxldmVsKSBpcyBMRVZFTF9UT1BcbiAgICAgICAgW0BtYWtlQ29kZShcIlxcblwiKSwgQG1ha2VDb2RlKGNvZGUpXVxuXG4jICAwMDAwMDAwICAgMDAwMDAwMCAgIDAwMCAgICAgIDAwMCAgICAgIFxuIyAwMDAgICAgICAgMDAwICAgMDAwICAwMDAgICAgICAwMDAgICAgICBcbiMgMDAwICAgICAgIDAwMDAwMDAwMCAgMDAwICAgICAgMDAwICAgICAgXG4jIDAwMCAgICAgICAwMDAgICAwMDAgIDAwMCAgICAgIDAwMCAgICAgIFxuIyAgMDAwMDAwMCAgMDAwICAgMDAwICAwMDAwMDAwICAwMDAwMDAwICBcblxuIyBOb2RlIGZvciBhIGZ1bmN0aW9uIGludm9jYXRpb24uXG4gICAgXG5leHBvcnRzLkNhbGwgPSBjbGFzcyBDYWxsIGV4dGVuZHMgQmFzZVxuICAgIFxuICAgIEA6IChAdmFyaWFibGUsIEBhcmdzID0gW10sIEBzb2FrKSAtPlxuICAgICAgICBcbiAgICAgICAgQGlzTmV3ID0gZmFsc2VcbiAgICAgICAgaWYgQHZhcmlhYmxlIGluc3RhbmNlb2YgVmFsdWUgYW5kIEB2YXJpYWJsZS5pc05vdENhbGxhYmxlKClcbiAgICAgICAgICAgICMgbG9nIEB2YXJpYWJsZVxuICAgICAgICAgICAgQHZhcmlhYmxlLmVycm9yIFwibGl0ZXJhbCBpcyBub3QgYSBmdW5jdGlvblwiXG5cbiAgICBjaGlsZHJlbjogWyd2YXJpYWJsZScsICdhcmdzJ11cblxuICAgICMgV2hlbiBzZXR0aW5nIHRoZSBsb2NhdGlvbiwgd2Ugc29tZXRpbWVzIG5lZWQgdG8gdXBkYXRlIHRoZSBzdGFydCBsb2NhdGlvbiB0b1xuICAgICMgYWNjb3VudCBmb3IgYSBuZXdseS1kaXNjb3ZlcmVkIGBuZXdgIG9wZXJhdG9yIHRvIHRoZSBsZWZ0IG9mIHVzLiBUaGlzXG4gICAgIyBleHBhbmRzIHRoZSByYW5nZSBvbiB0aGUgbGVmdCwgYnV0IG5vdCB0aGUgcmlnaHQuXG4gICAgXG4gICAgdXBkYXRlTG9jYXRpb25EYXRhSWZNaXNzaW5nOiAobG9jYXRpb25EYXRhKSAtPlxuICAgICAgICBcbiAgICAgICAgaWYgQGxvY2F0aW9uRGF0YSBhbmQgQG5lZWRzVXBkYXRlZFN0YXJ0TG9jYXRpb25cbiAgICAgICAgICAgIEBsb2NhdGlvbkRhdGEuZmlyc3RfbGluZSA9IGxvY2F0aW9uRGF0YS5maXJzdF9saW5lXG4gICAgICAgICAgICBAbG9jYXRpb25EYXRhLmZpcnN0X2NvbHVtbiA9IGxvY2F0aW9uRGF0YS5maXJzdF9jb2x1bW5cbiAgICAgICAgICAgIGJhc2UgPSBAdmFyaWFibGU/LmJhc2Ugb3IgQHZhcmlhYmxlXG4gICAgICAgICAgICBpZiBiYXNlLm5lZWRzVXBkYXRlZFN0YXJ0TG9jYXRpb25cbiAgICAgICAgICAgICAgICBAdmFyaWFibGUubG9jYXRpb25EYXRhLmZpcnN0X2xpbmUgPSBsb2NhdGlvbkRhdGEuZmlyc3RfbGluZVxuICAgICAgICAgICAgICAgIEB2YXJpYWJsZS5sb2NhdGlvbkRhdGEuZmlyc3RfY29sdW1uID0gbG9jYXRpb25EYXRhLmZpcnN0X2NvbHVtblxuICAgICAgICAgICAgICAgIGJhc2UudXBkYXRlTG9jYXRpb25EYXRhSWZNaXNzaW5nIGxvY2F0aW9uRGF0YVxuICAgICAgICAgICAgZGVsZXRlIEBuZWVkc1VwZGF0ZWRTdGFydExvY2F0aW9uXG4gICAgICAgIHN1cGVyXG5cbiAgICAjIFRhZyB0aGlzIGludm9jYXRpb24gYXMgY3JlYXRpbmcgYSBuZXcgaW5zdGFuY2UuXG4gICAgbmV3SW5zdGFuY2U6IC0+XG4gICAgICAgIGJhc2UgPSBAdmFyaWFibGU/LmJhc2Ugb3IgQHZhcmlhYmxlXG4gICAgICAgIGlmIGJhc2UgaW5zdGFuY2VvZiBDYWxsIGFuZCBub3QgYmFzZS5pc05ld1xuICAgICAgICAgICAgYmFzZS5uZXdJbnN0YW5jZSgpXG4gICAgICAgIGVsc2VcbiAgICAgICAgICAgIEBpc05ldyA9IHRydWVcbiAgICAgICAgQG5lZWRzVXBkYXRlZFN0YXJ0TG9jYXRpb24gPSB0cnVlXG4gICAgICAgIHRoaXNcblxuICAgICMgU29ha2VkIGNoYWluZWQgaW52b2NhdGlvbnMgdW5mb2xkIGludG8gaWYvZWxzZSB0ZXJuYXJ5IHN0cnVjdHVyZXMuXG4gICAgdW5mb2xkU29hazogKG8pIC0+XG4gICAgICAgIGlmIEBzb2FrXG4gICAgICAgICAgICBpZiB0aGlzIGluc3RhbmNlb2YgU3VwZXJDYWxsXG4gICAgICAgICAgICAgICAgbGVmdCA9IG5ldyBMaXRlcmFsIEBzdXBlclJlZmVyZW5jZSBvXG4gICAgICAgICAgICAgICAgcml0ZSA9IG5ldyBWYWx1ZSBsZWZ0XG4gICAgICAgICAgICBlbHNlXG4gICAgICAgICAgICAgICAgcmV0dXJuIGlmbiBpZiBpZm4gPSB1bmZvbGRTb2FrIG8sIHRoaXMsICd2YXJpYWJsZSdcbiAgICAgICAgICAgICAgICBbbGVmdCwgcml0ZV0gPSBuZXcgVmFsdWUoQHZhcmlhYmxlKS5jYWNoZVJlZmVyZW5jZSBvXG4gICAgICAgICAgICByaXRlID0gbmV3IENhbGwgcml0ZSwgQGFyZ3NcbiAgICAgICAgICAgIHJpdGUuaXNOZXcgPSBAaXNOZXdcbiAgICAgICAgICAgIGxlZnQgPSBuZXcgTGl0ZXJhbCBcInR5cGVvZiAjeyBsZWZ0LmNvbXBpbGUgbyB9ID09PSBcXFwiZnVuY3Rpb25cXFwiXCJcbiAgICAgICAgICAgIHJldHVybiBuZXcgSWYgbGVmdCwgbmV3IFZhbHVlKHJpdGUpLCBzb2FrOiB5ZXNcbiAgICAgICAgY2FsbCA9IHRoaXNcbiAgICAgICAgbGlzdCA9IFtdXG4gICAgICAgIGxvb3BcbiAgICAgICAgICAgIGlmIGNhbGwudmFyaWFibGUgaW5zdGFuY2VvZiBDYWxsXG4gICAgICAgICAgICAgICAgbGlzdC5wdXNoIGNhbGxcbiAgICAgICAgICAgICAgICBjYWxsID0gY2FsbC52YXJpYWJsZVxuICAgICAgICAgICAgICAgIGNvbnRpbnVlXG4gICAgICAgICAgICBicmVhayB1bmxlc3MgY2FsbC52YXJpYWJsZSBpbnN0YW5jZW9mIFZhbHVlXG4gICAgICAgICAgICBsaXN0LnB1c2ggY2FsbFxuICAgICAgICAgICAgYnJlYWsgdW5sZXNzIChjYWxsID0gY2FsbC52YXJpYWJsZS5iYXNlKSBpbnN0YW5jZW9mIENhbGxcbiAgICAgICAgZm9yIGNhbGwgaW4gbGlzdC5yZXZlcnNlKClcbiAgICAgICAgICAgIGlmIGlmblxuICAgICAgICAgICAgICAgIGlmIGNhbGwudmFyaWFibGUgaW5zdGFuY2VvZiBDYWxsXG4gICAgICAgICAgICAgICAgICAgIGNhbGwudmFyaWFibGUgPSBpZm5cbiAgICAgICAgICAgICAgICBlbHNlXG4gICAgICAgICAgICAgICAgICAgIGNhbGwudmFyaWFibGUuYmFzZSA9IGlmblxuICAgICAgICAgICAgaWZuID0gdW5mb2xkU29hayBvLCBjYWxsLCAndmFyaWFibGUnXG4gICAgICAgIGlmblxuXG4gICAgY29tcGlsZU5vZGU6IChvKSAtPiAjIENvbXBpbGUgYSB2YW5pbGxhIGZ1bmN0aW9uIGNhbGwuXG4gICAgICAgIFxuICAgICAgICBAdmFyaWFibGU/LmZyb250ID0gQGZyb250XG4gICAgICAgIGNvbXBpbGVkQXJyYXkgPSBTcGxhdC5jb21waWxlU3BsYXR0ZWRBcnJheSBvLCBAYXJncywgdHJ1ZVxuICAgICAgICBpZiBjb21waWxlZEFycmF5Lmxlbmd0aFxuICAgICAgICAgICAgcmV0dXJuIEBjb21waWxlU3BsYXQgbywgY29tcGlsZWRBcnJheVxuICAgICAgICBjb21waWxlZEFyZ3MgPSBbXVxuICAgICAgICBmb3IgYXJnLCBhcmdJbmRleCBpbiBAYXJnc1xuICAgICAgICAgICAgaWYgYXJnSW5kZXggdGhlbiBjb21waWxlZEFyZ3MucHVzaCBAbWFrZUNvZGUgXCIsIFwiXG4gICAgICAgICAgICBjb21waWxlZEFyZ3MucHVzaCAoYXJnLmNvbXBpbGVUb0ZyYWdtZW50cyBvLCBMRVZFTF9MSVNUKS4uLlxuXG4gICAgICAgIGZyYWdtZW50cyA9IFtdXG4gICAgICAgIGlmIHRoaXMgaW5zdGFuY2VvZiBTdXBlckNhbGxcbiAgICAgICAgICAgIHByZWZhY2UgPSBAc3VwZXJSZWZlcmVuY2UobykgKyBcIi5jYWxsKCN7QHN1cGVyVGhpcyhvKX1cIlxuICAgICAgICAgICAgaWYgY29tcGlsZWRBcmdzLmxlbmd0aCB0aGVuIHByZWZhY2UgKz0gXCIsIFwiXG4gICAgICAgICAgICBmcmFnbWVudHMucHVzaCBAbWFrZUNvZGUgcHJlZmFjZVxuICAgICAgICBlbHNlXG4gICAgICAgICAgICBpZiBAaXNOZXcgdGhlbiBmcmFnbWVudHMucHVzaCBAbWFrZUNvZGUgJ25ldyAnXG4gICAgICAgICAgICBmcmFnbWVudHMucHVzaCBAdmFyaWFibGUuY29tcGlsZVRvRnJhZ21lbnRzKG8sIExFVkVMX0FDQ0VTUykuLi5cbiAgICAgICAgICAgIGZyYWdtZW50cy5wdXNoIEBtYWtlQ29kZSBcIihcIlxuICAgICAgICBmcmFnbWVudHMucHVzaCBjb21waWxlZEFyZ3MuLi5cbiAgICAgICAgZnJhZ21lbnRzLnB1c2ggQG1ha2VDb2RlIFwiKVwiXG4gICAgICAgIGZyYWdtZW50c1xuXG4gICAgIyBJZiB5b3UgY2FsbCBhIGZ1bmN0aW9uIHdpdGggYSBzcGxhdCwgaXQncyBjb252ZXJ0ZWQgaW50byBhIEphdmFTY3JpcHRcbiAgICAjIGAuYXBwbHkoKWAgY2FsbCB0byBhbGxvdyBhbiBhcnJheSBvZiBhcmd1bWVudHMgdG8gYmUgcGFzc2VkLlxuICAgICMgSWYgaXQncyBhIGNvbnN0cnVjdG9yLCB0aGVuIHRoaW5ncyBnZXQgcmVhbCB0cmlja3kuIFdlIGhhdmUgdG8gaW5qZWN0IGFuXG4gICAgIyBpbm5lciBjb25zdHJ1Y3RvciBpbiBvcmRlciB0byBiZSBhYmxlIHRvIHBhc3MgdGhlIHZhcmFyZ3MuXG4gICAgI1xuICAgICMgc3BsYXRBcmdzIGlzIGFuIGFycmF5IG9mIENvZGVGcmFnbWVudHMgdG8gcHV0IGludG8gdGhlICdhcHBseScuXG4gICAgXG4gICAgY29tcGlsZVNwbGF0OiAobywgc3BsYXRBcmdzKSAtPlxuICAgICAgICBcbiAgICAgICAgaWYgdGhpcyBpbnN0YW5jZW9mIFN1cGVyQ2FsbFxuICAgICAgICAgICAgcmV0dXJuIFtdLmNvbmNhdCBAbWFrZUNvZGUoXCIjeyBAc3VwZXJSZWZlcmVuY2UgbyB9LmFwcGx5KCN7QHN1cGVyVGhpcyhvKX0sIFwiKSxcbiAgICAgICAgICAgICAgICBzcGxhdEFyZ3MsIEBtYWtlQ29kZShcIilcIilcblxuICAgICAgICBpZiBAaXNOZXdcbiAgICAgICAgICAgIGlkdCA9IEB0YWIgKyBUQUJcbiAgICAgICAgICAgIHJldHVybiBbXS5jb25jYXQgQG1ha2VDb2RlKFwiXCJcIlxuICAgICAgICAgICAgICAgIChmdW5jdGlvbihmdW5jLCBhcmdzLCBjdG9yKSB7XG4gICAgICAgICAgICAgICAgI3tpZHR9Y3Rvci5wcm90b3R5cGUgPSBmdW5jLnByb3RvdHlwZTtcbiAgICAgICAgICAgICAgICAje2lkdH12YXIgY2hpbGQgPSBuZXcgY3RvciwgcmVzdWx0ID0gZnVuYy5hcHBseShjaGlsZCwgYXJncyk7XG4gICAgICAgICAgICAgICAgI3tpZHR9cmV0dXJuIE9iamVjdChyZXN1bHQpID09PSByZXN1bHQgPyByZXN1bHQgOiBjaGlsZDtcbiAgICAgICAgICAgICAgICAje0B0YWJ9fSkoXCJcIlwiKSxcbiAgICAgICAgICAgICAgICAoQHZhcmlhYmxlLmNvbXBpbGVUb0ZyYWdtZW50cyBvLCBMRVZFTF9MSVNUKSxcbiAgICAgICAgICAgICAgICBAbWFrZUNvZGUoXCIsIFwiKSwgc3BsYXRBcmdzLCBAbWFrZUNvZGUoXCIsIGZ1bmN0aW9uKCl7fSlcIilcblxuICAgICAgICBhbnN3ZXIgPSBbXVxuICAgICAgICBiYXNlID0gbmV3IFZhbHVlIEB2YXJpYWJsZVxuICAgICAgICBpZiAobmFtZSA9IGJhc2UucHJvcGVydGllcy5wb3AoKSkgYW5kIGJhc2UuaXNDb21wbGV4KClcbiAgICAgICAgICAgIHJlZiA9IG8uc2NvcGUuZnJlZVZhcmlhYmxlICdyZWYnXG4gICAgICAgICAgICBhbnN3ZXIgPSBhbnN3ZXIuY29uY2F0IEBtYWtlQ29kZShcIigje3JlZn0gPSBcIiksXG4gICAgICAgICAgICAgICAgKGJhc2UuY29tcGlsZVRvRnJhZ21lbnRzIG8sIExFVkVMX0xJU1QpLFxuICAgICAgICAgICAgICAgIEBtYWtlQ29kZShcIilcIiksXG4gICAgICAgICAgICAgICAgbmFtZS5jb21waWxlVG9GcmFnbWVudHMobylcbiAgICAgICAgZWxzZVxuICAgICAgICAgICAgZnVuID0gYmFzZS5jb21waWxlVG9GcmFnbWVudHMgbywgTEVWRUxfQUNDRVNTXG4gICAgICAgICAgICBmdW4gPSBAd3JhcEluQnJhY2VzIGZ1biBpZiBTSU1QTEVOVU0udGVzdCBmcmFnbWVudHNUb1RleHQgZnVuXG4gICAgICAgICAgICBpZiBuYW1lXG4gICAgICAgICAgICAgICAgcmVmID0gZnJhZ21lbnRzVG9UZXh0IGZ1blxuICAgICAgICAgICAgICAgIGZ1bi5wdXNoIChuYW1lLmNvbXBpbGVUb0ZyYWdtZW50cyBvKS4uLlxuICAgICAgICAgICAgZWxzZVxuICAgICAgICAgICAgICAgIHJlZiA9ICdudWxsJ1xuICAgICAgICAgICAgYW5zd2VyID0gYW5zd2VyLmNvbmNhdCBmdW5cbiAgICAgICAgYW5zd2VyID0gYW5zd2VyLmNvbmNhdCBAbWFrZUNvZGUoXCIuYXBwbHkoI3tyZWZ9LCBcIiksIHNwbGF0QXJncywgQG1ha2VDb2RlKFwiKVwiKVxuXG4jICAwMDAwMDAwICAwMDAgICAwMDAgIDAwMDAwMDAwICAgMDAwMDAwMDAgIDAwMDAwMDAwICAgXG4jIDAwMCAgICAgICAwMDAgICAwMDAgIDAwMCAgIDAwMCAgMDAwICAgICAgIDAwMCAgIDAwMCAgXG4jIDAwMDAwMDAgICAwMDAgICAwMDAgIDAwMDAwMDAwICAgMDAwMDAwMCAgIDAwMDAwMDAgICAgXG4jICAgICAgMDAwICAwMDAgICAwMDAgIDAwMCAgICAgICAgMDAwICAgICAgIDAwMCAgIDAwMCAgXG4jIDAwMDAwMDAgICAgMDAwMDAwMCAgIDAwMCAgICAgICAgMDAwMDAwMDAgIDAwMCAgIDAwMCAgXG5cbiMgVGFrZXMgY2FyZSBvZiBjb252ZXJ0aW5nIGBzdXBlcigpYCBjYWxscyBpbnRvIGNhbGxzIGFnYWluc3QgdGhlIHByb3RvdHlwZSdzIGZ1bmN0aW9uIG9mIHRoZSBzYW1lIG5hbWUuXG5cbmV4cG9ydHMuU3VwZXJDYWxsID0gY2xhc3MgU3VwZXJDYWxsIGV4dGVuZHMgQ2FsbFxuICAgIFxuICAgIEA6IChhcmdzKSAtPlxuICAgICAgICBzdXBlciBudWxsLCBhcmdzID8gW25ldyBTcGxhdCBuZXcgSWRlbnRpZmllckxpdGVyYWwgJ2FyZ3VtZW50cyddXG4gICAgICAgICMgQWxsb3cgdG8gcmVjb2duaXplIGEgYmFyZSBgc3VwZXJgIGNhbGwgd2l0aG91dCBwYXJlbnRoZXNlcyBhbmQgYXJndW1lbnRzLlxuICAgICAgICBAaXNCYXJlID0gYXJncz9cblxuICAgICMgR3JhYiB0aGUgcmVmZXJlbmNlIHRvIHRoZSBzdXBlcmNsYXNzJ3MgaW1wbGVtZW50YXRpb24gb2YgdGhlIGN1cnJlbnQgbWV0aG9kLlxuICAgIFxuICAgIHN1cGVyUmVmZXJlbmNlOiAobykgLT5cbiAgICAgICAgXG4gICAgICAgIG1ldGhvZCA9IG8uc2NvcGUubmFtZWRNZXRob2QoKVxuICAgICAgICBpZiBtZXRob2Q/LmtsYXNzXG4gICAgICAgICAgICB7a2xhc3MsIG5hbWUsIHZhcmlhYmxlfSA9IG1ldGhvZFxuICAgICAgICAgICAgaWYga2xhc3MuaXNDb21wbGV4KClcbiAgICAgICAgICAgICAgICBicmVmID0gbmV3IElkZW50aWZpZXJMaXRlcmFsIG8uc2NvcGUucGFyZW50LmZyZWVWYXJpYWJsZSAnYmFzZSdcbiAgICAgICAgICAgICAgICBiYXNlID0gbmV3IFZhbHVlIG5ldyBQYXJlbnMgbmV3IEFzc2lnbiBicmVmLCBrbGFzc1xuICAgICAgICAgICAgICAgIHZhcmlhYmxlLmJhc2UgPSBiYXNlXG4gICAgICAgICAgICAgICAgdmFyaWFibGUucHJvcGVydGllcy5zcGxpY2UgMCwga2xhc3MucHJvcGVydGllcy5sZW5ndGhcbiAgICAgICAgICAgIGlmIG5hbWUuaXNDb21wbGV4KCkgb3IgKG5hbWUgaW5zdGFuY2VvZiBJbmRleCBhbmQgbmFtZS5pbmRleC5pc0Fzc2lnbmFibGUoKSlcbiAgICAgICAgICAgICAgICBucmVmID0gbmV3IElkZW50aWZpZXJMaXRlcmFsIG8uc2NvcGUucGFyZW50LmZyZWVWYXJpYWJsZSAnbmFtZSdcbiAgICAgICAgICAgICAgICBuYW1lID0gbmV3IEluZGV4IG5ldyBBc3NpZ24gbnJlZiwgbmFtZS5pbmRleFxuICAgICAgICAgICAgICAgIHZhcmlhYmxlLnByb3BlcnRpZXMucG9wKClcbiAgICAgICAgICAgICAgICB2YXJpYWJsZS5wcm9wZXJ0aWVzLnB1c2ggbmFtZVxuICAgICAgICAgICAgYWNjZXNzZXMgPSBbbmV3IEFjY2VzcyBuZXcgUHJvcGVydHlOYW1lICdfX3N1cGVyX18nXVxuICAgICAgICAgICAgYWNjZXNzZXMucHVzaCBuZXcgQWNjZXNzIG5ldyBQcm9wZXJ0eU5hbWUgJ2NvbnN0cnVjdG9yJyBpZiBtZXRob2Quc3RhdGljXG4gICAgICAgICAgICBhY2Nlc3Nlcy5wdXNoIGlmIG5yZWY/IHRoZW4gbmV3IEluZGV4IG5yZWYgZWxzZSBuYW1lXG4gICAgICAgICAgICAobmV3IFZhbHVlIGJyZWYgPyBrbGFzcywgYWNjZXNzZXMpLmNvbXBpbGUgb1xuICAgICAgICBlbHNlIGlmIG1ldGhvZD8uY3RvclxuICAgICAgICAgICAgIyBsb2cgXCJTdXBlckNhbGwuc3VwZXJSZWZlcmVuY2UgI3ttZXRob2QubmFtZX0gZGFkdW1tIVwiXG4gICAgICAgICAgICBcIiN7bWV0aG9kLm5hbWV9Ll9fc3VwZXJfXy5jb25zdHJ1Y3RvclwiXG4gICAgICAgIGVsc2VcbiAgICAgICAgICAgIEBlcnJvciAnY2Fubm90IGNhbGwgc3VwZXIgb3V0c2lkZSBvZiBhbiBpbnN0YW5jZSBtZXRob2QuICcgKyBtZXRob2RcblxuICAgICMgVGhlIGFwcHJvcHJpYXRlIGB0aGlzYCB2YWx1ZSBmb3IgYSBgc3VwZXJgIGNhbGwuXG4gICAgICAgIFxuICAgIHN1cGVyVGhpczogKG8pIC0+XG4gICAgICAgIG1ldGhvZCA9IG8uc2NvcGUubWV0aG9kXG4gICAgICAgIChtZXRob2QgYW5kIG5vdCBtZXRob2Qua2xhc3MgYW5kIG1ldGhvZC5jb250ZXh0KSBvciBcInRoaXNcIlxuXG4gICAgY29tcGlsZVNwbGF0OiAobywgc3BsYXRBcmdzKSAtPlxuICAgICAgICAjIGxvZyAnY29tcGlsZVNwbGF0Jywgby5mZWF0dXJlXG4gICAgICAgIGlmIHNwbGF0QXJncy5sZW5ndGggPT0gMSBhbmQgc3BsYXRBcmdzWzBdLmNvZGUgPT0gJ2FyZ3VtZW50cycgYW5kIEBjb25maWdQYXJhbWV0ZXI/IGFuZCBoYXNGZWF0dXJlIG8sICdjb25maWdfcGFyYW1ldGVycydcbiAgICAgICAgICAgICMgVE9ETzogc2hvdWxkbid0IGFsbCByZWZlcmVuY2VzIHRvIGFyZ3VtZW50cyBiZSBjb252ZXJ0ZWQ/XG4gICAgICAgICAgICByZXR1cm4gW10uY29uY2F0IEBtYWtlQ29kZShcIiN7QGNvbmZpZ1BhcmFtZXRlckNvZGVCZWZvcmVTdXBlcigpfSN7IEBzdXBlclJlZmVyZW5jZSBvIH0uYXBwbHkoI3tAc3VwZXJUaGlzKG8pfSwgXCIpLCBzcGxhdEFyZ3MsIEBtYWtlQ29kZShcIilcIilcbiAgICAgICAgIFxuICAgICAgICBzdXBlclxuICAgICAgICBcbiAgICBjb25maWdQYXJhbWV0ZXJDb2RlQmVmb3JlU3VwZXI6IC0+XG4gICAgICAgIFxuICAgICAgICByZXR1cm4gJycgaWYgbm90IHBhcmFtID0gQGNvbmZpZ1BhcmFtZXRlclxuXG4gICAgICAgIGEgPSBwYXJhbS5vYmplY3RzLm1hcCAob2JqKSAtPiBcbiAgICAgICAgICAgIG4gPSBvYmoudmFyaWFibGUuYmFzZS52YWx1ZVxuICAgICAgICAgICAgaWYgbiA9PSAndGhpcydcbiAgICAgICAgICAgICAgICBuID0gb2JqLnZhcmlhYmxlLnByb3BlcnRpZXM/WzBdLm5hbWUudmFsdWVcbiAgICAgICAgICAgICAgICBcIiN7bn06dGhpcy4je259XCJcbiAgICAgICAgICAgIGVsc2VcbiAgICAgICAgICAgICAgICB0ID0gb2JqLnZhbHVlLnZhcmlhYmxlLnRoaXMgYW5kICd0aGlzLicgb3IgJydcbiAgICAgICAgICAgICAgICBcIiN7bn06I3t0K259XCJcbiAgICAgICAgICAgIFxuICAgICAgICBcImFyZ3VtZW50c1swXSA9IF8uZGVmYXVsdHMoeyN7YS5qb2luICcsJ319LCBhcmd1bWVudHNbMF0pOyBcIlxuXG4jIDAwMDAwMDAwICAgMDAwMDAwMDAgICAwMDAwMDAwICAgMDAwMDAwMDAgIDAwMCAgIDAwMCAgXG4jIDAwMCAgIDAwMCAgMDAwICAgICAgIDAwMCAgICAgICAgMDAwICAgICAgICAwMDAgMDAwICAgXG4jIDAwMDAwMDAgICAgMDAwMDAwMCAgIDAwMCAgMDAwMCAgMDAwMDAwMCAgICAgMDAwMDAgICAgXG4jIDAwMCAgIDAwMCAgMDAwICAgICAgIDAwMCAgIDAwMCAgMDAwICAgICAgICAwMDAgMDAwICAgXG4jIDAwMCAgIDAwMCAgMDAwMDAwMDAgICAwMDAwMDAwICAgMDAwMDAwMDAgIDAwMCAgIDAwMCAgXG5cbiMgUmVnZXhlcyB3aXRoIGludGVycG9sYXRpb25zIGFyZSBpbiBmYWN0IGp1c3QgYSB2YXJpYXRpb24gb2YgYSBgQ2FsbGAgKGFcbiMgYFJlZ0V4cCgpYCBjYWxsIHRvIGJlIHByZWNpc2UpIHdpdGggYSBgU3RyaW5nV2l0aEludGVycG9sYXRpb25zYCBpbnNpZGUuXG5cbmV4cG9ydHMuUmVnZXhXaXRoSW50ZXJwb2xhdGlvbnMgPSBjbGFzcyBSZWdleFdpdGhJbnRlcnBvbGF0aW9ucyBleHRlbmRzIENhbGxcbiAgICBcbiAgICBAOiAoYXJncyA9IFtdKSAtPlxuICAgICAgICBzdXBlciAobmV3IFZhbHVlIG5ldyBJZGVudGlmaWVyTGl0ZXJhbCAnUmVnRXhwJyksIGFyZ3MsIGZhbHNlXG5cbiMgVGFnZ2VkVGVtcGxhdGVDYWxsXG5cbmV4cG9ydHMuVGFnZ2VkVGVtcGxhdGVDYWxsID0gY2xhc3MgVGFnZ2VkVGVtcGxhdGVDYWxsIGV4dGVuZHMgQ2FsbFxuICAgIFxuICAgIEA6ICh2YXJpYWJsZSwgYXJnLCBzb2FrKSAtPlxuICAgICAgICBhcmcgPSBuZXcgU3RyaW5nV2l0aEludGVycG9sYXRpb25zIEJsb2NrLndyYXAoWyBuZXcgVmFsdWUgYXJnIF0pIGlmIGFyZyBpbnN0YW5jZW9mIFN0cmluZ0xpdGVyYWxcbiAgICAgICAgc3VwZXIgdmFyaWFibGUsIFsgYXJnIF0sIHNvYWtcblxuICAgIGNvbXBpbGVOb2RlOiAobykgLT5cbiAgICAgICAgIyBUZWxsIGBTdHJpbmdXaXRoSW50ZXJwb2xhdGlvbnNgIHdoZXRoZXIgdG8gY29tcGlsZSBhcyBFUzIwMTUgb3Igbm90OyB3aWxsIGJlIHJlbW92ZWQgaW4gS29mZmVlIDIuXG4gICAgICAgIG8uaW5UYWdnZWRUZW1wbGF0ZUNhbGwgPSB5ZXNcbiAgICAgICAgQHZhcmlhYmxlLmNvbXBpbGVUb0ZyYWdtZW50cyhvLCBMRVZFTF9BQ0NFU1MpLmNvbmNhdCBAYXJnc1swXS5jb21waWxlVG9GcmFnbWVudHMobywgTEVWRUxfTElTVClcblxuIyAwMDAwMDAwMCAgMDAwICAgMDAwICAwMDAwMDAwMDAgIDAwMDAwMDAwICAwMDAgICAwMDAgIDAwMDAwMDAgICAgIDAwMDAwMDAgIFxuIyAwMDAgICAgICAgIDAwMCAwMDAgICAgICAwMDAgICAgIDAwMCAgICAgICAwMDAwICAwMDAgIDAwMCAgIDAwMCAgMDAwICAgICAgIFxuIyAwMDAwMDAwICAgICAwMDAwMCAgICAgICAwMDAgICAgIDAwMDAwMDAgICAwMDAgMCAwMDAgIDAwMCAgIDAwMCAgMDAwMDAwMCAgIFxuIyAwMDAgICAgICAgIDAwMCAwMDAgICAgICAwMDAgICAgIDAwMCAgICAgICAwMDAgIDAwMDAgIDAwMCAgIDAwMCAgICAgICAwMDAgIFxuIyAwMDAwMDAwMCAgMDAwICAgMDAwICAgICAwMDAgICAgIDAwMDAwMDAwICAwMDAgICAwMDAgIDAwMDAwMDAgICAgMDAwMDAwMCAgIFxuXG4jIE5vZGUgdG8gZXh0ZW5kIGFuIG9iamVjdCdzIHByb3RvdHlwZSB3aXRoIGFuIGFuY2VzdG9yIG9iamVjdC5cbiMgQWZ0ZXIgYGdvb2cuaW5oZXJpdHNgIGZyb20gdGhlXG4jIFtDbG9zdXJlIExpYnJhcnldKGh0dHBzOi8vZ2l0aHViLmNvbS9nb29nbGUvY2xvc3VyZS1saWJyYXJ5L2Jsb2IvbWFzdGVyL2Nsb3N1cmUvZ29vZy9iYXNlLmpzKS5cblxuZXhwb3J0cy5FeHRlbmRzID0gY2xhc3MgRXh0ZW5kcyBleHRlbmRzIEJhc2VcbiAgICBcbiAgICBAOiAoQGNoaWxkLCBAcGFyZW50KSAtPlxuXG4gICAgY2hpbGRyZW46IFsnY2hpbGQnLCAncGFyZW50J11cblxuICAgICMgSG9va3Mgb25lIGNvbnN0cnVjdG9yIGludG8gYW5vdGhlcidzIHByb3RvdHlwZSBjaGFpbi5cbiAgICBjb21waWxlVG9GcmFnbWVudHM6IChvKSAtPlxuICAgICAgICBuZXcgQ2FsbChuZXcgVmFsdWUobmV3IExpdGVyYWwgdXRpbGl0eSAnZXh0ZW5kJywgbyksIFtAY2hpbGQsIEBwYXJlbnRdKS5jb21waWxlVG9GcmFnbWVudHMgb1xuXG4jICAwMDAwMDAwICAgIDAwMDAwMDAgICAwMDAwMDAwICAwMDAwMDAwMCAgIDAwMDAwMDAgICAwMDAwMDAwICBcbiMgMDAwICAgMDAwICAwMDAgICAgICAgMDAwICAgICAgIDAwMCAgICAgICAwMDAgICAgICAgMDAwICAgICAgIFxuIyAwMDAwMDAwMDAgIDAwMCAgICAgICAwMDAgICAgICAgMDAwMDAwMCAgIDAwMDAwMDAgICAwMDAwMDAwICAgXG4jIDAwMCAgIDAwMCAgMDAwICAgICAgIDAwMCAgICAgICAwMDAgICAgICAgICAgICAwMDAgICAgICAgMDAwICBcbiMgMDAwICAgMDAwICAgMDAwMDAwMCAgIDAwMDAwMDAgIDAwMDAwMDAwICAwMDAwMDAwICAgMDAwMDAwMCAgIFxuXG4jIEEgYC5gIGFjY2VzcyBpbnRvIGEgcHJvcGVydHkgb2YgYSB2YWx1ZSwgb3IgdGhlIGA6OmAgc2hvcnRoYW5kIGZvclxuIyBhbiBhY2Nlc3MgaW50byB0aGUgb2JqZWN0J3MgcHJvdG90eXBlLlxuXG5leHBvcnRzLkFjY2VzcyA9IGNsYXNzIEFjY2VzcyBleHRlbmRzIEJhc2VcbiAgICBAOiAoQG5hbWUsIHRhZykgLT5cbiAgICAgICAgQHNvYWsgPSB0YWcgaXMgJ3NvYWsnXG5cbiAgICBjaGlsZHJlbjogWyduYW1lJ11cblxuICAgIGNvbXBpbGVUb0ZyYWdtZW50czogKG8pIC0+XG4gICAgICAgIG5hbWUgPSBAbmFtZS5jb21waWxlVG9GcmFnbWVudHMgb1xuICAgICAgICBub2RlID0gQG5hbWUudW53cmFwKClcbiAgICAgICAgaWYgbm9kZSBpbnN0YW5jZW9mIFByb3BlcnR5TmFtZVxuICAgICAgICAgICAgaWYgbm9kZS52YWx1ZSBpbiBKU19GT1JCSURERU5cbiAgICAgICAgICAgICAgICBbQG1ha2VDb2RlKCdbXCInKSwgbmFtZS4uLiwgQG1ha2VDb2RlKCdcIl0nKV1cbiAgICAgICAgICAgIGVsc2VcbiAgICAgICAgICAgICAgICBbQG1ha2VDb2RlKCcuJyksIG5hbWUuLi5dXG4gICAgICAgIGVsc2VcbiAgICAgICAgICAgIFtAbWFrZUNvZGUoJ1snKSwgbmFtZS4uLiwgQG1ha2VDb2RlKCddJyldXG5cbiAgICBpc0NvbXBsZXg6IE5PXG5cbiMgMDAwICAwMDAgICAwMDAgIDAwMDAwMDAgICAgMDAwMDAwMDAgIDAwMCAgIDAwMCAgXG4jIDAwMCAgMDAwMCAgMDAwICAwMDAgICAwMDAgIDAwMCAgICAgICAgMDAwIDAwMCAgIFxuIyAwMDAgIDAwMCAwIDAwMCAgMDAwICAgMDAwICAwMDAwMDAwICAgICAwMDAwMCAgICBcbiMgMDAwICAwMDAgIDAwMDAgIDAwMCAgIDAwMCAgMDAwICAgICAgICAwMDAgMDAwICAgXG4jIDAwMCAgMDAwICAgMDAwICAwMDAwMDAwICAgIDAwMDAwMDAwICAwMDAgICAwMDAgIFxuXG4jIEEgYFsgLi4uIF1gIGluZGV4ZWQgYWNjZXNzIGludG8gYW4gYXJyYXkgb3Igb2JqZWN0LlxuXG5leHBvcnRzLkluZGV4ID0gY2xhc3MgSW5kZXggZXh0ZW5kcyBCYXNlXG4gICAgQDogKEBpbmRleCkgLT5cblxuICAgIGNoaWxkcmVuOiBbJ2luZGV4J11cblxuICAgIGNvbXBpbGVUb0ZyYWdtZW50czogKG8pIC0+XG4gICAgICAgIFtdLmNvbmNhdCBAbWFrZUNvZGUoXCJbXCIpLCBAaW5kZXguY29tcGlsZVRvRnJhZ21lbnRzKG8sIExFVkVMX1BBUkVOKSwgQG1ha2VDb2RlKFwiXVwiKVxuXG4gICAgaXNDb21wbGV4OiAtPlxuICAgICAgICBAaW5kZXguaXNDb21wbGV4KClcblxuIyAwMDAwMDAwMCAgICAwMDAwMDAwICAgMDAwICAgMDAwICAgMDAwMDAwMCAgIDAwMDAwMDAwICBcbiMgMDAwICAgMDAwICAwMDAgICAwMDAgIDAwMDAgIDAwMCAgMDAwICAgICAgICAwMDAgICAgICAgXG4jIDAwMDAwMDAgICAgMDAwMDAwMDAwICAwMDAgMCAwMDAgIDAwMCAgMDAwMCAgMDAwMDAwMCAgIFxuIyAwMDAgICAwMDAgIDAwMCAgIDAwMCAgMDAwICAwMDAwICAwMDAgICAwMDAgIDAwMCAgICAgICBcbiMgMDAwICAgMDAwICAwMDAgICAwMDAgIDAwMCAgIDAwMCAgIDAwMDAwMDAgICAwMDAwMDAwMCAgXG5cbiMgUmFuZ2VzIGNhbiBiZSB1c2VkIHRvIGV4dHJhY3QgcG9ydGlvbnMgKHNsaWNlcykgb2YgYXJyYXlzLFxuIyB0byBzcGVjaWZ5IGEgcmFuZ2UgZm9yIGNvbXByZWhlbnNpb25zLCBvciBhcyBhIHZhbHVlLCB0byBiZSBleHBhbmRlZCBpbnRvIHRoZVxuIyBjb3JyZXNwb25kaW5nIGFycmF5IG9mIGludGVnZXJzIGF0IHJ1bnRpbWUuXG5cbmV4cG9ydHMuUmFuZ2UgPSBjbGFzcyBSYW5nZSBleHRlbmRzIEJhc2VcblxuICAgIGNoaWxkcmVuOiBbJ2Zyb20nLCAndG8nXVxuXG4gICAgQDogKEBmcm9tLCBAdG8sIHRhZykgLT5cbiAgICAgICAgQGV4Y2x1c2l2ZSA9IHRhZyBpcyAnZXhjbHVzaXZlJ1xuICAgICAgICBAZXF1YWxzID0gaWYgQGV4Y2x1c2l2ZSB0aGVuICcnIGVsc2UgJz0nXG5cbiAgICAjIENvbXBpbGVzIHRoZSByYW5nZSdzIHNvdXJjZSB2YXJpYWJsZXMgLS0gd2hlcmUgaXQgc3RhcnRzIGFuZCB3aGVyZSBpdCBlbmRzLlxuICAgICMgQnV0IG9ubHkgaWYgdGhleSBuZWVkIHRvIGJlIGNhY2hlZCB0byBhdm9pZCBkb3VibGUgZXZhbHVhdGlvbi5cbiAgICBcbiAgICBjb21waWxlVmFyaWFibGVzOiAobykgLT5cbiAgICAgICAgbyA9IG1lcmdlIG8sIHRvcDogdHJ1ZVxuICAgICAgICBpc0NvbXBsZXggPSBkZWwgbywgJ2lzQ29tcGxleCdcbiAgICAgICAgW0Bmcm9tQywgQGZyb21WYXJdID0gQGNhY2hlVG9Db2RlRnJhZ21lbnRzIEBmcm9tLmNhY2hlIG8sIExFVkVMX0xJU1QsIGlzQ29tcGxleFxuICAgICAgICBbQHRvQywgQHRvVmFyXSAgICAgPSBAY2FjaGVUb0NvZGVGcmFnbWVudHMgQHRvLmNhY2hlIG8sIExFVkVMX0xJU1QsIGlzQ29tcGxleFxuICAgICAgICBbQHN0ZXAsIEBzdGVwVmFyXSAgPSBAY2FjaGVUb0NvZGVGcmFnbWVudHMgc3RlcC5jYWNoZSBvLCBMRVZFTF9MSVNULCBpc0NvbXBsZXggaWYgc3RlcCA9IGRlbCBvLCAnc3RlcCdcbiAgICAgICAgQGZyb21OdW0gPSBpZiBAZnJvbS5pc051bWJlcigpIHRoZW4gTnVtYmVyIEBmcm9tVmFyIGVsc2UgbnVsbFxuICAgICAgICBAdG9OdW0gICA9IGlmIEB0by5pc051bWJlcigpICAgdGhlbiBOdW1iZXIgQHRvVmFyICAgZWxzZSBudWxsXG4gICAgICAgIEBzdGVwTnVtID0gaWYgc3RlcD8uaXNOdW1iZXIoKSB0aGVuIE51bWJlciBAc3RlcFZhciBlbHNlIG51bGxcblxuICAgICMgV2hlbiBjb21waWxlZCBub3JtYWxseSwgdGhlIHJhbmdlIHJldHVybnMgdGhlIGNvbnRlbnRzIG9mIHRoZSAqZm9yIGxvb3AqXG4gICAgIyBuZWVkZWQgdG8gaXRlcmF0ZSBvdmVyIHRoZSB2YWx1ZXMgaW4gdGhlIHJhbmdlLiBVc2VkIGJ5IGNvbXByZWhlbnNpb25zLlxuICAgIFxuICAgIGNvbXBpbGVOb2RlOiAobykgLT5cbiAgICAgICAgQGNvbXBpbGVWYXJpYWJsZXMgbyB1bmxlc3MgQGZyb21WYXJcbiAgICAgICAgcmV0dXJuIEBjb21waWxlQXJyYXkobykgdW5sZXNzIG8uaW5kZXhcblxuICAgICAgICAjIFNldCB1cCBlbmRwb2ludHMuXG4gICAgICAgIGtub3duICAgID0gQGZyb21OdW0/IGFuZCBAdG9OdW0/XG4gICAgICAgIGlkeCAgICAgID0gZGVsIG8sICdpbmRleCdcbiAgICAgICAgaWR4TmFtZSAgPSBkZWwgbywgJ25hbWUnXG4gICAgICAgIG5hbWVkSW5kZXggPSBpZHhOYW1lIGFuZCBpZHhOYW1lICE9IGlkeFxuICAgICAgICB2YXJQYXJ0ICA9IFwiI3tpZHh9ID0gI3tAZnJvbUN9XCJcbiAgICAgICAgdmFyUGFydCArPSBcIiwgI3tAdG9DfVwiIGlmIEB0b0MgIT0gQHRvVmFyXG4gICAgICAgIHZhclBhcnQgKz0gXCIsICN7QHN0ZXB9XCIgaWYgQHN0ZXAgIT0gQHN0ZXBWYXJcbiAgICAgICAgW2x0LCBndF0gPSBbXCIje2lkeH0gPCN7QGVxdWFsc31cIiwgXCIje2lkeH0gPiN7QGVxdWFsc31cIl1cblxuICAgICAgICAjIEdlbmVyYXRlIHRoZSBjb25kaXRpb24uXG4gICAgICAgIGNvbmRQYXJ0ID0gaWYgQHN0ZXBOdW0/XG4gICAgICAgICAgICBpZiBAc3RlcE51bSA+IDAgdGhlbiBcIiN7bHR9ICN7QHRvVmFyfVwiIGVsc2UgXCIje2d0fSAje0B0b1Zhcn1cIlxuICAgICAgICBlbHNlIGlmIGtub3duXG4gICAgICAgICAgICBbZnJvbSwgdG9dID0gW0Bmcm9tTnVtLCBAdG9OdW1dXG4gICAgICAgICAgICBpZiBmcm9tIDw9IHRvIHRoZW4gXCIje2x0fSAje3RvfVwiIGVsc2UgXCIje2d0fSAje3RvfVwiXG4gICAgICAgIGVsc2VcbiAgICAgICAgICAgIGNvbmQgPSBpZiBAc3RlcFZhciB0aGVuIFwiI3tAc3RlcFZhcn0gPiAwXCIgZWxzZSBcIiN7QGZyb21WYXJ9IDw9ICN7QHRvVmFyfVwiXG4gICAgICAgICAgICBcIiN7Y29uZH0gPyAje2x0fSAje0B0b1Zhcn0gOiAje2d0fSAje0B0b1Zhcn1cIlxuXG4gICAgICAgICMgR2VuZXJhdGUgdGhlIHN0ZXAuXG4gICAgICAgIHN0ZXBQYXJ0ID0gaWYgQHN0ZXBWYXJcbiAgICAgICAgICAgIFwiI3tpZHh9ICs9ICN7QHN0ZXBWYXJ9XCJcbiAgICAgICAgZWxzZSBpZiBrbm93blxuICAgICAgICAgICAgaWYgbmFtZWRJbmRleFxuICAgICAgICAgICAgICAgIGlmIGZyb20gPD0gdG8gdGhlbiBcIisrI3tpZHh9XCIgZWxzZSBcIi0tI3tpZHh9XCJcbiAgICAgICAgICAgIGVsc2VcbiAgICAgICAgICAgICAgICBpZiBmcm9tIDw9IHRvIHRoZW4gXCIje2lkeH0rK1wiIGVsc2UgXCIje2lkeH0tLVwiXG4gICAgICAgIGVsc2VcbiAgICAgICAgICAgIGlmIG5hbWVkSW5kZXhcbiAgICAgICAgICAgICAgICBcIiN7Y29uZH0gPyArKyN7aWR4fSA6IC0tI3tpZHh9XCJcbiAgICAgICAgICAgIGVsc2VcbiAgICAgICAgICAgICAgICBcIiN7Y29uZH0gPyAje2lkeH0rKyA6ICN7aWR4fS0tXCJcblxuICAgICAgICB2YXJQYXJ0ICA9IFwiI3tpZHhOYW1lfSA9ICN7dmFyUGFydH1cIiBpZiBuYW1lZEluZGV4XG4gICAgICAgIHN0ZXBQYXJ0ID0gXCIje2lkeE5hbWV9ID0gI3tzdGVwUGFydH1cIiBpZiBuYW1lZEluZGV4XG5cbiAgICAgICAgIyBUaGUgZmluYWwgbG9vcCBib2R5LlxuICAgICAgICBbQG1ha2VDb2RlIFwiI3t2YXJQYXJ0fTsgI3tjb25kUGFydH07ICN7c3RlcFBhcnR9XCJdXG5cblxuICAgICMgV2hlbiB1c2VkIGFzIGEgdmFsdWUsIGV4cGFuZCB0aGUgcmFuZ2UgaW50byB0aGUgZXF1aXZhbGVudCBhcnJheS5cbiAgICBjb21waWxlQXJyYXk6IChvKSAtPlxuICAgICAgICBrbm93biA9IEBmcm9tTnVtPyBhbmQgQHRvTnVtP1xuICAgICAgICBpZiBrbm93biBhbmQgTWF0aC5hYnMoQGZyb21OdW0gLSBAdG9OdW0pIDw9IDIwXG4gICAgICAgICAgICByYW5nZSA9IFtAZnJvbU51bS4uQHRvTnVtXVxuICAgICAgICAgICAgcmFuZ2UucG9wKCkgaWYgQGV4Y2x1c2l2ZVxuICAgICAgICAgICAgcmV0dXJuIFtAbWFrZUNvZGUgXCJbI3sgcmFuZ2Uuam9pbignLCAnKSB9XVwiXVxuICAgICAgICBpZHQgICAgPSBAdGFiICsgVEFCXG4gICAgICAgIGkgICAgICA9IG8uc2NvcGUuZnJlZVZhcmlhYmxlICdpJywgc2luZ2xlOiB0cnVlXG4gICAgICAgIHJlc3VsdCA9IG8uc2NvcGUuZnJlZVZhcmlhYmxlICdyZXN1bHRzJ1xuICAgICAgICBwcmUgICAgPSBcIlxcbiN7aWR0fSN7cmVzdWx0fSA9IFtdO1wiXG4gICAgICAgIGlmIGtub3duXG4gICAgICAgICAgICBvLmluZGV4ID0gaVxuICAgICAgICAgICAgYm9keSA9IGZyYWdtZW50c1RvVGV4dCBAY29tcGlsZU5vZGUgb1xuICAgICAgICBlbHNlXG4gICAgICAgICAgICB2YXJzID0gXCIje2l9ID0gI3tAZnJvbUN9XCIgKyBpZiBAdG9DICE9IEB0b1ZhciB0aGVuIFwiLCAje0B0b0N9XCIgZWxzZSAnJ1xuICAgICAgICAgICAgY29uZCA9IFwiI3tAZnJvbVZhcn0gPD0gI3tAdG9WYXJ9XCJcbiAgICAgICAgICAgIGJvZHkgPSBcInZhciAje3ZhcnN9OyAje2NvbmR9ID8gI3tpfSA8I3tAZXF1YWxzfSAje0B0b1Zhcn0gOiAje2l9ID4je0BlcXVhbHN9ICN7QHRvVmFyfTsgI3tjb25kfSA/ICN7aX0rKyA6ICN7aX0tLVwiXG4gICAgICAgIHBvc3QgICAgID0gXCJ7ICN7cmVzdWx0fS5wdXNoKCN7aX0pOyB9XFxuI3tpZHR9cmV0dXJuICN7cmVzdWx0fTtcXG4je28uaW5kZW50fVwiXG4gICAgICAgIGhhc0FyZ3MgPSAobm9kZSkgLT4gbm9kZT8uY29udGFpbnMgaXNMaXRlcmFsQXJndW1lbnRzXG4gICAgICAgIGFyZ3MgICAgPSAnLCBhcmd1bWVudHMnIGlmIGhhc0FyZ3MoQGZyb20pIG9yIGhhc0FyZ3MoQHRvKVxuICAgICAgICBbQG1ha2VDb2RlIFwiKGZ1bmN0aW9uKCkgeyN7cHJlfVxcbiN7aWR0fWZvciAoI3tib2R5fSkje3Bvc3R9fSkuYXBwbHkodGhpcyN7YXJncyA/ICcnfSlcIl1cblxuIyAgMDAwMDAwMCAgMDAwICAgICAgMDAwICAgMDAwMDAwMCAgMDAwMDAwMDAgIFxuIyAwMDAgICAgICAgMDAwICAgICAgMDAwICAwMDAgICAgICAgMDAwICAgICAgIFxuIyAwMDAwMDAwICAgMDAwICAgICAgMDAwICAwMDAgICAgICAgMDAwMDAwMCAgIFxuIyAgICAgIDAwMCAgMDAwICAgICAgMDAwICAwMDAgICAgICAgMDAwICAgICAgIFxuIyAwMDAwMDAwICAgMDAwMDAwMCAgMDAwICAgMDAwMDAwMCAgMDAwMDAwMDAgIFxuXG4jIEFuIGFycmF5IHNsaWNlIGxpdGVyYWwuIFVubGlrZSBKYXZhU2NyaXB0J3MgYEFycmF5I3NsaWNlYCwgdGhlIHNlY29uZCBwYXJhbWV0ZXJcbiMgc3BlY2lmaWVzIHRoZSBpbmRleCBvZiB0aGUgZW5kIG9mIHRoZSBzbGljZSwganVzdCBhcyB0aGUgZmlyc3QgcGFyYW1ldGVyXG4jIGlzIHRoZSBpbmRleCBvZiB0aGUgYmVnaW5uaW5nLlxuXG5leHBvcnRzLlNsaWNlID0gY2xhc3MgU2xpY2UgZXh0ZW5kcyBCYXNlXG5cbiAgICBjaGlsZHJlbjogWydyYW5nZSddXG5cbiAgICBAOiAoQHJhbmdlKSAtPiBzdXBlcigpXG5cbiAgICAjIFdlIGhhdmUgdG8gYmUgY2FyZWZ1bCB3aGVuIHRyeWluZyB0byBzbGljZSB0aHJvdWdoIHRoZSBlbmQgb2YgdGhlIGFycmF5LFxuICAgICMgYDllOWAgaXMgdXNlZCBiZWNhdXNlIG5vdCBhbGwgaW1wbGVtZW50YXRpb25zIHJlc3BlY3QgYHVuZGVmaW5lZGAgb3IgYDEvMGAuXG4gICAgIyBgOWU5YCBzaG91bGQgYmUgc2FmZSBiZWNhdXNlIGA5ZTlgID4gYDIqKjMyYCwgdGhlIG1heCBhcnJheSBsZW5ndGguXG4gICAgXG4gICAgY29tcGlsZU5vZGU6IChvKSAtPlxuICAgICAgICBcbiAgICAgICAge3RvLCBmcm9tfSA9IEByYW5nZVxuICAgICAgICBmcm9tQ29tcGlsZWQgPSBmcm9tIGFuZCBmcm9tLmNvbXBpbGVUb0ZyYWdtZW50cyhvLCBMRVZFTF9QQVJFTikgb3IgW0BtYWtlQ29kZSAnMCddXG4gICAgICAgICMgVE9ETzogandhbHRvbiAtIG1vdmUgdGhpcyBpbnRvIHRoZSAnaWYnP1xuICAgICAgICBpZiB0b1xuICAgICAgICAgICAgY29tcGlsZWQgICAgICAgICA9IHRvLmNvbXBpbGVUb0ZyYWdtZW50cyBvLCBMRVZFTF9QQVJFTlxuICAgICAgICAgICAgY29tcGlsZWRUZXh0ID0gZnJhZ21lbnRzVG9UZXh0IGNvbXBpbGVkXG4gICAgICAgICAgICBpZiBub3QgKG5vdCBAcmFuZ2UuZXhjbHVzaXZlIGFuZCArY29tcGlsZWRUZXh0IGlzIC0xKVxuICAgICAgICAgICAgICAgIHRvU3RyID0gJywgJyArIGlmIEByYW5nZS5leGNsdXNpdmVcbiAgICAgICAgICAgICAgICAgICAgY29tcGlsZWRUZXh0XG4gICAgICAgICAgICAgICAgZWxzZSBpZiB0by5pc051bWJlcigpXG4gICAgICAgICAgICAgICAgICAgIFwiI3srY29tcGlsZWRUZXh0ICsgMX1cIlxuICAgICAgICAgICAgICAgIGVsc2VcbiAgICAgICAgICAgICAgICAgICAgY29tcGlsZWQgPSB0by5jb21waWxlVG9GcmFnbWVudHMgbywgTEVWRUxfQUNDRVNTXG4gICAgICAgICAgICAgICAgICAgIFwiKyN7ZnJhZ21lbnRzVG9UZXh0IGNvbXBpbGVkfSArIDEgfHwgOWU5XCJcbiAgICAgICAgW0BtYWtlQ29kZSBcIi5zbGljZSgjeyBmcmFnbWVudHNUb1RleHQgZnJvbUNvbXBpbGVkIH0jeyB0b1N0ciBvciAnJyB9KVwiXVxuXG4jICAwMDAwMDAwICAgMDAwMDAwMCAgICAgICAgICAwMDAgIDAwMDAwMDAwICAgMDAwMDAwMCAgMDAwMDAwMDAwICBcbiMgMDAwICAgMDAwICAwMDAgICAwMDAgICAgICAgIDAwMCAgMDAwICAgICAgIDAwMCAgICAgICAgICAwMDAgICAgIFxuIyAwMDAgICAwMDAgIDAwMDAwMDAgICAgICAgICAgMDAwICAwMDAwMDAwICAgMDAwICAgICAgICAgIDAwMCAgICAgXG4jIDAwMCAgIDAwMCAgMDAwICAgMDAwICAwMDAgICAwMDAgIDAwMCAgICAgICAwMDAgICAgICAgICAgMDAwICAgICBcbiMgIDAwMDAwMDAgICAwMDAwMDAwICAgICAwMDAwMDAwICAgMDAwMDAwMDAgICAwMDAwMDAwICAgICAwMDAgICAgIFxuXG5leHBvcnRzLk9iaiA9IGNsYXNzIE9iaiBleHRlbmRzIEJhc2VcbiAgICBcbiAgICBAOiAocHJvcHMsIEBnZW5lcmF0ZWQgPSBmYWxzZSkgLT5cbiAgICAgICAgQG9iamVjdHMgPSBAcHJvcGVydGllcyA9IHByb3BzIG9yIFtdXG5cbiAgICBjaGlsZHJlbjogWydwcm9wZXJ0aWVzJ11cblxuICAgIGNvbXBpbGVOb2RlOiAobykgLT5cbiAgICAgICAgcHJvcHMgPSBAcHJvcGVydGllc1xuICAgICAgICBpZiBAZ2VuZXJhdGVkXG4gICAgICAgICAgICBmb3Igbm9kZSBpbiBwcm9wcyB3aGVuIG5vZGUgaW5zdGFuY2VvZiBWYWx1ZVxuICAgICAgICAgICAgICAgIG5vZGUuZXJyb3IgJ2Nhbm5vdCBoYXZlIGFuIGltcGxpY2l0IHZhbHVlIGluIGFuIGltcGxpY2l0IG9iamVjdCdcbiAgICAgICAgYnJlYWsgZm9yIHByb3AsIGR5bmFtaWNJbmRleCBpbiBwcm9wcyB3aGVuIChwcm9wLnZhcmlhYmxlIG9yIHByb3ApLmJhc2UgaW5zdGFuY2VvZiBQYXJlbnNcbiAgICAgICAgaGFzRHluYW1pYyAgPSBkeW5hbWljSW5kZXggPCBwcm9wcy5sZW5ndGhcbiAgICAgICAgaWR0ICAgICAgICAgPSBvLmluZGVudCArPSBUQUJcbiAgICAgICAgbGFzdE5vbmNvbSAgPSBAbGFzdE5vbkNvbW1lbnQgQHByb3BlcnRpZXNcbiAgICAgICAgYW5zd2VyID0gW11cbiAgICAgICAgaWYgaGFzRHluYW1pY1xuICAgICAgICAgICAgb3JlZiA9IG8uc2NvcGUuZnJlZVZhcmlhYmxlICdvYmonXG4gICAgICAgICAgICBhbnN3ZXIucHVzaCBAbWFrZUNvZGUgXCIoXFxuI3tpZHR9I3tvcmVmfSA9IFwiXG4gICAgICAgIGFuc3dlci5wdXNoIEBtYWtlQ29kZSBcInsje2lmIHByb3BzLmxlbmd0aCBpcyAwIG9yIGR5bmFtaWNJbmRleCBpcyAwIHRoZW4gJ30nIGVsc2UgJ1xcbid9XCJcbiAgICAgICAgZm9yIHByb3AsIGkgaW4gcHJvcHNcbiAgICAgICAgICAgIGlmIGkgaXMgZHluYW1pY0luZGV4XG4gICAgICAgICAgICAgICAgYW5zd2VyLnB1c2ggQG1ha2VDb2RlIFwiXFxuI3tpZHR9fVwiIHVubGVzcyBpIGlzIDBcbiAgICAgICAgICAgICAgICBhbnN3ZXIucHVzaCBAbWFrZUNvZGUgJyxcXG4nXG4gICAgICAgICAgICBqb2luID0gaWYgaSBpcyBwcm9wcy5sZW5ndGggLSAxIG9yIGkgaXMgZHluYW1pY0luZGV4IC0gMVxuICAgICAgICAgICAgICAgICcnXG4gICAgICAgICAgICBlbHNlIGlmIHByb3AgaXMgbGFzdE5vbmNvbSBvciBwcm9wIGluc3RhbmNlb2YgQ29tbWVudFxuICAgICAgICAgICAgICAgICdcXG4nXG4gICAgICAgICAgICBlbHNlXG4gICAgICAgICAgICAgICAgJyxcXG4nXG4gICAgICAgICAgICBpbmRlbnQgPSBpZiBwcm9wIGluc3RhbmNlb2YgQ29tbWVudCB0aGVuICcnIGVsc2UgaWR0XG4gICAgICAgICAgICBpbmRlbnQgKz0gVEFCIGlmIGhhc0R5bmFtaWMgYW5kIGkgPCBkeW5hbWljSW5kZXhcbiAgICAgICAgICAgIGlmIHByb3AgaW5zdGFuY2VvZiBBc3NpZ25cbiAgICAgICAgICAgICAgICBpZiBwcm9wLmNvbnRleHQgIT0gJ29iamVjdCdcbiAgICAgICAgICAgICAgICAgICAgcHJvcC5vcGVyYXRvclRva2VuLmVycm9yIFwidW5leHBlY3RlZCAje3Byb3Aub3BlcmF0b3JUb2tlbi52YWx1ZX1cIlxuICAgICAgICAgICAgICAgIGlmIHByb3AudmFyaWFibGUgaW5zdGFuY2VvZiBWYWx1ZSBhbmQgcHJvcC52YXJpYWJsZS5oYXNQcm9wZXJ0aWVzKClcbiAgICAgICAgICAgICAgICAgICAgcHJvcC52YXJpYWJsZS5lcnJvciAnaW52YWxpZCBvYmplY3Qga2V5J1xuICAgICAgICAgICAgaWYgcHJvcCBpbnN0YW5jZW9mIFZhbHVlIGFuZCBwcm9wLnRoaXNcbiAgICAgICAgICAgICAgICBwcm9wID0gbmV3IEFzc2lnbiBwcm9wLnByb3BlcnRpZXNbMF0ubmFtZSwgcHJvcCwgJ29iamVjdCdcbiAgICAgICAgICAgIGlmIHByb3Agbm90IGluc3RhbmNlb2YgQ29tbWVudFxuICAgICAgICAgICAgICAgIGlmIGkgPCBkeW5hbWljSW5kZXhcbiAgICAgICAgICAgICAgICAgICAgaWYgcHJvcCBub3QgaW5zdGFuY2VvZiBBc3NpZ25cbiAgICAgICAgICAgICAgICAgICAgICAgIHByb3AgPSBuZXcgQXNzaWduIHByb3AsIHByb3AsICdvYmplY3QnXG4gICAgICAgICAgICAgICAgZWxzZVxuICAgICAgICAgICAgICAgICAgICBpZiBwcm9wIGluc3RhbmNlb2YgQXNzaWduXG4gICAgICAgICAgICAgICAgICAgICAgICBrZXkgPSBwcm9wLnZhcmlhYmxlXG4gICAgICAgICAgICAgICAgICAgICAgICB2YWx1ZSA9IHByb3AudmFsdWVcbiAgICAgICAgICAgICAgICAgICAgZWxzZVxuICAgICAgICAgICAgICAgICAgICAgICAgW2tleSwgdmFsdWVdID0gcHJvcC5iYXNlLmNhY2hlIG9cbiAgICAgICAgICAgICAgICAgICAgICAgIGtleSA9IG5ldyBQcm9wZXJ0eU5hbWUga2V5LnZhbHVlIGlmIGtleSBpbnN0YW5jZW9mIElkZW50aWZpZXJMaXRlcmFsXG4gICAgICAgICAgICAgICAgICAgIHByb3AgPSBuZXcgQXNzaWduIChuZXcgVmFsdWUgKG5ldyBJZGVudGlmaWVyTGl0ZXJhbCBvcmVmKSwgW25ldyBBY2Nlc3Mga2V5XSksIHZhbHVlXG4gICAgICAgICAgICBpZiBpbmRlbnQgdGhlbiBhbnN3ZXIucHVzaCBAbWFrZUNvZGUgaW5kZW50XG4gICAgICAgICAgICBhbnN3ZXIucHVzaCBwcm9wLmNvbXBpbGVUb0ZyYWdtZW50cyhvLCBMRVZFTF9UT1ApLi4uXG4gICAgICAgICAgICBpZiBqb2luIHRoZW4gYW5zd2VyLnB1c2ggQG1ha2VDb2RlIGpvaW5cbiAgICAgICAgaWYgaGFzRHluYW1pY1xuICAgICAgICAgICAgYW5zd2VyLnB1c2ggQG1ha2VDb2RlIFwiLFxcbiN7aWR0fSN7b3JlZn1cXG4je0B0YWJ9KVwiXG4gICAgICAgIGVsc2VcbiAgICAgICAgICAgIGFuc3dlci5wdXNoIEBtYWtlQ29kZSBcIlxcbiN7QHRhYn19XCIgdW5sZXNzIHByb3BzLmxlbmd0aCBpcyAwXG4gICAgICAgIGlmIEBmcm9udCBhbmQgbm90IGhhc0R5bmFtaWMgdGhlbiBAd3JhcEluQnJhY2VzIGFuc3dlciBlbHNlIGFuc3dlclxuXG4gICAgYXNzaWduczogKG5hbWUpIC0+XG4gICAgICAgIGZvciBwcm9wIGluIEBwcm9wZXJ0aWVzIHdoZW4gcHJvcC5hc3NpZ25zIG5hbWUgdGhlbiByZXR1cm4geWVzXG4gICAgICAgIG5vXG5cbiMgIDAwMDAwMDAgICAwMDAwMDAwMCAgIDAwMDAwMDAwICAgIDAwMDAwMDAgICAwMDAgICAwMDAgIFxuIyAwMDAgICAwMDAgIDAwMCAgIDAwMCAgMDAwICAgMDAwICAwMDAgICAwMDAgICAwMDAgMDAwICAgXG4jIDAwMDAwMDAwMCAgMDAwMDAwMCAgICAwMDAwMDAwICAgIDAwMDAwMDAwMCAgICAwMDAwMCAgICBcbiMgMDAwICAgMDAwICAwMDAgICAwMDAgIDAwMCAgIDAwMCAgMDAwICAgMDAwICAgICAwMDAgICAgIFxuIyAwMDAgICAwMDAgIDAwMCAgIDAwMCAgMDAwICAgMDAwICAwMDAgICAwMDAgICAgIDAwMCAgICAgXG5cbmV4cG9ydHMuQXJyID0gY2xhc3MgQXJyIGV4dGVuZHMgQmFzZVxuICAgIFxuICAgIEA6IChvYmpzKSAtPlxuICAgICAgICBAb2JqZWN0cyA9IG9ianMgb3IgW11cblxuICAgIGNoaWxkcmVuOiBbJ29iamVjdHMnXVxuXG4gICAgY29tcGlsZU5vZGU6IChvKSAtPlxuICAgICAgICByZXR1cm4gW0BtYWtlQ29kZSAnW10nXSB1bmxlc3MgQG9iamVjdHMubGVuZ3RoXG4gICAgICAgIG8uaW5kZW50ICs9IFRBQlxuICAgICAgICBhbnN3ZXIgPSBTcGxhdC5jb21waWxlU3BsYXR0ZWRBcnJheSBvLCBAb2JqZWN0c1xuICAgICAgICByZXR1cm4gYW5zd2VyIGlmIGFuc3dlci5sZW5ndGhcblxuICAgICAgICBhbnN3ZXIgPSBbXVxuICAgICAgICBjb21waWxlZE9ianMgPSAob2JqLmNvbXBpbGVUb0ZyYWdtZW50cyBvLCBMRVZFTF9MSVNUIGZvciBvYmogaW4gQG9iamVjdHMpXG4gICAgICAgIGZvciBmcmFnbWVudHMsIGluZGV4IGluIGNvbXBpbGVkT2Jqc1xuICAgICAgICAgICAgaWYgaW5kZXhcbiAgICAgICAgICAgICAgICBhbnN3ZXIucHVzaCBAbWFrZUNvZGUgXCIsIFwiXG4gICAgICAgICAgICBhbnN3ZXIucHVzaCBmcmFnbWVudHMuLi5cbiAgICAgICAgaWYgZnJhZ21lbnRzVG9UZXh0KGFuc3dlcikuaW5kZXhPZignXFxuJykgPj0gMFxuICAgICAgICAgICAgYW5zd2VyLnVuc2hpZnQgQG1ha2VDb2RlIFwiW1xcbiN7by5pbmRlbnR9XCJcbiAgICAgICAgICAgIGFuc3dlci5wdXNoIEBtYWtlQ29kZSBcIlxcbiN7QHRhYn1dXCJcbiAgICAgICAgZWxzZVxuICAgICAgICAgICAgYW5zd2VyLnVuc2hpZnQgQG1ha2VDb2RlIFwiW1wiXG4gICAgICAgICAgICBhbnN3ZXIucHVzaCBAbWFrZUNvZGUgXCJdXCJcbiAgICAgICAgYW5zd2VyXG5cbiAgICBhc3NpZ25zOiAobmFtZSkgLT5cbiAgICAgICAgZm9yIG9iaiBpbiBAb2JqZWN0cyB3aGVuIG9iai5hc3NpZ25zIG5hbWUgdGhlbiByZXR1cm4geWVzXG4gICAgICAgIG5vXG5cbiMgIDAwMDAwMDAgIDAwMCAgICAgICAwMDAwMDAwICAgIDAwMDAwMDAgICAwMDAwMDAwICBcbiMgMDAwICAgICAgIDAwMCAgICAgIDAwMCAgIDAwMCAgMDAwICAgICAgIDAwMCAgICAgICBcbiMgMDAwICAgICAgIDAwMCAgICAgIDAwMDAwMDAwMCAgMDAwMDAwMCAgIDAwMDAwMDAgICBcbiMgMDAwICAgICAgIDAwMCAgICAgIDAwMCAgIDAwMCAgICAgICAwMDAgICAgICAgMDAwICBcbiMgIDAwMDAwMDAgIDAwMDAwMDAgIDAwMCAgIDAwMCAgMDAwMDAwMCAgIDAwMDAwMDAgICBcblxuIyBUaGUgY2xhc3MgZGVmaW5pdGlvbi4gSW5pdGlhbGl6ZSBhIENsYXNzIHdpdGggaXRzIG5hbWUsIGFuIG9wdGlvbmFsIHN1cGVyY2xhc3MsIGFuZCBhIGxpc3Qgb2YgcHJvdG90eXBlIHByb3BlcnR5IGFzc2lnbm1lbnRzLlxuXG5leHBvcnRzLkNsYXNzID0gY2xhc3MgQ2xhc3MgZXh0ZW5kcyBCYXNlXG4gICAgXG4gICAgQDogKEB2YXJpYWJsZSwgQHBhcmVudCwgQGJvZHkgPSBuZXcgQmxvY2spIC0+XG4gICAgICAgIEBib3VuZEZ1bmNzID0gW11cbiAgICAgICAgQGJvZHkuY2xhc3NCb2R5ID0geWVzXG5cbiAgICBjaGlsZHJlbjogWyd2YXJpYWJsZScsICdwYXJlbnQnLCAnYm9keSddXG5cbiAgICBkZWZhdWx0Q2xhc3NWYXJpYWJsZU5hbWU6ICdfQ2xhc3MnXG5cbiAgICAjIEZpZ3VyZSBvdXQgdGhlIGFwcHJvcHJpYXRlIG5hbWUgZm9yIHRoZSBjb25zdHJ1Y3RvciBmdW5jdGlvbiBvZiB0aGlzIGNsYXNzLlxuICAgICAgICBcbiAgICBkZXRlcm1pbmVOYW1lOiAtPlxuICAgICAgICBcbiAgICAgICAgcmV0dXJuIEBkZWZhdWx0Q2xhc3NWYXJpYWJsZU5hbWUgdW5sZXNzIEB2YXJpYWJsZVxuICAgICAgICBbLi4uLCB0YWlsXSA9IEB2YXJpYWJsZS5wcm9wZXJ0aWVzXG4gICAgICAgIG5vZGUgPSBpZiB0YWlsXG4gICAgICAgICAgICB0YWlsIGluc3RhbmNlb2YgQWNjZXNzIGFuZCB0YWlsLm5hbWVcbiAgICAgICAgZWxzZVxuICAgICAgICAgICAgQHZhcmlhYmxlLmJhc2VcbiAgICAgICAgdW5sZXNzIG5vZGUgaW5zdGFuY2VvZiBJZGVudGlmaWVyTGl0ZXJhbCBvciBub2RlIGluc3RhbmNlb2YgUHJvcGVydHlOYW1lXG4gICAgICAgICAgICByZXR1cm4gQGRlZmF1bHRDbGFzc1ZhcmlhYmxlTmFtZVxuICAgICAgICBuYW1lID0gbm9kZS52YWx1ZVxuICAgICAgICB1bmxlc3MgdGFpbFxuICAgICAgICAgICAgbWVzc2FnZSA9IGlzVW5hc3NpZ25hYmxlIG5hbWVcbiAgICAgICAgICAgIEB2YXJpYWJsZS5lcnJvciBtZXNzYWdlIGlmIG1lc3NhZ2VcbiAgICAgICAgaWYgbmFtZSBpbiBKU19GT1JCSURERU4gdGhlbiBcIl8je25hbWV9XCIgZWxzZSBuYW1lXG5cbiAgICAjIEZvciBhbGwgYHRoaXNgLXJlZmVyZW5jZXMgYW5kIGJvdW5kIGZ1bmN0aW9ucyBpbiB0aGUgY2xhc3MgZGVmaW5pdGlvbiwgYHRoaXNgIGlzIHRoZSBDbGFzcyBiZWluZyBjb25zdHJ1Y3RlZC5cbiAgICAgICAgXG4gICAgc2V0Q29udGV4dDogKG5hbWUpIC0+XG4gICAgICAgIFxuICAgICAgICBAYm9keS50cmF2ZXJzZUNoaWxkcmVuIGZhbHNlLCAobm9kZSkgLT5cbiAgICAgICAgICAgIHJldHVybiBmYWxzZSBpZiBub2RlLmNsYXNzQm9keVxuICAgICAgICAgICAgaWYgbm9kZSBpbnN0YW5jZW9mIFRoaXNMaXRlcmFsXG4gICAgICAgICAgICAgICAgbm9kZS52YWx1ZSAgICAgID0gbmFtZVxuICAgICAgICAgICAgZWxzZSBpZiBub2RlIGluc3RhbmNlb2YgQ29kZVxuICAgICAgICAgICAgICAgIG5vZGUuY29udGV4dCAgICA9IG5hbWUgaWYgbm9kZS5ib3VuZFxuXG4gICAgIyBFbnN1cmUgdGhhdCBhbGwgZnVuY3Rpb25zIGJvdW5kIHRvIHRoZSBpbnN0YW5jZSBhcmUgcHJveGllZCBpbiB0aGUgY29uc3RydWN0b3IuXG4gICAgXG4gICAgYWRkQm91bmRGdW5jdGlvbnM6IChvKSAtPlxuICAgICAgICBcbiAgICAgICAgZm9yIGJ2YXIgaW4gQGJvdW5kRnVuY3NcbiAgICAgICAgICAgIGxocyA9IChuZXcgVmFsdWUgKG5ldyBUaGlzTGl0ZXJhbCksIFtuZXcgQWNjZXNzIGJ2YXJdKS5jb21waWxlIG9cbiAgICAgICAgICAgIEBjdG9yLmJvZHkudW5zaGlmdCBuZXcgTGl0ZXJhbCBcIiN7bGhzfSA9ICN7dXRpbGl0eSAnYmluZCcsIG99KCN7bGhzfSwgdGhpcylcIlxuICAgICAgICByZXR1cm5cblxuICAgICMgTWVyZ2UgdGhlIHByb3BlcnRpZXMgZnJvbSBhIHRvcC1sZXZlbCBvYmplY3QgYXMgcHJvdG90eXBhbCBwcm9wZXJ0aWVzIG9uIHRoZSBjbGFzcy5cbiAgICBcbiAgICBhZGRQcm9wZXJ0aWVzOiAobm9kZSwgbmFtZSwgbykgLT5cbiAgICAgICAgXG4gICAgICAgIHByb3BzID0gbm9kZS5iYXNlLnByb3BlcnRpZXNbLi5dXG4gICAgICAgIGV4cHJzID0gd2hpbGUgYXNzaWduID0gcHJvcHMuc2hpZnQoKVxuICAgICAgICAgICAgaWYgYXNzaWduIGluc3RhbmNlb2YgQXNzaWduXG4gICAgICAgICAgICAgICAgYmFzZSA9IGFzc2lnbi52YXJpYWJsZS5iYXNlXG4gICAgICAgICAgICAgICAgZGVsZXRlIGFzc2lnbi5jb250ZXh0XG4gICAgICAgICAgICAgICAgZnVuYyA9IGFzc2lnbi52YWx1ZVxuICAgICAgICAgICAgICAgIGlmIGJhc2UudmFsdWUgaXMgJ2NvbnN0cnVjdG9yJ1xuICAgICAgICAgICAgICAgICAgICBpZiBAY3RvclxuICAgICAgICAgICAgICAgICAgICAgICAgYXNzaWduLmVycm9yICdjYW5ub3QgZGVmaW5lIG1vcmUgdGhhbiBvbmUgY29uc3RydWN0b3IgaW4gYSBjbGFzcydcbiAgICAgICAgICAgICAgICAgICAgaWYgZnVuYy5ib3VuZFxuICAgICAgICAgICAgICAgICAgICAgICAgYXNzaWduLmVycm9yICdjYW5ub3QgZGVmaW5lIGEgY29uc3RydWN0b3IgYXMgYSBib3VuZCBmdW5jdGlvbidcbiAgICAgICAgICAgICAgICAgICAgaWYgZnVuYyBpbnN0YW5jZW9mIENvZGVcbiAgICAgICAgICAgICAgICAgICAgICAgIGFzc2lnbiA9IEBjdG9yID0gZnVuY1xuICAgICAgICAgICAgICAgICAgICBlbHNlXG4gICAgICAgICAgICAgICAgICAgICAgICBAZXh0ZXJuYWxDdG9yID0gby5jbGFzc1Njb3BlLmZyZWVWYXJpYWJsZSAnY3RvcidcbiAgICAgICAgICAgICAgICAgICAgICAgIGFzc2lnbiA9IG5ldyBBc3NpZ24gbmV3IElkZW50aWZpZXJMaXRlcmFsKEBleHRlcm5hbEN0b3IpLCBmdW5jXG4gICAgICAgICAgICAgICAgZWxzZVxuICAgICAgICAgICAgICAgICAgICBpZiBhc3NpZ24udmFyaWFibGUudGhpc1xuICAgICAgICAgICAgICAgICAgICAgICAgZnVuYy5zdGF0aWMgPSB5ZXNcbiAgICAgICAgICAgICAgICAgICAgZWxzZVxuICAgICAgICAgICAgICAgICAgICAgICAgYWNjID0gaWYgYmFzZS5pc0NvbXBsZXgoKSB0aGVuIG5ldyBJbmRleCBiYXNlIGVsc2UgbmV3IEFjY2VzcyBiYXNlXG4gICAgICAgICAgICAgICAgICAgICAgICBhc3NpZ24udmFyaWFibGUgPSBuZXcgVmFsdWUobmV3IElkZW50aWZpZXJMaXRlcmFsKG5hbWUpLCBbKG5ldyBBY2Nlc3MgbmV3IFByb3BlcnR5TmFtZSAncHJvdG90eXBlJyksIGFjY10pXG4gICAgICAgICAgICAgICAgICAgICAgICBpZiBmdW5jIGluc3RhbmNlb2YgQ29kZSBhbmQgZnVuYy5ib3VuZFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgIEBib3VuZEZ1bmNzLnB1c2ggYmFzZVxuICAgICAgICAgICAgICAgICAgICAgICAgICAgIGZ1bmMuYm91bmQgPSBub1xuICAgICAgICAgICAgYXNzaWduXG5cbiAgICAgICAgY29tcGFjdCBleHByc1xuXG4gICAgIyBXYWxrIHRoZSBib2R5IG9mIHRoZSBjbGFzcywgbG9va2luZyBmb3IgcHJvdG90eXBlIHByb3BlcnRpZXMgdG8gYmUgY29udmVydGVkIGFuZCB0YWdnaW5nIHN0YXRpYyBhc3NpZ25tZW50cy5cbiAgICAgICAgXG4gICAgd2Fsa0JvZHk6IChuYW1lLCBvKSAtPlxuICAgICAgICAjbG9nICd3YWxrQm9keScsIG8uZmVhdHVyZVxuICAgICAgICBAdHJhdmVyc2VDaGlsZHJlbiBmYWxzZSwgKGNoaWxkKSA9PlxuICAgICAgICAgICAgY29udCA9IHRydWVcbiAgICAgICAgICAgIHJldHVybiBmYWxzZSBpZiBjaGlsZCBpbnN0YW5jZW9mIENsYXNzXG4gICAgICAgICAgICBpZiBjaGlsZCBpbnN0YW5jZW9mIEJsb2NrXG4gICAgICAgICAgICAgICAgZm9yIG5vZGUsIGkgaW4gZXhwcyA9IGNoaWxkLmV4cHJlc3Npb25zXG4gICAgICAgICAgICAgICAgICAgIGlmIG5vZGUgaW5zdGFuY2VvZiBBc3NpZ24gYW5kIG5vZGUudmFyaWFibGUubG9va3NTdGF0aWMgbmFtZVxuICAgICAgICAgICAgICAgICAgICAgICAgbm9kZS52YWx1ZS5zdGF0aWMgPSB5ZXNcbiAgICAgICAgICAgICAgICAgICAgZWxzZSBpZiBub2RlIGluc3RhbmNlb2YgVmFsdWUgYW5kIG5vZGUuaXNPYmplY3QodHJ1ZSlcbiAgICAgICAgICAgICAgICAgICAgICAgIGNvbnQgPSBmYWxzZVxuICAgICAgICAgICAgICAgICAgICAgICAgZXhwc1tpXSA9IEBhZGRQcm9wZXJ0aWVzIG5vZGUsIG5hbWUsIG9cbiAgICAgICAgICAgICAgICBjaGlsZC5leHByZXNzaW9ucyA9IGV4cHMgPSBmbGF0dGVuIGV4cHNcbiAgICAgICAgICAgICAgICBcbiAgICAgICAgICAgICAgICBpZiBjaGlsZC5jbGFzc0JvZHkgYW5kIGhhc0ZlYXR1cmUgbywgJ2NvbmZpZ19wYXJhbWV0ZXJzJ1xuICAgICAgICAgICAgICAgICAgICBAcHJlcGFyZVN1cGVyQ2FsbEZvckNvbmZpZ1BhcmFtcyBuYW1lLCBvLCBjaGlsZFxuICAgICAgICAgICAgICAgIFxuICAgICAgICAgICAgY29udCBhbmQgY2hpbGQgbm90IGluc3RhbmNlb2YgQ2xhc3NcblxuICAgIHByZXBhcmVTdXBlckNhbGxGb3JDb25maWdQYXJhbXM6IChuYW1lLCBvLCBjbGFzc0JvZHkpIC0+XG4gICAgICAgIFxuICAgICAgICBmb3IgZXhwciBpbiBjbGFzc0JvZHkuZXhwcmVzc2lvbnNcbiAgICAgICAgICAgIGlmIGV4cHIgaW5zdGFuY2VvZiBDb2RlXG4gICAgICAgICAgICAgICAgY29udGludWUgaWYgbm90IGV4cHIucGFyYW1zWzBdPy5uYW1lXG4gICAgICAgICAgICAgICAgcGFyYW0wID0gZXhwci5wYXJhbXNbMF0ubmFtZVxuICAgICAgICAgICAgICAgIGlmIG5vdCBwYXJhbTAuZ2VuZXJhdGVkIHRoZW4gcmV0dXJuICNsb2cgJ0NPTlNUUlVDVE9SIFBBUkFNMCBOT1QgR0VORVJBVEVEPydcbiAgICAgICAgICAgICAgICBpZiBub3QgcGFyYW0wIGluc3RhbmNlb2YgT2JqIHRoZW4gcmV0dXJuIGxvZyAnQ09OU1RSVUNUT1IgUEFSQU0wIE5PVCBBTiBPQko/J1xuICAgICAgICAgICAgICAgIGlmIG5vdCBleHByLmJvZHkgaW5zdGFuY2VvZiBCbG9jayB0aGVuIHJldHVybiBsb2cgJ0NPTlNUUlVDVE9SIEJPRFkgTk9UIEFOIEJMT0NLPydcbiAgICAgICAgICAgICAgICBmb3IgYm9keUV4cHIgaW4gZXhwci5ib2R5LmV4cHJlc3Npb25zXG4gICAgICAgICAgICAgICAgICAgIGlmIGJvZHlFeHByIGluc3RhbmNlb2YgU3VwZXJDYWxsXG4gICAgICAgICAgICAgICAgICAgICAgICBib2R5RXhwci5jb25maWdQYXJhbWV0ZXIgPSBwYXJhbTBcbiAgICAgICAgICAgIFxuICAgICMgYHVzZSBzdHJpY3RgIChhbmQgb3RoZXIgZGlyZWN0aXZlcykgbXVzdCBiZSB0aGUgZmlyc3QgZXhwcmVzc2lvbiBzdGF0ZW1lbnQocylcbiAgICAjIG9mIGEgZnVuY3Rpb24gYm9keS4gVGhpcyBtZXRob2QgZW5zdXJlcyB0aGUgcHJvbG9ndWUgaXMgY29ycmVjdGx5IHBvc2l0aW9uZWRcbiAgICAjIGFib3ZlIHRoZSBgY29uc3RydWN0b3JgLlxuICAgIFxuICAgIGhvaXN0RGlyZWN0aXZlUHJvbG9ndWU6IC0+XG4gICAgICAgIFxuICAgICAgICBpbmRleCA9IDBcbiAgICAgICAge2V4cHJlc3Npb25zfSA9IEBib2R5XG4gICAgICAgICsraW5kZXggd2hpbGUgKG5vZGUgPSBleHByZXNzaW9uc1tpbmRleF0pIGFuZCBub2RlIGluc3RhbmNlb2YgQ29tbWVudCBvclxuICAgICAgICAgICAgbm9kZSBpbnN0YW5jZW9mIFZhbHVlIGFuZCBub2RlLmlzU3RyaW5nKClcbiAgICAgICAgQGRpcmVjdGl2ZXMgPSBleHByZXNzaW9ucy5zcGxpY2UgMCwgaW5kZXhcblxuICAgICMgTWFrZSBzdXJlIHRoYXQgYSBjb25zdHJ1Y3RvciBpcyBkZWZpbmVkIGZvciB0aGUgY2xhc3MsIGFuZCBwcm9wZXJseSBjb25maWd1cmVkLlxuICAgICAgICBcbiAgICBlbnN1cmVDb25zdHJ1Y3RvcjogKG5hbWUpIC0+XG4gICAgICAgIFxuICAgICAgICBpZiBub3QgQGN0b3JcbiAgICAgICAgICAgIEBjdG9yID0gbmV3IENvZGVcbiAgICAgICAgICAgIGlmIEBleHRlcm5hbEN0b3JcbiAgICAgICAgICAgICAgICBAY3Rvci5ib2R5LnB1c2ggbmV3IExpdGVyYWwgXCIje0BleHRlcm5hbEN0b3J9LmFwcGx5KHRoaXMsIGFyZ3VtZW50cylcIlxuICAgICAgICAgICAgZWxzZSBpZiBAcGFyZW50XG4gICAgICAgICAgICAgICAgQGN0b3IuYm9keS5wdXNoIG5ldyBMaXRlcmFsIFwiI3tuYW1lfS5fX3N1cGVyX18uY29uc3RydWN0b3IuYXBwbHkodGhpcywgYXJndW1lbnRzKVwiXG4gICAgICAgICAgICBAY3Rvci5ib2R5Lm1ha2VSZXR1cm4oKVxuICAgICAgICAgICAgQGJvZHkuZXhwcmVzc2lvbnMudW5zaGlmdCBAY3RvclxuICAgICAgICBAY3Rvci5jdG9yID0gQGN0b3IubmFtZSA9IG5hbWVcbiAgICAgICAgQGN0b3Iua2xhc3MgPSBudWxsXG4gICAgICAgIEBjdG9yLm5vUmV0dXJuID0geWVzXG5cbiAgICAjIEluc3RlYWQgb2YgZ2VuZXJhdGluZyB0aGUgSmF2YVNjcmlwdCBzdHJpbmcgZGlyZWN0bHksIHdlIGJ1aWxkIHVwIHRoZVxuICAgICMgZXF1aXZhbGVudCBzeW50YXggdHJlZSBhbmQgY29tcGlsZSB0aGF0LCBpbiBwaWVjZXMuIFlvdSBjYW4gc2VlIHRoZVxuICAgICMgY29uc3RydWN0b3IsIHByb3BlcnR5IGFzc2lnbm1lbnRzLCBhbmQgaW5oZXJpdGFuY2UgZ2V0dGluZyBidWlsdCBvdXQgYmVsb3cuXG4gICAgXG4gICAgY29tcGlsZU5vZGU6IChvKSAtPlxuICAgICAgICBcbiAgICAgICAgaWYganVtcE5vZGUgPSBAYm9keS5qdW1wcygpXG4gICAgICAgICAgICBqdW1wTm9kZS5lcnJvciAnQ2xhc3MgYm9kaWVzIGNhbm5vdCBjb250YWluIHB1cmUgc3RhdGVtZW50cydcbiAgICAgICAgaWYgYXJndW1lbnRzTm9kZSA9IEBib2R5LmNvbnRhaW5zIGlzTGl0ZXJhbEFyZ3VtZW50c1xuICAgICAgICAgICAgYXJndW1lbnRzTm9kZS5lcnJvciBcIkNsYXNzIGJvZGllcyBzaG91bGRuJ3QgcmVmZXJlbmNlIGFyZ3VtZW50c1wiXG5cbiAgICAgICAgbmFtZSAgPSBAZGV0ZXJtaW5lTmFtZSgpXG4gICAgICAgIGxuYW1lID0gbmV3IElkZW50aWZpZXJMaXRlcmFsIG5hbWVcbiAgICAgICAgZnVuYyAgPSBuZXcgQ29kZSBbXSwgQmxvY2sud3JhcCBbQGJvZHldXG4gICAgICAgIGFyZ3MgID0gW11cbiAgICAgICAgby5jbGFzc1Njb3BlID0gZnVuYy5tYWtlU2NvcGUgby5zY29wZVxuXG4gICAgICAgIEBob2lzdERpcmVjdGl2ZVByb2xvZ3VlKClcbiAgICAgICAgQHNldENvbnRleHQgbmFtZVxuICAgICAgICBAd2Fsa0JvZHkgbmFtZSwgb1xuICAgICAgICBAZW5zdXJlQ29uc3RydWN0b3IgbmFtZVxuICAgICAgICBAYWRkQm91bmRGdW5jdGlvbnMgb1xuICAgICAgICBAYm9keS5zcGFjZWQgPSB5ZXNcbiAgICAgICAgQGJvZHkuZXhwcmVzc2lvbnMucHVzaCBsbmFtZVxuXG4gICAgICAgIGlmIEBwYXJlbnRcbiAgICAgICAgICAgIHN1cGVyQ2xhc3MgPSBuZXcgSWRlbnRpZmllckxpdGVyYWwgby5jbGFzc1Njb3BlLmZyZWVWYXJpYWJsZSAnc3VwZXJDbGFzcycsIHJlc2VydmU6IG5vXG4gICAgICAgICAgICBAYm9keS5leHByZXNzaW9ucy51bnNoaWZ0IG5ldyBFeHRlbmRzIGxuYW1lLCBzdXBlckNsYXNzXG4gICAgICAgICAgICBmdW5jLnBhcmFtcy5wdXNoIG5ldyBQYXJhbSBzdXBlckNsYXNzXG4gICAgICAgICAgICBhcmdzLnB1c2ggQHBhcmVudFxuXG4gICAgICAgIEBib2R5LmV4cHJlc3Npb25zLnVuc2hpZnQgQGRpcmVjdGl2ZXMuLi5cblxuICAgICAgICBrbGFzcyA9IG5ldyBQYXJlbnMgbmV3IENhbGwgZnVuYywgYXJnc1xuICAgICAgICBrbGFzcyA9IG5ldyBBc3NpZ24gQHZhcmlhYmxlLCBrbGFzcywgbnVsbCwgeyBAbW9kdWxlRGVjbGFyYXRpb24gfSBpZiBAdmFyaWFibGVcbiAgICAgICAga2xhc3MuY29tcGlsZVRvRnJhZ21lbnRzIG9cblxuIyAwMCAgICAgMDAgICAwMDAwMDAwICAgMDAwMDAwMCAgICAwMDAgICAwMDAgIDAwMCAgICAgIDAwMDAwMDAwICBcbiMgMDAwICAgMDAwICAwMDAgICAwMDAgIDAwMCAgIDAwMCAgMDAwICAgMDAwICAwMDAgICAgICAwMDAgICAgICAgXG4jIDAwMDAwMDAwMCAgMDAwICAgMDAwICAwMDAgICAwMDAgIDAwMCAgIDAwMCAgMDAwICAgICAgMDAwMDAwMCAgIFxuIyAwMDAgMCAwMDAgIDAwMCAgIDAwMCAgMDAwICAgMDAwICAwMDAgICAwMDAgIDAwMCAgICAgIDAwMCAgICAgICBcbiMgMDAwICAgMDAwICAgMDAwMDAwMCAgIDAwMDAwMDAgICAgIDAwMDAwMDAgICAwMDAwMDAwICAwMDAwMDAwMCAgXG5cbmV4cG9ydHMuTW9kdWxlRGVjbGFyYXRpb24gPSBjbGFzcyBNb2R1bGVEZWNsYXJhdGlvbiBleHRlbmRzIEJhc2VcbiAgICBcbiAgICBAOiAoQGNsYXVzZSwgQHNvdXJjZSkgLT5cbiAgICAgICAgQGNoZWNrU291cmNlKClcblxuICAgIGNoaWxkcmVuOiBbJ2NsYXVzZScsICdzb3VyY2UnXVxuXG4gICAgaXNTdGF0ZW1lbnQ6IFlFU1xuICAgIGp1bXBzOiAgICAgICBUSElTXG4gICAgbWFrZVJldHVybjogIFRISVNcblxuICAgIGNoZWNrU291cmNlOiAtPlxuICAgICAgICBpZiBAc291cmNlPyBhbmQgQHNvdXJjZSBpbnN0YW5jZW9mIFN0cmluZ1dpdGhJbnRlcnBvbGF0aW9uc1xuICAgICAgICAgICAgQHNvdXJjZS5lcnJvciAndGhlIG5hbWUgb2YgdGhlIG1vZHVsZSB0byBiZSBpbXBvcnRlZCBmcm9tIG11c3QgYmUgYW4gdW5pbnRlcnBvbGF0ZWQgc3RyaW5nJ1xuXG4gICAgY2hlY2tTY29wZTogKG8sIG1vZHVsZURlY2xhcmF0aW9uVHlwZSkgLT5cbiAgICAgICAgaWYgby5pbmRlbnQubGVuZ3RoICE9IDBcbiAgICAgICAgICAgIEBlcnJvciBcIiN7bW9kdWxlRGVjbGFyYXRpb25UeXBlfSBzdGF0ZW1lbnRzIG11c3QgYmUgYXQgdG9wLWxldmVsIHNjb3BlXCJcblxuIyAwMDAgIDAwICAgICAwMCAgMDAwMDAwMDAgICAgMDAwMDAwMCAgIDAwMDAwMDAwICAgMDAwMDAwMDAwICBcbiMgMDAwICAwMDAgICAwMDAgIDAwMCAgIDAwMCAgMDAwICAgMDAwICAwMDAgICAwMDAgICAgIDAwMCAgICAgXG4jIDAwMCAgMDAwMDAwMDAwICAwMDAwMDAwMCAgIDAwMCAgIDAwMCAgMDAwMDAwMCAgICAgICAwMDAgICAgIFxuIyAwMDAgIDAwMCAwIDAwMCAgMDAwICAgICAgICAwMDAgICAwMDAgIDAwMCAgIDAwMCAgICAgMDAwICAgICBcbiMgMDAwICAwMDAgICAwMDAgIDAwMCAgICAgICAgIDAwMDAwMDAgICAwMDAgICAwMDAgICAgIDAwMCAgICAgXG5cbmV4cG9ydHMuSW1wb3J0RGVjbGFyYXRpb24gPSBjbGFzcyBJbXBvcnREZWNsYXJhdGlvbiBleHRlbmRzIE1vZHVsZURlY2xhcmF0aW9uXG4gICAgXG4gICAgY29tcGlsZU5vZGU6IChvKSAtPlxuICAgICAgICBAY2hlY2tTY29wZSBvLCAnaW1wb3J0J1xuICAgICAgICBvLmltcG9ydGVkU3ltYm9scyA9IFtdXG5cbiAgICAgICAgY29kZSA9IFtdXG4gICAgICAgIGNvZGUucHVzaCBAbWFrZUNvZGUgXCIje0B0YWJ9aW1wb3J0IFwiXG4gICAgICAgIGNvZGUucHVzaCBAY2xhdXNlLmNvbXBpbGVOb2RlKG8pLi4uIGlmIEBjbGF1c2U/XG5cbiAgICAgICAgaWYgQHNvdXJjZT8udmFsdWU/XG4gICAgICAgICAgICBjb2RlLnB1c2ggQG1ha2VDb2RlICcgZnJvbSAnIHVubGVzcyBAY2xhdXNlIGlzIG51bGxcbiAgICAgICAgICAgIGNvZGUucHVzaCBAbWFrZUNvZGUgQHNvdXJjZS52YWx1ZVxuXG4gICAgICAgIGNvZGUucHVzaCBAbWFrZUNvZGUgJzsnXG4gICAgICAgIGNvZGVcblxuZXhwb3J0cy5JbXBvcnRDbGF1c2UgPSBjbGFzcyBJbXBvcnRDbGF1c2UgZXh0ZW5kcyBCYXNlXG4gICAgXG4gICAgQDogKEBkZWZhdWx0QmluZGluZywgQG5hbWVkSW1wb3J0cykgLT5cblxuICAgIGNoaWxkcmVuOiBbJ2RlZmF1bHRCaW5kaW5nJywgJ25hbWVkSW1wb3J0cyddXG5cbiAgICBjb21waWxlTm9kZTogKG8pIC0+XG4gICAgICAgIGNvZGUgPSBbXVxuXG4gICAgICAgIGlmIEBkZWZhdWx0QmluZGluZz9cbiAgICAgICAgICAgIGNvZGUucHVzaCBAZGVmYXVsdEJpbmRpbmcuY29tcGlsZU5vZGUobykuLi5cbiAgICAgICAgICAgIGNvZGUucHVzaCBAbWFrZUNvZGUgJywgJyBpZiBAbmFtZWRJbXBvcnRzP1xuXG4gICAgICAgIGlmIEBuYW1lZEltcG9ydHM/XG4gICAgICAgICAgICBjb2RlLnB1c2ggQG5hbWVkSW1wb3J0cy5jb21waWxlTm9kZShvKS4uLlxuXG4gICAgICAgIGNvZGVcblxuIyAwMDAwMDAwMCAgMDAwICAgMDAwICAwMDAwMDAwMCAgICAwMDAwMDAwICAgMDAwMDAwMDAgICAwMDAwMDAwMDAgIFxuIyAwMDAgICAgICAgIDAwMCAwMDAgICAwMDAgICAwMDAgIDAwMCAgIDAwMCAgMDAwICAgMDAwICAgICAwMDAgICAgIFxuIyAwMDAwMDAwICAgICAwMDAwMCAgICAwMDAwMDAwMCAgIDAwMCAgIDAwMCAgMDAwMDAwMCAgICAgICAwMDAgICAgIFxuIyAwMDAgICAgICAgIDAwMCAwMDAgICAwMDAgICAgICAgIDAwMCAgIDAwMCAgMDAwICAgMDAwICAgICAwMDAgICAgIFxuIyAwMDAwMDAwMCAgMDAwICAgMDAwICAwMDAgICAgICAgICAwMDAwMDAwICAgMDAwICAgMDAwICAgICAwMDAgICAgIFxuXG5leHBvcnRzLkV4cG9ydERlY2xhcmF0aW9uID0gY2xhc3MgRXhwb3J0RGVjbGFyYXRpb24gZXh0ZW5kcyBNb2R1bGVEZWNsYXJhdGlvblxuICAgIFxuICAgIGNvbXBpbGVOb2RlOiAobykgLT5cbiAgICAgICAgQGNoZWNrU2NvcGUgbywgJ2V4cG9ydCdcblxuICAgICAgICBjb2RlID0gW11cbiAgICAgICAgY29kZS5wdXNoIEBtYWtlQ29kZSBcIiN7QHRhYn1leHBvcnQgXCJcbiAgICAgICAgY29kZS5wdXNoIEBtYWtlQ29kZSAnZGVmYXVsdCAnIGlmIEAgaW5zdGFuY2VvZiBFeHBvcnREZWZhdWx0RGVjbGFyYXRpb25cblxuICAgICAgICBpZiBAIG5vdCBpbnN0YW5jZW9mIEV4cG9ydERlZmF1bHREZWNsYXJhdGlvbiBhbmRcbiAgICAgICAgICAgICAoQGNsYXVzZSBpbnN0YW5jZW9mIEFzc2lnbiBvciBAY2xhdXNlIGluc3RhbmNlb2YgQ2xhc3MpXG4gICAgICAgICAgICAjIFByZXZlbnQgZXhwb3J0aW5nIGFuIGFub255bW91cyBjbGFzczsgYWxsIGV4cG9ydGVkIG1lbWJlcnMgbXVzdCBiZSBuYW1lZFxuICAgICAgICAgICAgaWYgQGNsYXVzZSBpbnN0YW5jZW9mIENsYXNzIGFuZCBub3QgQGNsYXVzZS52YXJpYWJsZVxuICAgICAgICAgICAgICAgIEBjbGF1c2UuZXJyb3IgJ2Fub255bW91cyBjbGFzc2VzIGNhbm5vdCBiZSBleHBvcnRlZCdcblxuICAgICAgICAgICAgIyBXaGVuIHRoZSBFUzIwMTUgYGNsYXNzYCBrZXl3b3JkIGlzIHN1cHBvcnRlZCwgZG9u4oCZdCBhZGQgYSBgdmFyYCBoZXJlXG4gICAgICAgICAgICBjb2RlLnB1c2ggQG1ha2VDb2RlICd2YXIgJ1xuICAgICAgICAgICAgQGNsYXVzZS5tb2R1bGVEZWNsYXJhdGlvbiA9ICdleHBvcnQnXG5cbiAgICAgICAgaWYgQGNsYXVzZS5ib2R5PyBhbmQgQGNsYXVzZS5ib2R5IGluc3RhbmNlb2YgQmxvY2tcbiAgICAgICAgICAgIGNvZGUgPSBjb2RlLmNvbmNhdCBAY2xhdXNlLmNvbXBpbGVUb0ZyYWdtZW50cyBvLCBMRVZFTF9UT1BcbiAgICAgICAgZWxzZVxuICAgICAgICAgICAgY29kZSA9IGNvZGUuY29uY2F0IEBjbGF1c2UuY29tcGlsZU5vZGUgb1xuXG4gICAgICAgIGNvZGUucHVzaCBAbWFrZUNvZGUgXCIgZnJvbSAje0Bzb3VyY2UudmFsdWV9XCIgaWYgQHNvdXJjZT8udmFsdWU/XG4gICAgICAgIGNvZGUucHVzaCBAbWFrZUNvZGUgJzsnXG4gICAgICAgIGNvZGVcblxuZXhwb3J0cy5FeHBvcnROYW1lZERlY2xhcmF0aW9uID0gY2xhc3MgRXhwb3J0TmFtZWREZWNsYXJhdGlvbiBleHRlbmRzIEV4cG9ydERlY2xhcmF0aW9uXG5cbmV4cG9ydHMuRXhwb3J0RGVmYXVsdERlY2xhcmF0aW9uID0gY2xhc3MgRXhwb3J0RGVmYXVsdERlY2xhcmF0aW9uIGV4dGVuZHMgRXhwb3J0RGVjbGFyYXRpb25cblxuZXhwb3J0cy5FeHBvcnRBbGxEZWNsYXJhdGlvbiA9IGNsYXNzIEV4cG9ydEFsbERlY2xhcmF0aW9uIGV4dGVuZHMgRXhwb3J0RGVjbGFyYXRpb25cblxuZXhwb3J0cy5Nb2R1bGVTcGVjaWZpZXJMaXN0ID0gY2xhc3MgTW9kdWxlU3BlY2lmaWVyTGlzdCBleHRlbmRzIEJhc2VcbiAgICBcbiAgICBAOiAoQHNwZWNpZmllcnMpIC0+XG5cbiAgICBjaGlsZHJlbjogWydzcGVjaWZpZXJzJ11cblxuICAgIGNvbXBpbGVOb2RlOiAobykgLT5cbiAgICAgICAgY29kZSA9IFtdXG4gICAgICAgIG8uaW5kZW50ICs9IFRBQlxuICAgICAgICBjb21waWxlZExpc3QgPSAoc3BlY2lmaWVyLmNvbXBpbGVUb0ZyYWdtZW50cyBvLCBMRVZFTF9MSVNUIGZvciBzcGVjaWZpZXIgaW4gQHNwZWNpZmllcnMpXG5cbiAgICAgICAgaWYgQHNwZWNpZmllcnMubGVuZ3RoICE9IDBcbiAgICAgICAgICAgIGNvZGUucHVzaCBAbWFrZUNvZGUgXCJ7XFxuI3tvLmluZGVudH1cIlxuICAgICAgICAgICAgZm9yIGZyYWdtZW50cywgaW5kZXggaW4gY29tcGlsZWRMaXN0XG4gICAgICAgICAgICAgICAgY29kZS5wdXNoIEBtYWtlQ29kZShcIixcXG4je28uaW5kZW50fVwiKSBpZiBpbmRleFxuICAgICAgICAgICAgICAgIGNvZGUucHVzaCBmcmFnbWVudHMuLi5cbiAgICAgICAgICAgIGNvZGUucHVzaCBAbWFrZUNvZGUgXCJcXG59XCJcbiAgICAgICAgZWxzZVxuICAgICAgICAgICAgY29kZS5wdXNoIEBtYWtlQ29kZSAne30nXG4gICAgICAgIGNvZGVcblxuZXhwb3J0cy5JbXBvcnRTcGVjaWZpZXJMaXN0ID0gY2xhc3MgSW1wb3J0U3BlY2lmaWVyTGlzdCBleHRlbmRzIE1vZHVsZVNwZWNpZmllckxpc3RcblxuZXhwb3J0cy5FeHBvcnRTcGVjaWZpZXJMaXN0ID0gY2xhc3MgRXhwb3J0U3BlY2lmaWVyTGlzdCBleHRlbmRzIE1vZHVsZVNwZWNpZmllckxpc3RcblxuZXhwb3J0cy5Nb2R1bGVTcGVjaWZpZXIgPSBjbGFzcyBNb2R1bGVTcGVjaWZpZXIgZXh0ZW5kcyBCYXNlXG4gICAgQDogKEBvcmlnaW5hbCwgQGFsaWFzLCBAbW9kdWxlRGVjbGFyYXRpb25UeXBlKSAtPlxuICAgICAgICAjIFRoZSBuYW1lIG9mIHRoZSB2YXJpYWJsZSBlbnRlcmluZyB0aGUgbG9jYWwgc2NvcGVcbiAgICAgICAgQGlkZW50aWZpZXIgPSBpZiBAYWxpYXM/IHRoZW4gQGFsaWFzLnZhbHVlIGVsc2UgQG9yaWdpbmFsLnZhbHVlXG5cbiAgICBjaGlsZHJlbjogWydvcmlnaW5hbCcsICdhbGlhcyddXG5cbiAgICBjb21waWxlTm9kZTogKG8pIC0+XG4gICAgICAgIG8uc2NvcGUuZmluZCBAaWRlbnRpZmllciwgQG1vZHVsZURlY2xhcmF0aW9uVHlwZVxuICAgICAgICBjb2RlID0gW11cbiAgICAgICAgY29kZS5wdXNoIEBtYWtlQ29kZSBAb3JpZ2luYWwudmFsdWVcbiAgICAgICAgY29kZS5wdXNoIEBtYWtlQ29kZSBcIiBhcyAje0BhbGlhcy52YWx1ZX1cIiBpZiBAYWxpYXM/XG4gICAgICAgIGNvZGVcblxuZXhwb3J0cy5JbXBvcnRTcGVjaWZpZXIgPSBjbGFzcyBJbXBvcnRTcGVjaWZpZXIgZXh0ZW5kcyBNb2R1bGVTcGVjaWZpZXJcbiAgICBAOiAoaW1wb3J0ZWQsIGxvY2FsKSAtPlxuICAgICAgICBzdXBlciBpbXBvcnRlZCwgbG9jYWwsICdpbXBvcnQnXG5cbiAgICBjb21waWxlTm9kZTogKG8pIC0+XG4gICAgICAgICMgUGVyIHRoZSBzcGVjLCBzeW1ib2xzIGNhbuKAmXQgYmUgaW1wb3J0ZWQgbXVsdGlwbGUgdGltZXNcbiAgICAgICAgIyAoZS5nLiBgaW1wb3J0IHsgZm9vLCBmb28gfSBmcm9tICdsaWInYCBpcyBpbnZhbGlkKVxuICAgICAgICBpZiBAaWRlbnRpZmllciBpbiBvLmltcG9ydGVkU3ltYm9scyBvciBvLnNjb3BlLmNoZWNrKEBpZGVudGlmaWVyKVxuICAgICAgICAgICAgQGVycm9yIFwiJyN7QGlkZW50aWZpZXJ9JyBoYXMgYWxyZWFkeSBiZWVuIGRlY2xhcmVkXCJcbiAgICAgICAgZWxzZVxuICAgICAgICAgICAgby5pbXBvcnRlZFN5bWJvbHMucHVzaCBAaWRlbnRpZmllclxuICAgICAgICBzdXBlciBvXG5cbmV4cG9ydHMuSW1wb3J0RGVmYXVsdFNwZWNpZmllciA9IGNsYXNzIEltcG9ydERlZmF1bHRTcGVjaWZpZXIgZXh0ZW5kcyBJbXBvcnRTcGVjaWZpZXJcblxuZXhwb3J0cy5JbXBvcnROYW1lc3BhY2VTcGVjaWZpZXIgPSBjbGFzcyBJbXBvcnROYW1lc3BhY2VTcGVjaWZpZXIgZXh0ZW5kcyBJbXBvcnRTcGVjaWZpZXJcblxuZXhwb3J0cy5FeHBvcnRTcGVjaWZpZXIgPSBjbGFzcyBFeHBvcnRTcGVjaWZpZXIgZXh0ZW5kcyBNb2R1bGVTcGVjaWZpZXJcbiAgICBAOiAobG9jYWwsIGV4cG9ydGVkKSAtPlxuICAgICAgICBzdXBlciBsb2NhbCwgZXhwb3J0ZWQsICdleHBvcnQnXG5cbiMgIDAwMDAwMDAgICAgMDAwMDAwMCAgIDAwMDAwMDAgIDAwMCAgIDAwMDAwMDAgICAwMDAgICAwMDAgIFxuIyAwMDAgICAwMDAgIDAwMCAgICAgICAwMDAgICAgICAgMDAwICAwMDAgICAgICAgIDAwMDAgIDAwMCAgXG4jIDAwMDAwMDAwMCAgMDAwMDAwMCAgIDAwMDAwMDAgICAwMDAgIDAwMCAgMDAwMCAgMDAwIDAgMDAwICBcbiMgMDAwICAgMDAwICAgICAgIDAwMCAgICAgICAwMDAgIDAwMCAgMDAwICAgMDAwICAwMDAgIDAwMDAgIFxuIyAwMDAgICAwMDAgIDAwMDAwMDAgICAwMDAwMDAwICAgMDAwICAgMDAwMDAwMCAgIDAwMCAgIDAwMCAgXG5cbiMgVGhlICoqQXNzaWduKiogaXMgdXNlZCB0byBhc3NpZ24gYSBsb2NhbCB2YXJpYWJsZSB0byB2YWx1ZSwgb3IgdG8gc2V0IHRoZVxuIyBwcm9wZXJ0eSBvZiBhbiBvYmplY3QgLS0gaW5jbHVkaW5nIHdpdGhpbiBvYmplY3QgbGl0ZXJhbHMuXG5cbmV4cG9ydHMuQXNzaWduID0gY2xhc3MgQXNzaWduIGV4dGVuZHMgQmFzZVxuICAgIFxuICAgIEA6IChAdmFyaWFibGUsIEB2YWx1ZSwgQGNvbnRleHQsIG9wdGlvbnMgPSB7fSkgLT5cbiAgICAgICAge0BwYXJhbSwgQHN1YnBhdHRlcm4sIEBvcGVyYXRvclRva2VuLCBAbW9kdWxlRGVjbGFyYXRpb259ID0gb3B0aW9uc1xuXG4gICAgY2hpbGRyZW46IFsndmFyaWFibGUnLCAndmFsdWUnXVxuXG4gICAgaXNTdGF0ZW1lbnQ6IChvKSAtPlxuICAgICAgICBvPy5sZXZlbCBpcyBMRVZFTF9UT1AgYW5kIEBjb250ZXh0PyBhbmQgKEBtb2R1bGVEZWNsYXJhdGlvbiBvciBcIj9cIiBpbiBAY29udGV4dClcblxuICAgIGNoZWNrQXNzaWduYWJpbGl0eTogKG8sIHZhckJhc2UpIC0+XG4gICAgICAgIGlmIE9iamVjdDo6aGFzT3duUHJvcGVydHkuY2FsbChvLnNjb3BlLnBvc2l0aW9ucywgdmFyQmFzZS52YWx1ZSkgYW5kXG4gICAgICAgICAgICAgby5zY29wZS52YXJpYWJsZXNbby5zY29wZS5wb3NpdGlvbnNbdmFyQmFzZS52YWx1ZV1dLnR5cGUgaXMgJ2ltcG9ydCdcbiAgICAgICAgICAgIHZhckJhc2UuZXJyb3IgXCInI3t2YXJCYXNlLnZhbHVlfScgaXMgcmVhZC1vbmx5XCJcblxuICAgIGFzc2lnbnM6IChuYW1lKSAtPlxuICAgICAgICBAW2lmIEBjb250ZXh0IGlzICdvYmplY3QnIHRoZW4gJ3ZhbHVlJyBlbHNlICd2YXJpYWJsZSddLmFzc2lnbnMgbmFtZVxuXG4gICAgdW5mb2xkU29hazogKG8pIC0+XG4gICAgICAgIHVuZm9sZFNvYWsgbywgdGhpcywgJ3ZhcmlhYmxlJ1xuXG4gICAgIyBDb21waWxlIGFuIGFzc2lnbm1lbnQsIGRlbGVnYXRpbmcgdG8gYGNvbXBpbGVQYXR0ZXJuTWF0Y2hgIG9yXG4gICAgIyBgY29tcGlsZVNwbGljZWAgaWYgYXBwcm9wcmlhdGUuIEtlZXAgdHJhY2sgb2YgdGhlIG5hbWUgb2YgdGhlIGJhc2Ugb2JqZWN0XG4gICAgIyB3ZSd2ZSBiZWVuIGFzc2lnbmVkIHRvLCBmb3IgY29ycmVjdCBpbnRlcm5hbCByZWZlcmVuY2VzLiBJZiB0aGUgdmFyaWFibGVcbiAgICAjIGhhcyBub3QgYmVlbiBzZWVuIHlldCB3aXRoaW4gdGhlIGN1cnJlbnQgc2NvcGUsIGRlY2xhcmUgaXQuXG4gICAgXG4gICAgY29tcGlsZU5vZGU6IChvKSAtPlxuICAgICAgICBcbiAgICAgICAgaWYgaXNWYWx1ZSA9IEB2YXJpYWJsZSBpbnN0YW5jZW9mIFZhbHVlXG4gICAgICAgICAgICByZXR1cm4gQGNvbXBpbGVQYXR0ZXJuTWF0Y2ggbyBpZiBAdmFyaWFibGUuaXNBcnJheSgpIG9yIEB2YXJpYWJsZS5pc09iamVjdCgpXG4gICAgICAgICAgICByZXR1cm4gQGNvbXBpbGVTcGxpY2UgICAgICAgbyBpZiBAdmFyaWFibGUuaXNTcGxpY2UoKVxuICAgICAgICAgICAgcmV0dXJuIEBjb21waWxlQ29uZGl0aW9uYWwgIG8gaWYgQGNvbnRleHQgaW4gWyd8fD0nLCAnJiY9JywgJz89J11cbiAgICAgICAgICAgIHJldHVybiBAY29tcGlsZVNwZWNpYWxNYXRoICBvIGlmIEBjb250ZXh0IGluIFsnKio9JywgJy8vPScsICclJT0nXVxuICAgICAgICBpZiBAdmFsdWUgaW5zdGFuY2VvZiBDb2RlXG4gICAgICAgICAgICBpZiBAdmFsdWUuc3RhdGljXG4gICAgICAgICAgICAgICAgQHZhbHVlLmtsYXNzID0gQHZhcmlhYmxlLmJhc2VcbiAgICAgICAgICAgICAgICBAdmFsdWUubmFtZSAgPSBAdmFyaWFibGUucHJvcGVydGllc1swXVxuICAgICAgICAgICAgICAgIEB2YWx1ZS52YXJpYWJsZSA9IEB2YXJpYWJsZVxuICAgICAgICAgICAgZWxzZSBpZiBAdmFyaWFibGUucHJvcGVydGllcz8ubGVuZ3RoID49IDJcbiAgICAgICAgICAgICAgICBbcHJvcGVydGllcy4uLiwgcHJvdG90eXBlLCBuYW1lXSA9IEB2YXJpYWJsZS5wcm9wZXJ0aWVzXG4gICAgICAgICAgICAgICAgaWYgcHJvdG90eXBlLm5hbWU/LnZhbHVlIGlzICdwcm90b3R5cGUnXG4gICAgICAgICAgICAgICAgICAgIEB2YWx1ZS5rbGFzcyA9IG5ldyBWYWx1ZSBAdmFyaWFibGUuYmFzZSwgcHJvcGVydGllc1xuICAgICAgICAgICAgICAgICAgICBAdmFsdWUubmFtZSAgPSBuYW1lXG4gICAgICAgICAgICAgICAgICAgIEB2YWx1ZS52YXJpYWJsZSA9IEB2YXJpYWJsZVxuICAgICAgICB1bmxlc3MgQGNvbnRleHRcbiAgICAgICAgICAgIHZhckJhc2UgPSBAdmFyaWFibGUudW53cmFwQWxsKClcbiAgICAgICAgICAgIHVubGVzcyB2YXJCYXNlLmlzQXNzaWduYWJsZSgpXG4gICAgICAgICAgICAgICAgQHZhcmlhYmxlLmVycm9yIFwiJyN7QHZhcmlhYmxlLmNvbXBpbGUgb30nIGNhbid0IGJlIGFzc2lnbmVkXCJcbiAgICAgICAgICAgIHVubGVzcyB2YXJCYXNlLmhhc1Byb3BlcnRpZXM/KClcbiAgICAgICAgICAgICAgICAjIGBtb2R1bGVEZWNsYXJhdGlvbmAgY2FuIGJlIGAnaW1wb3J0J2Agb3IgYCdleHBvcnQnYFxuICAgICAgICAgICAgICAgIGlmIEBtb2R1bGVEZWNsYXJhdGlvblxuICAgICAgICAgICAgICAgICAgICBAY2hlY2tBc3NpZ25hYmlsaXR5IG8sIHZhckJhc2VcbiAgICAgICAgICAgICAgICAgICAgby5zY29wZS5hZGQgdmFyQmFzZS52YWx1ZSwgQG1vZHVsZURlY2xhcmF0aW9uXG4gICAgICAgICAgICAgICAgZWxzZSBpZiBAcGFyYW1cbiAgICAgICAgICAgICAgICAgICAgby5zY29wZS5hZGQgdmFyQmFzZS52YWx1ZSwgJ3ZhcidcbiAgICAgICAgICAgICAgICBlbHNlXG4gICAgICAgICAgICAgICAgICAgIEBjaGVja0Fzc2lnbmFiaWxpdHkgbywgdmFyQmFzZVxuICAgICAgICAgICAgICAgICAgICBvLnNjb3BlLmZpbmQgdmFyQmFzZS52YWx1ZVxuXG4gICAgICAgIHZhbCA9IEB2YWx1ZS5jb21waWxlVG9GcmFnbWVudHMgbywgTEVWRUxfTElTVFxuICAgICAgICBAdmFyaWFibGUuZnJvbnQgPSB0cnVlIGlmIGlzVmFsdWUgYW5kIEB2YXJpYWJsZS5iYXNlIGluc3RhbmNlb2YgT2JqXG4gICAgICAgIGNvbXBpbGVkTmFtZSA9IEB2YXJpYWJsZS5jb21waWxlVG9GcmFnbWVudHMgbywgTEVWRUxfTElTVFxuXG4gICAgICAgIGlmIEBjb250ZXh0IGlzICdvYmplY3QnXG4gICAgICAgICAgICBpZiBmcmFnbWVudHNUb1RleHQoY29tcGlsZWROYW1lKSBpbiBKU19GT1JCSURERU5cbiAgICAgICAgICAgICAgICBjb21waWxlZE5hbWUudW5zaGlmdCBAbWFrZUNvZGUgJ1wiJ1xuICAgICAgICAgICAgICAgIGNvbXBpbGVkTmFtZS5wdXNoIEBtYWtlQ29kZSAnXCInXG4gICAgICAgICAgICByZXR1cm4gY29tcGlsZWROYW1lLmNvbmNhdCBAbWFrZUNvZGUoXCI6IFwiKSwgdmFsXG5cbiAgICAgICAgYW5zd2VyID0gY29tcGlsZWROYW1lLmNvbmNhdCBAbWFrZUNvZGUoXCIgI3sgQGNvbnRleHQgb3IgJz0nIH0gXCIpLCB2YWxcbiAgICAgICAgaWYgby5sZXZlbCA8PSBMRVZFTF9MSVNUIHRoZW4gYW5zd2VyIGVsc2UgQHdyYXBJbkJyYWNlcyBhbnN3ZXJcblxuICAgICMgQnJpZWYgaW1wbGVtZW50YXRpb24gb2YgcmVjdXJzaXZlIHBhdHRlcm4gbWF0Y2hpbmcsIHdoZW4gYXNzaWduaW5nIGFycmF5IG9yXG4gICAgIyBvYmplY3QgbGl0ZXJhbHMgdG8gYSB2YWx1ZS4gUGVla3MgYXQgdGhlaXIgcHJvcGVydGllcyB0byBhc3NpZ24gaW5uZXIgbmFtZXMuXG4gICAgXG4gICAgIyAwMDAwMDAwMCAgICAwMDAwMDAwICAgMDAwMDAwMDAwICAwMDAwMDAwMDAgIDAwMDAwMDAwICAwMDAwMDAwMCAgIDAwMCAgIDAwMCAgXG4gICAgIyAwMDAgICAwMDAgIDAwMCAgIDAwMCAgICAgMDAwICAgICAgICAwMDAgICAgIDAwMCAgICAgICAwMDAgICAwMDAgIDAwMDAgIDAwMCAgXG4gICAgIyAwMDAwMDAwMCAgIDAwMDAwMDAwMCAgICAgMDAwICAgICAgICAwMDAgICAgIDAwMDAwMDAgICAwMDAwMDAwICAgIDAwMCAwIDAwMCAgXG4gICAgIyAwMDAgICAgICAgIDAwMCAgIDAwMCAgICAgMDAwICAgICAgICAwMDAgICAgIDAwMCAgICAgICAwMDAgICAwMDAgIDAwMCAgMDAwMCAgXG4gICAgIyAwMDAgICAgICAgIDAwMCAgIDAwMCAgICAgMDAwICAgICAgICAwMDAgICAgIDAwMDAwMDAwICAwMDAgICAwMDAgIDAwMCAgIDAwMCAgXG4gICAgXG4gICAgY29tcGlsZVBhdHRlcm5NYXRjaDogKG8pIC0+XG4gICAgICAgIFxuICAgICAgICB0b3AgICAgICAgPSBvLmxldmVsIGlzIExFVkVMX1RPUFxuICAgICAgICB7dmFsdWV9ICAgPSB0aGlzXG4gICAgICAgIHtvYmplY3RzfSA9IEB2YXJpYWJsZS5iYXNlXG4gICAgICAgIFxuICAgICAgICB1bmxlc3Mgb2xlbiA9IG9iamVjdHMubGVuZ3RoXG4gICAgICAgICAgICBjb2RlID0gdmFsdWUuY29tcGlsZVRvRnJhZ21lbnRzIG9cbiAgICAgICAgICAgIHJldHVybiBpZiBvLmxldmVsID49IExFVkVMX09QIHRoZW4gQHdyYXBJbkJyYWNlcyBjb2RlIGVsc2UgY29kZVxuICAgICAgICAgICAgXG4gICAgICAgIFtvYmpdID0gb2JqZWN0c1xuICAgICAgICBcbiAgICAgICAgaWYgb2xlbiBpcyAxIGFuZCBvYmogaW5zdGFuY2VvZiBFeHBhbnNpb25cbiAgICAgICAgICAgIG9iai5lcnJvciAnRGVzdHJ1Y3R1cmluZyBhc3NpZ25tZW50IGhhcyBubyB0YXJnZXQnXG4gICAgICAgICAgICBcbiAgICAgICAgaXNPYmplY3QgPSBAdmFyaWFibGUuaXNPYmplY3QoKVxuICAgICAgICBcbiAgICAgICAgaWYgdG9wIGFuZCBvbGVuIGlzIDEgYW5kIG9iaiBub3QgaW5zdGFuY2VvZiBTcGxhdFxuICAgICAgICAgICAgIyBQaWNrIHRoZSBwcm9wZXJ0eSBzdHJhaWdodCBvZmYgdGhlIHZhbHVlIHdoZW4gdGhlcmXigJlzIGp1c3Qgb25lIHRvIHBpY2tcbiAgICAgICAgICAgICMgKG5vIG5lZWQgdG8gY2FjaGUgdGhlIHZhbHVlIGludG8gYSB2YXJpYWJsZSkuXG4gICAgICAgICAgICBkZWZhdWx0VmFsdWUgPSBudWxsXG4gICAgICAgICAgICBpZiBvYmogaW5zdGFuY2VvZiBBc3NpZ24gYW5kIG9iai5jb250ZXh0IGlzICdvYmplY3QnXG4gICAgICAgICAgICAgICAgIyBBIHJlZ3VsYXIgb2JqZWN0IHBhdHRlcm4tbWF0Y2guXG4gICAgICAgICAgICAgICAge3ZhcmlhYmxlOiB7YmFzZTogaWR4fSwgdmFsdWU6IG9ian0gPSBvYmpcbiAgICAgICAgICAgICAgICBpZiBvYmogaW5zdGFuY2VvZiBBc3NpZ25cbiAgICAgICAgICAgICAgICAgICAgZGVmYXVsdFZhbHVlID0gb2JqLnZhbHVlXG4gICAgICAgICAgICAgICAgICAgIG9iaiA9IG9iai52YXJpYWJsZVxuICAgICAgICAgICAgZWxzZVxuICAgICAgICAgICAgICAgIGlmIG9iaiBpbnN0YW5jZW9mIEFzc2lnblxuICAgICAgICAgICAgICAgICAgICBkZWZhdWx0VmFsdWUgPSBvYmoudmFsdWVcbiAgICAgICAgICAgICAgICAgICAgb2JqID0gb2JqLnZhcmlhYmxlXG4gICAgICAgICAgICAgICAgaWR4ID0gaWYgaXNPYmplY3QgIyBBIHNob3J0aGFuZCBge2EsIGIsIEBjfSA9IHZhbGAgcGF0dGVybi1tYXRjaC5cbiAgICAgICAgICAgICAgICAgICAgaWYgb2JqLnRoaXNcbiAgICAgICAgICAgICAgICAgICAgICAgIG9iai5wcm9wZXJ0aWVzWzBdLm5hbWVcbiAgICAgICAgICAgICAgICAgICAgZWxzZVxuICAgICAgICAgICAgICAgICAgICAgICAgbmV3IFByb3BlcnR5TmFtZSBvYmoudW53cmFwKCkudmFsdWVcbiAgICAgICAgICAgICAgICBlbHNlXG4gICAgICAgICAgICAgICAgICAgICMgQSByZWd1bGFyIGFycmF5IHBhdHRlcm4tbWF0Y2guXG4gICAgICAgICAgICAgICAgICAgIG5ldyBOdW1iZXJMaXRlcmFsIDBcbiAgICAgICAgICAgIGFjYyA9IGlkeC51bndyYXAoKSBpbnN0YW5jZW9mIFByb3BlcnR5TmFtZVxuICAgICAgICAgICAgdmFsdWUgPSBuZXcgVmFsdWUgdmFsdWVcbiAgICAgICAgICAgIHZhbHVlLnByb3BlcnRpZXMucHVzaCBuZXcgKGlmIGFjYyB0aGVuIEFjY2VzcyBlbHNlIEluZGV4KSBpZHhcbiAgICAgICAgICAgIG1lc3NhZ2UgPSBpc1VuYXNzaWduYWJsZSBvYmoudW53cmFwKCkudmFsdWVcbiAgICAgICAgICAgIG9iai5lcnJvciBtZXNzYWdlIGlmIG1lc3NhZ2VcbiAgICAgICAgICAgIHZhbHVlID0gbmV3IE9wICc/JywgdmFsdWUsIGRlZmF1bHRWYWx1ZSBpZiBkZWZhdWx0VmFsdWVcbiAgICAgICAgICAgIHJldHVybiBuZXcgQXNzaWduKG9iaiwgdmFsdWUsIG51bGwsIHBhcmFtOiBAcGFyYW0pLmNvbXBpbGVUb0ZyYWdtZW50cyBvLCBMRVZFTF9UT1BcbiAgICAgICAgICAgIFxuICAgICAgICB2dmFyICAgICA9IHZhbHVlLmNvbXBpbGVUb0ZyYWdtZW50cyBvLCBMRVZFTF9MSVNUXG4gICAgICAgIHZ2YXJUZXh0ID0gZnJhZ21lbnRzVG9UZXh0IHZ2YXJcbiAgICAgICAgYXNzaWducyAgPSBbXVxuICAgICAgICBleHBhbmRlZElkeCA9IGZhbHNlXG4gICAgICAgICMgTWFrZSB2dmFyIGludG8gYSBzaW1wbGUgdmFyaWFibGUgaWYgaXQgaXNuJ3QgYWxyZWFkeS5cbiAgICAgICAgaWYgdmFsdWUudW53cmFwKCkgbm90IGluc3RhbmNlb2YgSWRlbnRpZmllckxpdGVyYWwgb3IgQHZhcmlhYmxlLmFzc2lnbnModnZhclRleHQpXG4gICAgICAgICAgICBhc3NpZ25zLnB1c2ggW0BtYWtlQ29kZShcIiN7IHJlZiA9IG8uc2NvcGUuZnJlZVZhcmlhYmxlICdyZWYnIH0gPSBcIiksIHZ2YXIuLi5dXG4gICAgICAgICAgICB2dmFyID0gW0BtYWtlQ29kZSByZWZdXG4gICAgICAgICAgICB2dmFyVGV4dCA9IHJlZlxuICAgICAgICAgICAgXG4gICAgICAgIGZvciBvYmosIGkgaW4gb2JqZWN0c1xuICAgICAgICAgICAgXG4gICAgICAgICAgICBpZHggPSBpXG4gICAgICAgICAgICBcbiAgICAgICAgICAgIGlmIG5vdCBleHBhbmRlZElkeCBhbmQgb2JqIGluc3RhbmNlb2YgU3BsYXRcbiAgICAgICAgICAgICAgICBcbiAgICAgICAgICAgICAgICBuYW1lID0gb2JqLm5hbWUudW53cmFwKCkudmFsdWVcbiAgICAgICAgICAgICAgICBvYmogPSBvYmoudW53cmFwKClcbiAgICAgICAgICAgICAgICB2YWwgPSBcIiN7b2xlbn0gPD0gI3t2dmFyVGV4dH0ubGVuZ3RoID8gI3sgdXRpbGl0eSAnc2xpY2UnLCBvIH0uY2FsbCgje3Z2YXJUZXh0fSwgI3tpfVwiXG4gICAgICAgICAgICAgICAgaWYgcmVzdCA9IG9sZW4gLSBpIC0gMVxuICAgICAgICAgICAgICAgICAgICBpdmFyID0gby5zY29wZS5mcmVlVmFyaWFibGUgJ2knLCBzaW5nbGU6IHRydWVcbiAgICAgICAgICAgICAgICAgICAgdmFsICs9IFwiLCAje2l2YXJ9ID0gI3t2dmFyVGV4dH0ubGVuZ3RoIC0gI3tyZXN0fSkgOiAoI3tpdmFyfSA9ICN7aX0sIFtdKVwiXG4gICAgICAgICAgICAgICAgZWxzZVxuICAgICAgICAgICAgICAgICAgICB2YWwgKz0gXCIpIDogW11cIlxuICAgICAgICAgICAgICAgIHZhbCAgICAgPSBuZXcgTGl0ZXJhbCB2YWxcbiAgICAgICAgICAgICAgICBleHBhbmRlZElkeCA9IFwiI3tpdmFyfSsrXCJcbiAgICAgICAgICAgICAgICBcbiAgICAgICAgICAgIGVsc2UgaWYgbm90IGV4cGFuZGVkSWR4IGFuZCBvYmogaW5zdGFuY2VvZiBFeHBhbnNpb25cbiAgICAgICAgICAgICAgICBcbiAgICAgICAgICAgICAgICBpZiByZXN0ID0gb2xlbiAtIGkgLSAxXG4gICAgICAgICAgICAgICAgICAgIGlmIHJlc3QgaXMgMVxuICAgICAgICAgICAgICAgICAgICAgICAgZXhwYW5kZWRJZHggPSBcIiN7dnZhclRleHR9Lmxlbmd0aCAtIDFcIlxuICAgICAgICAgICAgICAgICAgICBlbHNlXG4gICAgICAgICAgICAgICAgICAgICAgICBpdmFyID0gby5zY29wZS5mcmVlVmFyaWFibGUgJ2knLCBzaW5nbGU6IHRydWVcbiAgICAgICAgICAgICAgICAgICAgICAgIHZhbCA9IG5ldyBMaXRlcmFsIFwiI3tpdmFyfSA9ICN7dnZhclRleHR9Lmxlbmd0aCAtICN7cmVzdH1cIlxuICAgICAgICAgICAgICAgICAgICAgICAgZXhwYW5kZWRJZHggPSBcIiN7aXZhcn0rK1wiXG4gICAgICAgICAgICAgICAgICAgICAgICBhc3NpZ25zLnB1c2ggdmFsLmNvbXBpbGVUb0ZyYWdtZW50cyBvLCBMRVZFTF9MSVNUXG4gICAgICAgICAgICAgICAgY29udGludWVcbiAgICAgICAgICAgICAgICBcbiAgICAgICAgICAgIGVsc2VcbiAgICAgICAgICAgICAgICBpZiBvYmogaW5zdGFuY2VvZiBTcGxhdCBvciBvYmogaW5zdGFuY2VvZiBFeHBhbnNpb25cbiAgICAgICAgICAgICAgICAgICAgb2JqLmVycm9yIFwibXVsdGlwbGUgc3BsYXRzL2V4cGFuc2lvbnMgYXJlIGRpc2FsbG93ZWQgaW4gYW4gYXNzaWdubWVudFwiXG4gICAgICAgICAgICAgICAgZGVmYXVsdFZhbHVlID0gbnVsbFxuICAgICAgICAgICAgICAgIGlmIG9iaiBpbnN0YW5jZW9mIEFzc2lnbiBhbmQgb2JqLmNvbnRleHQgaXMgJ29iamVjdCcgIyBBIHJlZ3VsYXIgb2JqZWN0IHBhdHRlcm4tbWF0Y2guXG4gICAgICAgICAgICAgICAgICAgIHt2YXJpYWJsZToge2Jhc2U6IGlkeH0sIHZhbHVlOiBvYmp9ID0gb2JqXG4gICAgICAgICAgICAgICAgICAgIGlmIG9iaiBpbnN0YW5jZW9mIEFzc2lnblxuICAgICAgICAgICAgICAgICAgICAgICAgZGVmYXVsdFZhbHVlID0gb2JqLnZhbHVlXG4gICAgICAgICAgICAgICAgICAgICAgICBvYmogPSBvYmoudmFyaWFibGVcbiAgICAgICAgICAgICAgICBlbHNlXG4gICAgICAgICAgICAgICAgICAgIGlmIG9iaiBpbnN0YW5jZW9mIEFzc2lnblxuICAgICAgICAgICAgICAgICAgICAgICAgZGVmYXVsdFZhbHVlID0gb2JqLnZhbHVlXG4gICAgICAgICAgICAgICAgICAgICAgICBvYmogPSBvYmoudmFyaWFibGVcbiAgICAgICAgICAgICAgICAgICAgaWR4ID0gaWYgaXNPYmplY3QgIyBBIHNob3J0aGFuZCBge2EsIGIsIEBjfSA9IHZhbGAgcGF0dGVybi1tYXRjaC5cbiAgICAgICAgICAgICAgICAgICAgICAgIGlmIG9iai50aGlzIFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgIG9iai5wcm9wZXJ0aWVzWzBdLm5hbWVcbiAgICAgICAgICAgICAgICAgICAgICAgIGVsc2VcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICBuZXcgUHJvcGVydHlOYW1lIG9iai51bndyYXAoKS52YWx1ZVxuICAgICAgICAgICAgICAgICAgICBlbHNlICMgQSByZWd1bGFyIGFycmF5IHBhdHRlcm4tbWF0Y2guXG4gICAgICAgICAgICAgICAgICAgICAgICBuZXcgTGl0ZXJhbCBleHBhbmRlZElkeCBvciBpZHhcbiAgICAgICAgICAgICAgICAgICAgICAgIFxuICAgICAgICAgICAgICAgIG5hbWUgPSBvYmoudW53cmFwKCkudmFsdWVcbiAgICAgICAgICAgICAgICBhY2MgPSBpZHgudW53cmFwKCkgaW5zdGFuY2VvZiBQcm9wZXJ0eU5hbWVcbiAgICAgICAgICAgICAgICB2YWwgPSBuZXcgVmFsdWUgbmV3IExpdGVyYWwodnZhclRleHQpLCBbbmV3IChpZiBhY2MgdGhlbiBBY2Nlc3MgZWxzZSBJbmRleCkgaWR4XVxuICAgICAgICAgICAgICAgIHZhbCA9IG5ldyBPcCAnPycsIHZhbCwgZGVmYXVsdFZhbHVlIGlmIGRlZmF1bHRWYWx1ZVxuICAgICAgICAgICAgICAgIFxuICAgICAgICAgICAgaWYgbmFtZT9cbiAgICAgICAgICAgICAgICBtZXNzYWdlID0gaXNVbmFzc2lnbmFibGUgbmFtZVxuICAgICAgICAgICAgICAgIG9iai5lcnJvciBtZXNzYWdlIGlmIG1lc3NhZ2VcbiAgICAgICAgICAgIFxuICAgICAgICAgICAgYXNzaWducy5wdXNoIG5ldyBBc3NpZ24ob2JqLCB2YWwsIG51bGwsIHBhcmFtOiBAcGFyYW0sIHN1YnBhdHRlcm46IHllcykuY29tcGlsZVRvRnJhZ21lbnRzIG8sIExFVkVMX0xJU1RcbiAgICAgICAgICAgIFxuICAgICAgICBhc3NpZ25zLnB1c2ggdnZhciB1bmxlc3MgdG9wIG9yIEBzdWJwYXR0ZXJuXG4gICAgICAgIGZyYWdtZW50cyA9IEBqb2luRnJhZ21lbnRBcnJheXMgYXNzaWducywgJywgJ1xuICAgICAgICBpZiBvLmxldmVsIDwgTEVWRUxfTElTVCB0aGVuIGZyYWdtZW50cyBlbHNlIEB3cmFwSW5CcmFjZXMgZnJhZ21lbnRzXG5cbiAgICAjIFdoZW4gY29tcGlsaW5nIGEgY29uZGl0aW9uYWwgYXNzaWdubWVudCwgdGFrZSBjYXJlIHRvIGVuc3VyZSB0aGF0IHRoZVxuICAgICMgb3BlcmFuZHMgYXJlIG9ubHkgZXZhbHVhdGVkIG9uY2UsIGV2ZW4gdGhvdWdoIHdlIGhhdmUgdG8gcmVmZXJlbmNlIHRoZW0gbW9yZSB0aGFuIG9uY2UuXG4gICAgXG4gICAgY29tcGlsZUNvbmRpdGlvbmFsOiAobykgLT5cbiAgICAgICAgXG4gICAgICAgIFtsZWZ0LCByaWdodF0gPSBAdmFyaWFibGUuY2FjaGVSZWZlcmVuY2Ugb1xuICAgICAgICAjIERpc2FsbG93IGNvbmRpdGlvbmFsIGFzc2lnbm1lbnQgb2YgdW5kZWZpbmVkIHZhcmlhYmxlcy5cbiAgICAgICAgaWYgbm90IGxlZnQucHJvcGVydGllcy5sZW5ndGggYW5kIGxlZnQuYmFzZSBpbnN0YW5jZW9mIExpdGVyYWwgYW5kXG4gICAgICAgICAgICAgICAgICAgICBsZWZ0LmJhc2Ugbm90IGluc3RhbmNlb2YgVGhpc0xpdGVyYWwgYW5kIG5vdCBvLnNjb3BlLmNoZWNrIGxlZnQuYmFzZS52YWx1ZVxuICAgICAgICAgICAgQHZhcmlhYmxlLmVycm9yIFwidGhlIHZhcmlhYmxlIFxcXCIje2xlZnQuYmFzZS52YWx1ZX1cXFwiIGNhbid0IGJlIGFzc2lnbmVkIHdpdGggI3tAY29udGV4dH0gYmVjYXVzZSBpdCBoYXMgbm90IGJlZW4gZGVjbGFyZWQgYmVmb3JlXCJcbiAgICAgICAgaWYgXCI/XCIgaW4gQGNvbnRleHRcbiAgICAgICAgICAgIG8uaXNFeGlzdGVudGlhbEVxdWFscyA9IHRydWVcbiAgICAgICAgICAgIG5ldyBJZihuZXcgRXhpc3RlbmNlKGxlZnQpLCByaWdodCwgdHlwZTogJ2lmJykuYWRkRWxzZShuZXcgQXNzaWduKHJpZ2h0LCBAdmFsdWUsICc9JykpLmNvbXBpbGVUb0ZyYWdtZW50cyBvXG4gICAgICAgIGVsc2VcbiAgICAgICAgICAgIGZyYWdtZW50cyA9IG5ldyBPcChAY29udGV4dFsuLi4tMV0sIGxlZnQsIG5ldyBBc3NpZ24ocmlnaHQsIEB2YWx1ZSwgJz0nKSkuY29tcGlsZVRvRnJhZ21lbnRzIG9cbiAgICAgICAgICAgIGlmIG8ubGV2ZWwgPD0gTEVWRUxfTElTVCB0aGVuIGZyYWdtZW50cyBlbHNlIEB3cmFwSW5CcmFjZXMgZnJhZ21lbnRzXG5cbiAgICAjIENvbnZlcnQgc3BlY2lhbCBtYXRoIGFzc2lnbm1lbnQgb3BlcmF0b3JzIGxpa2UgYGEgKio9IGJgIHRvIHRoZSBlcXVpdmFsZW50XG4gICAgIyBleHRlbmRlZCBmb3JtIGBhID0gYSAqKiBiYCBhbmQgdGhlbiBjb21waWxlcyB0aGF0LlxuICAgIFxuICAgIGNvbXBpbGVTcGVjaWFsTWF0aDogKG8pIC0+XG4gICAgICAgIFxuICAgICAgICBbbGVmdCwgcmlnaHRdID0gQHZhcmlhYmxlLmNhY2hlUmVmZXJlbmNlIG9cbiAgICAgICAgbmV3IEFzc2lnbihsZWZ0LCBuZXcgT3AoQGNvbnRleHRbLi4uLTFdLCByaWdodCwgQHZhbHVlKSkuY29tcGlsZVRvRnJhZ21lbnRzIG9cblxuICAgICMgQ29tcGlsZSB0aGUgYXNzaWdubWVudCBmcm9tIGFuIGFycmF5IHNwbGljZSBsaXRlcmFsLCB1c2luZyBKYXZhU2NyaXB0J3MgYEFycmF5I3NwbGljZWAgbWV0aG9kLlxuICAgIFxuICAgIGNvbXBpbGVTcGxpY2U6IChvKSAtPlxuICAgICAgICBcbiAgICAgICAge3JhbmdlOiB7ZnJvbSwgdG8sIGV4Y2x1c2l2ZX19ID0gQHZhcmlhYmxlLnByb3BlcnRpZXMucG9wKClcbiAgICAgICAgbmFtZSA9IEB2YXJpYWJsZS5jb21waWxlIG9cbiAgICAgICAgaWYgZnJvbVxuICAgICAgICAgICAgW2Zyb21EZWNsLCBmcm9tUmVmXSA9IEBjYWNoZVRvQ29kZUZyYWdtZW50cyBmcm9tLmNhY2hlIG8sIExFVkVMX09QXG4gICAgICAgIGVsc2VcbiAgICAgICAgICAgIGZyb21EZWNsID0gZnJvbVJlZiA9ICcwJ1xuICAgICAgICBpZiB0b1xuICAgICAgICAgICAgaWYgZnJvbT8uaXNOdW1iZXIoKSBhbmQgdG8uaXNOdW1iZXIoKVxuICAgICAgICAgICAgICAgIHRvID0gdG8uY29tcGlsZShvKSAtIGZyb21SZWZcbiAgICAgICAgICAgICAgICB0byArPSAxIHVubGVzcyBleGNsdXNpdmVcbiAgICAgICAgICAgIGVsc2VcbiAgICAgICAgICAgICAgICB0byA9IHRvLmNvbXBpbGUobywgTEVWRUxfQUNDRVNTKSArICcgLSAnICsgZnJvbVJlZlxuICAgICAgICAgICAgICAgIHRvICs9ICcgKyAxJyB1bmxlc3MgZXhjbHVzaXZlXG4gICAgICAgIGVsc2VcbiAgICAgICAgICAgIHRvID0gXCI5ZTlcIlxuICAgICAgICBbdmFsRGVmLCB2YWxSZWZdID0gQHZhbHVlLmNhY2hlIG8sIExFVkVMX0xJU1RcbiAgICAgICAgYW5zd2VyID0gW10uY29uY2F0IEBtYWtlQ29kZShcIltdLnNwbGljZS5hcHBseSgje25hbWV9LCBbI3tmcm9tRGVjbH0sICN7dG99XS5jb25jYXQoXCIpLCB2YWxEZWYsIEBtYWtlQ29kZShcIikpLCBcIiksIHZhbFJlZlxuICAgICAgICBpZiBvLmxldmVsID4gTEVWRUxfVE9QIHRoZW4gQHdyYXBJbkJyYWNlcyBhbnN3ZXIgZWxzZSBhbnN3ZXJcblxuIyAgMDAwMDAwMCAgIDAwMDAwMDAgICAwMDAwMDAwICAgIDAwMDAwMDAwICBcbiMgMDAwICAgICAgIDAwMCAgIDAwMCAgMDAwICAgMDAwICAwMDAgICAgICAgXG4jIDAwMCAgICAgICAwMDAgICAwMDAgIDAwMCAgIDAwMCAgMDAwMDAwMCAgIFxuIyAwMDAgICAgICAgMDAwICAgMDAwICAwMDAgICAwMDAgIDAwMCAgICAgICBcbiMgIDAwMDAwMDAgICAwMDAwMDAwICAgMDAwMDAwMCAgICAwMDAwMDAwMCAgXG5cbiMgQSBmdW5jdGlvbiBkZWZpbml0aW9uLiBUaGlzIGlzIHRoZSBvbmx5IG5vZGUgdGhhdCBjcmVhdGVzIGEgbmV3IFNjb3BlLlxuIyBXaGVuIGZvciB0aGUgcHVycG9zZXMgb2Ygd2Fsa2luZyB0aGUgY29udGVudHMgb2YgYSBmdW5jdGlvbiBib2R5LCB0aGUgQ29kZSBoYXMgbm8gKmNoaWxkcmVuKiAtLSB0aGV5J3JlIHdpdGhpbiB0aGUgaW5uZXIgc2NvcGUuXG5cbmV4cG9ydHMuQ29kZSA9IGNsYXNzIENvZGUgZXh0ZW5kcyBCYXNlXG4gICAgXG4gICAgQDogKHBhcmFtcywgYm9keSwgdGFnKSAtPlxuICAgICAgICBAcGFyYW1zID0gcGFyYW1zIG9yIFtdXG4gICAgICAgIEBib2R5ICAgPSBib2R5IG9yIG5ldyBCbG9ja1xuICAgICAgICBAYm91bmQgID0gdGFnIGlzICdib3VuZGZ1bmMnXG4gICAgICAgIEBpc0dlbmVyYXRvciA9ICEhQGJvZHkuY29udGFpbnMgKG5vZGUpIC0+XG4gICAgICAgICAgICAobm9kZSBpbnN0YW5jZW9mIE9wIGFuZCBub2RlLmlzWWllbGQoKSkgb3Igbm9kZSBpbnN0YW5jZW9mIFlpZWxkUmV0dXJuXG5cbiAgICBjaGlsZHJlbjogWydwYXJhbXMnLCAnYm9keSddXG5cbiAgICBpc1N0YXRlbWVudDogLT4gISFAY3RvclxuXG4gICAganVtcHM6IE5PXG5cbiAgICBtYWtlU2NvcGU6IChwYXJlbnRTY29wZSkgLT4gbmV3IFNjb3BlIHBhcmVudFNjb3BlLCBAYm9keSwgdGhpc1xuXG4gICAgIyBDb21waWxhdGlvbiBjcmVhdGVzIGEgbmV3IHNjb3BlIHVubGVzcyBleHBsaWNpdGx5IGFza2VkIHRvIHNoYXJlIHdpdGggdGhlIG91dGVyIHNjb3BlLiBcbiAgICAjIEhhbmRsZXMgc3BsYXQgcGFyYW1ldGVycyBpbiB0aGUgcGFyYW1ldGVyIGxpc3QgYnkgcGVla2luZyBhdCB0aGUgSmF2YVNjcmlwdCBgYXJndW1lbnRzYCBvYmplY3QuIFxuICAgICMgSWYgdGhlIGZ1bmN0aW9uIGlzIGJvdW5kIHdpdGggdGhlIGA9PmAgYXJyb3csIGdlbmVyYXRlcyBhIHdyYXBwZXIgdGhhdCBzYXZlcyB0aGUgY3VycmVudCB2YWx1ZSBvZiBgdGhpc2AgdGhyb3VnaCBhIGNsb3N1cmUuXG4gICAgXG4gICAgY29tcGlsZU5vZGU6IChvKSAtPlxuXG4gICAgICAgIGlmIEBib3VuZCBhbmQgby5zY29wZS5tZXRob2Q/LmJvdW5kXG4gICAgICAgICAgICBAY29udGV4dCA9IG8uc2NvcGUubWV0aG9kLmNvbnRleHRcblxuICAgICAgICBpZiBAYm91bmQgYW5kIG5vdCBAY29udGV4dCAjIEhhbmRsZSBib3VuZCBmdW5jdGlvbnMgZWFybHkuXG4gICAgICAgICAgICBAY29udGV4dCA9ICdfdGhpcydcbiAgICAgICAgICAgIHdyYXBwZXIgPSBuZXcgQ29kZSBbbmV3IFBhcmFtIG5ldyBJZGVudGlmaWVyTGl0ZXJhbCBAY29udGV4dF0sIG5ldyBCbG9jayBbdGhpc11cbiAgICAgICAgICAgIGJvdW5kZnVuYyA9IG5ldyBDYWxsKHdyYXBwZXIsIFtuZXcgVGhpc0xpdGVyYWxdKVxuICAgICAgICAgICAgYm91bmRmdW5jLnVwZGF0ZUxvY2F0aW9uRGF0YUlmTWlzc2luZyBAbG9jYXRpb25EYXRhXG4gICAgICAgICAgICByZXR1cm4gYm91bmRmdW5jLmNvbXBpbGVOb2RlKG8pXG5cbiAgICAgICAgby5zY29wZSAgICAgICAgID0gZGVsKG8sICdjbGFzc1Njb3BlJykgb3IgQG1ha2VTY29wZSBvLnNjb3BlXG4gICAgICAgIG8uc2NvcGUuc2hhcmVkICA9IGRlbChvLCAnc2hhcmVkU2NvcGUnKVxuICAgICAgICBvLmluZGVudCAgICAgICArPSBUQUJcbiAgICAgICAgZGVsZXRlIG8uYmFyZVxuICAgICAgICBkZWxldGUgby5pc0V4aXN0ZW50aWFsRXF1YWxzXG4gICAgICAgIHBhcmFtcyA9IFtdXG4gICAgICAgIGV4cHJzICA9IFtdXG4gICAgICAgIGZvciBwYXJhbSBpbiBAcGFyYW1zIHdoZW4gcGFyYW0gbm90IGluc3RhbmNlb2YgRXhwYW5zaW9uXG4gICAgICAgICAgICBvLnNjb3BlLnBhcmFtZXRlciBwYXJhbS5hc1JlZmVyZW5jZSBvXG4gICAgICAgIGZvciBwYXJhbSBpbiBAcGFyYW1zIHdoZW4gcGFyYW0uc3BsYXQgb3IgcGFyYW0gaW5zdGFuY2VvZiBFeHBhbnNpb25cbiAgICAgICAgICAgIGZvciBwIGluIEBwYXJhbXMgd2hlbiBwIG5vdCBpbnN0YW5jZW9mIEV4cGFuc2lvbiBhbmQgcC5uYW1lLnZhbHVlXG4gICAgICAgICAgICAgICAgby5zY29wZS5hZGQgcC5uYW1lLnZhbHVlLCAndmFyJywgeWVzXG4gICAgICAgICAgICBzcGxhdHMgPSBuZXcgQXNzaWduIG5ldyBWYWx1ZShuZXcgQXJyKHAuYXNSZWZlcmVuY2UgbyBmb3IgcCBpbiBAcGFyYW1zKSksXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgbmV3IFZhbHVlIG5ldyBJZGVudGlmaWVyTGl0ZXJhbCAnYXJndW1lbnRzJ1xuICAgICAgICAgICAgYnJlYWtcbiAgICAgICAgZm9yIHBhcmFtIGluIEBwYXJhbXNcbiAgICAgICAgICAgIGlmIHBhcmFtLmlzQ29tcGxleCgpXG4gICAgICAgICAgICAgICAgdmFsID0gcmVmID0gcGFyYW0uYXNSZWZlcmVuY2Ugb1xuICAgICAgICAgICAgICAgIHZhbCA9IG5ldyBPcCAnPycsIHJlZiwgcGFyYW0udmFsdWUgaWYgcGFyYW0udmFsdWVcbiAgICAgICAgICAgICAgICBleHBycy5wdXNoIG5ldyBBc3NpZ24gbmV3IFZhbHVlKHBhcmFtLm5hbWUpLCB2YWwsICc9JywgcGFyYW06IHllc1xuICAgICAgICAgICAgZWxzZVxuICAgICAgICAgICAgICAgIHJlZiA9IHBhcmFtXG4gICAgICAgICAgICAgICAgaWYgcGFyYW0udmFsdWVcbiAgICAgICAgICAgICAgICAgICAgbGl0ID0gbmV3IExpdGVyYWwgcmVmLm5hbWUudmFsdWUgKyAnID09IG51bGwnXG4gICAgICAgICAgICAgICAgICAgIHZhbCA9IG5ldyBBc3NpZ24gbmV3IFZhbHVlKHBhcmFtLm5hbWUpLCBwYXJhbS52YWx1ZSwgJz0nXG4gICAgICAgICAgICAgICAgICAgIGV4cHJzLnB1c2ggbmV3IElmIGxpdCwgdmFsXG4gICAgICAgICAgICBwYXJhbXMucHVzaCByZWYgdW5sZXNzIHNwbGF0c1xuICAgICAgICB3YXNFbXB0eSA9IEBib2R5LmlzRW1wdHkoKVxuICAgICAgICBleHBycy51bnNoaWZ0IHNwbGF0cyBpZiBzcGxhdHNcbiAgICAgICAgQGJvZHkuZXhwcmVzc2lvbnMudW5zaGlmdCBleHBycy4uLiBpZiBleHBycy5sZW5ndGhcbiAgICAgICAgZm9yIHAsIGkgaW4gcGFyYW1zXG4gICAgICAgICAgICBwYXJhbXNbaV0gPSBwLmNvbXBpbGVUb0ZyYWdtZW50cyBvXG4gICAgICAgICAgICBvLnNjb3BlLnBhcmFtZXRlciBmcmFnbWVudHNUb1RleHQgcGFyYW1zW2ldXG4gICAgICAgIHVuaXFzID0gW11cbiAgICAgICAgXG4gICAgICAgIEBlYWNoUGFyYW1OYW1lIChuYW1lLCBub2RlKSAtPlxuICAgICAgICAgICAgbm9kZS5lcnJvciBcIm11bHRpcGxlIHBhcmFtZXRlcnMgbmFtZWQgI3tuYW1lfVwiIGlmIG5hbWUgaW4gdW5pcXNcbiAgICAgICAgICAgIHVuaXFzLnB1c2ggbmFtZVxuICAgICAgICBcbiAgICAgICAgQGJvZHkubWFrZVJldHVybigpIHVubGVzcyB3YXNFbXB0eSBvciBAbm9SZXR1cm5cbiAgICAgICAgY29kZSA9ICdmdW5jdGlvbidcbiAgICAgICAgY29kZSArPSAnKicgaWYgQGlzR2VuZXJhdG9yXG4gICAgICAgIGNvZGUgKz0gJyAnICsgQG5hbWUgaWYgQGN0b3JcbiAgICAgICAgY29kZSArPSAnKCdcbiAgICAgICAgXG4gICAgICAgIGFuc3dlciA9IFtAbWFrZUNvZGUoY29kZSldXG4gICAgICAgIFxuICAgICAgICBmb3IgcCwgaSBpbiBwYXJhbXNcbiAgICAgICAgICAgIGlmIGkgdGhlbiBhbnN3ZXIucHVzaCBAbWFrZUNvZGUgXCIsIFwiXG4gICAgICAgICAgICBhbnN3ZXIucHVzaCBwLi4uXG4gICAgICAgIGFuc3dlci5wdXNoIEBtYWtlQ29kZSAnKSB7J1xuICAgICAgICBhbnN3ZXIgPSBhbnN3ZXIuY29uY2F0KEBtYWtlQ29kZShcIlxcblwiKSwgQGJvZHkuY29tcGlsZVdpdGhEZWNsYXJhdGlvbnMobyksIEBtYWtlQ29kZShcIlxcbiN7QHRhYn1cIikpIHVubGVzcyBAYm9keS5pc0VtcHR5KClcbiAgICAgICAgYW5zd2VyLnB1c2ggQG1ha2VDb2RlICd9J1xuXG4gICAgICAgIHJldHVybiBbQG1ha2VDb2RlKEB0YWIpLCBhbnN3ZXIuLi5dIGlmIEBjdG9yXG4gICAgICAgIGlmIEBmcm9udCBvciAoby5sZXZlbCA+PSBMRVZFTF9BQ0NFU1MpIHRoZW4gQHdyYXBJbkJyYWNlcyBhbnN3ZXIgZWxzZSBhbnN3ZXJcblxuICAgIGVhY2hQYXJhbU5hbWU6IChpdGVyYXRvcikgLT5cbiAgICAgICAgcGFyYW0uZWFjaE5hbWUgaXRlcmF0b3IgZm9yIHBhcmFtIGluIEBwYXJhbXNcblxuICAgICMgU2hvcnQtY2lyY3VpdCBgdHJhdmVyc2VDaGlsZHJlbmAgbWV0aG9kIHRvIHByZXZlbnQgaXQgZnJvbSBjcm9zc2luZyBzY29wZSBib3VuZGFyaWVzIHVubGVzcyBgY3Jvc3NTY29wZWAgaXMgYHRydWVgLlxuICAgIFxuICAgIHRyYXZlcnNlQ2hpbGRyZW46IChjcm9zc1Njb3BlLCBmdW5jKSAtPlxuICAgICAgICBcbiAgICAgICAgc3VwZXIoY3Jvc3NTY29wZSwgZnVuYykgaWYgY3Jvc3NTY29wZVxuXG4jIDAwMDAwMDAwICAgIDAwMDAwMDAgICAwMDAwMDAwMCAgICAwMDAwMDAwICAgMDAgICAgIDAwICBcbiMgMDAwICAgMDAwICAwMDAgICAwMDAgIDAwMCAgIDAwMCAgMDAwICAgMDAwICAwMDAgICAwMDAgIFxuIyAwMDAwMDAwMCAgIDAwMDAwMDAwMCAgMDAwMDAwMCAgICAwMDAwMDAwMDAgIDAwMDAwMDAwMCAgXG4jIDAwMCAgICAgICAgMDAwICAgMDAwICAwMDAgICAwMDAgIDAwMCAgIDAwMCAgMDAwIDAgMDAwICBcbiMgMDAwICAgICAgICAwMDAgICAwMDAgIDAwMCAgIDAwMCAgMDAwICAgMDAwICAwMDAgICAwMDAgIFxuXG4jIEEgcGFyYW1ldGVyIGluIGEgZnVuY3Rpb24gZGVmaW5pdGlvbi4gQmV5b25kIGEgdHlwaWNhbCBKYXZhU2NyaXB0IHBhcmFtZXRlcixcbiMgdGhlc2UgcGFyYW1ldGVycyBjYW4gYWxzbyBhdHRhY2ggdGhlbXNlbHZlcyB0byB0aGUgY29udGV4dCBvZiB0aGUgZnVuY3Rpb24sXG4jIGFzIHdlbGwgYXMgYmUgYSBzcGxhdCwgZ2F0aGVyaW5nIHVwIGEgZ3JvdXAgb2YgcGFyYW1ldGVycyBpbnRvIGFuIGFycmF5LlxuXG5leHBvcnRzLlBhcmFtID0gY2xhc3MgUGFyYW0gZXh0ZW5kcyBCYXNlXG4gICAgXG4gICAgQDogKEBuYW1lLCBAdmFsdWUsIEBzcGxhdCkgLT5cbiAgICAgICAgbWVzc2FnZSA9IGlzVW5hc3NpZ25hYmxlIEBuYW1lLnVud3JhcEFsbCgpLnZhbHVlXG4gICAgICAgIEBuYW1lLmVycm9yIG1lc3NhZ2UgaWYgbWVzc2FnZVxuICAgICAgICAjIHRoZSBmb2xsb3dpbmcgZXJyb3IgZG9lbnMndCB0aHJvdyBhbnltb3JlIGluIGtvZmZlZSAoY29uZmlnIHBhcmFtZXRlcnMpXG4gICAgICAgICMgaWYgQG5hbWUgaW5zdGFuY2VvZiBPYmogYW5kIEBuYW1lLmdlbmVyYXRlZFxuICAgICAgICAgICAgIyB0b2tlbiA9IEBuYW1lLm9iamVjdHNbMF0ub3BlcmF0b3JUb2tlblxuICAgICAgICAgICAgIyB0b2tlbi5lcnJvciBcInVuZXhwZWN0ZWQgI3t0b2tlbi52YWx1ZX1cIlxuXG4gICAgY2hpbGRyZW46IFsnbmFtZScsICd2YWx1ZSddXG5cbiAgICBjb21waWxlVG9GcmFnbWVudHM6IChvKSAtPlxuICAgICAgICBcbiAgICAgICAgQG5hbWUuY29tcGlsZVRvRnJhZ21lbnRzIG8sIExFVkVMX0xJU1RcblxuICAgIGFzUmVmZXJlbmNlOiAobykgLT5cbiAgICAgICAgXG4gICAgICAgIHJldHVybiBAcmVmZXJlbmNlIGlmIEByZWZlcmVuY2VcbiAgICAgICAgbm9kZSA9IEBuYW1lXG4gICAgICAgIGlmIG5vZGUudGhpc1xuICAgICAgICAgICAgbmFtZSA9IG5vZGUucHJvcGVydGllc1swXS5uYW1lLnZhbHVlXG4gICAgICAgICAgICBuYW1lID0gXCJfI3tuYW1lfVwiIGlmIG5hbWUgaW4gSlNfRk9SQklEREVOXG4gICAgICAgICAgICBub2RlID0gbmV3IElkZW50aWZpZXJMaXRlcmFsIG8uc2NvcGUuZnJlZVZhcmlhYmxlIG5hbWVcbiAgICAgICAgZWxzZSBpZiBub2RlLmlzQ29tcGxleCgpXG4gICAgICAgICAgICBub2RlID0gbmV3IElkZW50aWZpZXJMaXRlcmFsIG8uc2NvcGUuZnJlZVZhcmlhYmxlICdhcmcnXG4gICAgICAgIG5vZGUgPSBuZXcgVmFsdWUgbm9kZVxuICAgICAgICBub2RlID0gbmV3IFNwbGF0IG5vZGUgaWYgQHNwbGF0XG4gICAgICAgIG5vZGUudXBkYXRlTG9jYXRpb25EYXRhSWZNaXNzaW5nIEBsb2NhdGlvbkRhdGFcbiAgICAgICAgQHJlZmVyZW5jZSA9IG5vZGVcblxuICAgIGlzQ29tcGxleDogLT5cbiAgICAgICAgXG4gICAgICAgIEBuYW1lLmlzQ29tcGxleCgpXG5cbiAgICAjIEl0ZXJhdGVzIHRoZSBuYW1lIG9yIG5hbWVzIG9mIGEgYFBhcmFtYC5cbiAgICAjIEluIGEgc2Vuc2UsIGEgZGVzdHJ1Y3R1cmVkIHBhcmFtZXRlciByZXByZXNlbnRzIG11bHRpcGxlIEpTIHBhcmFtZXRlcnMuIFRoaXNcbiAgICAjIG1ldGhvZCBhbGxvd3MgdG8gaXRlcmF0ZSB0aGVtIGFsbC5cbiAgICAjIFRoZSBgaXRlcmF0b3JgIGZ1bmN0aW9uIHdpbGwgYmUgY2FsbGVkIGFzIGBpdGVyYXRvcihuYW1lLCBub2RlKWAgd2hlcmVcbiAgICAjIGBuYW1lYCBpcyB0aGUgbmFtZSBvZiB0aGUgcGFyYW1ldGVyIGFuZCBgbm9kZWAgaXMgdGhlIEFTVCBub2RlIGNvcnJlc3BvbmRpbmcgdG8gdGhhdCBuYW1lLlxuICAgIFxuICAgIGVhY2hOYW1lOiAoaXRlcmF0b3IsIG5hbWUgPSBAbmFtZSktPlxuICAgICAgICBcbiAgICAgICAgYXRQYXJhbSA9IChvYmopIC0+IFxuICAgICAgICAgICAgaXRlcmF0b3IgXCJAI3tvYmoucHJvcGVydGllc1swXS5uYW1lLnZhbHVlfVwiLCBvYmpcbiAgICAgICAgXG4gICAgICAgIGlmIG5hbWUgaW5zdGFuY2VvZiBJZGVudGlmaWVyTGl0ZXJhbFxuICAgICAgICAgICAgcmV0dXJuIGlmIG5hbWUgaW5zdGFuY2VvZiBOdWxsTGl0ZXJhbFxuICAgICAgICAgICAgcmV0dXJuIGl0ZXJhdG9yIG5hbWUudmFsdWUsIG5hbWUgIyBzaW1wbGUgbGl0ZXJhbHMgYGZvb2AsIGBfYCwgZXRjLlxuICAgICAgICBcbiAgICAgICAgcmV0dXJuIGF0UGFyYW0gbmFtZSBpZiBuYW1lIGluc3RhbmNlb2YgVmFsdWUgIyBhdC1wYXJhbXMgYEBmb29gXG4gICAgICAgIFxuICAgICAgICBmb3Igb2JqIGluIG5hbWUub2JqZWN0cyA/IFtdXG4gICAgICAgICAgICBcbiAgICAgICAgICAgIGlmIG9iaiBpbnN0YW5jZW9mIEFzc2lnbiBhbmQgbm90IG9iai5jb250ZXh0PyAjIGRlc3RydWN0dXJlZCBwYXJhbWV0ZXIgd2l0aCBkZWZhdWx0IHZhbHVlXG4gICAgICAgICAgICAgICAgb2JqID0gb2JqLnZhcmlhYmxlXG4gICAgICAgICAgICBcbiAgICAgICAgICAgIGlmIG9iaiBpbnN0YW5jZW9mIEFzc2lnbiAjIGFzc2lnbm1lbnRzIHdpdGhpbiBkZXN0cnVjdHVyZWQgcGFyYW1ldGVycyBge2ZvbzpiYXJ9YFxuICAgICAgICAgICAgICAgIFxuICAgICAgICAgICAgICAgIGlmIG9iai52YWx1ZSBpbnN0YW5jZW9mIEFzc2lnbiAjIC4uLiBwb3NzaWJseSB3aXRoIGEgZGVmYXVsdCB2YWx1ZVxuICAgICAgICAgICAgICAgICAgICBvYmogPSBvYmoudmFsdWVcbiAgICAgICAgICAgICAgICBAZWFjaE5hbWUgaXRlcmF0b3IsIG9iai52YWx1ZS51bndyYXAoKVxuICAgICAgICAgICAgXG4gICAgICAgICAgICBlbHNlIGlmIG9iaiBpbnN0YW5jZW9mIFNwbGF0ICMgc3BsYXRzIHdpdGhpbiBkZXN0cnVjdHVyZWQgcGFyYW1ldGVycyBgW3hzLi4uXWBcbiAgICAgICAgICAgICAgICBub2RlID0gb2JqLm5hbWUudW53cmFwKClcbiAgICAgICAgICAgICAgICBpdGVyYXRvciBub2RlLnZhbHVlLCBub2RlXG4gICAgICAgICAgICAgICAgXG4gICAgICAgICAgICBlbHNlIGlmIG9iaiBpbnN0YW5jZW9mIFZhbHVlXG4gICAgICAgICAgICAgICAgXG4gICAgICAgICAgICAgICAgaWYgb2JqLmlzQXJyYXkoKSBvciBvYmouaXNPYmplY3QoKSAjIGRlc3RydWN0dXJlZCBwYXJhbWV0ZXJzIHdpdGhpbiBkZXN0cnVjdHVyZWQgcGFyYW1ldGVycyBgW3thfV1gXG4gICAgICAgICAgICAgICAgICAgIEBlYWNoTmFtZSBpdGVyYXRvciwgb2JqLmJhc2VcbiAgICAgICAgICAgICAgICBcbiAgICAgICAgICAgICAgICBlbHNlIGlmIG9iai50aGlzICMgYXQtcGFyYW1zIHdpdGhpbiBkZXN0cnVjdHVyZWQgcGFyYW1ldGVycyBge0Bmb299YFxuICAgICAgICAgICAgICAgICAgICBhdFBhcmFtIG9ialxuICAgICAgICAgICAgICAgIFxuICAgICAgICAgICAgICAgIGVsc2VcbiAgICAgICAgICAgICAgICAgICAgaXRlcmF0b3Igb2JqLmJhc2UudmFsdWUsIG9iai5iYXNlICMgc2ltcGxlIGRlc3RydWN0dXJlZCBwYXJhbWV0ZXJzIHtmb299XG4gICAgICAgICAgICBlbHNlIGlmIG9iaiBub3QgaW5zdGFuY2VvZiBFeHBhbnNpb25cbiAgICAgICAgICAgICAgICBvYmouZXJyb3IgXCJpbGxlZ2FsIHBhcmFtZXRlciAje29iai5jb21waWxlKCl9XCJcbiAgICAgICAgICAgICAgICBcbiAgICAgICAgcmV0dXJuXG5cbiMgIDAwMDAwMDAgIDAwMDAwMDAwICAgMDAwICAgICAgIDAwMDAwMDAgICAwMDAwMDAwMDAgIFxuIyAwMDAgICAgICAgMDAwICAgMDAwICAwMDAgICAgICAwMDAgICAwMDAgICAgIDAwMCAgICAgXG4jIDAwMDAwMDAgICAwMDAwMDAwMCAgIDAwMCAgICAgIDAwMDAwMDAwMCAgICAgMDAwICAgICBcbiMgICAgICAwMDAgIDAwMCAgICAgICAgMDAwICAgICAgMDAwICAgMDAwICAgICAwMDAgICAgIFxuIyAwMDAwMDAwICAgMDAwICAgICAgICAwMDAwMDAwICAwMDAgICAwMDAgICAgIDAwMCAgICAgXG5cbiMgQSBzcGxhdCwgZWl0aGVyIGFzIGEgcGFyYW1ldGVyIHRvIGEgZnVuY3Rpb24sIGFuIGFyZ3VtZW50IHRvIGEgY2FsbCwgb3IgYXMgcGFydCBvZiBhIGRlc3RydWN0dXJpbmcgYXNzaWdubWVudC5cblxuZXhwb3J0cy5TcGxhdCA9IGNsYXNzIFNwbGF0IGV4dGVuZHMgQmFzZVxuXG4gICAgY2hpbGRyZW46IFsnbmFtZSddXG5cbiAgICBpc0Fzc2lnbmFibGU6IFlFU1xuXG4gICAgQDogKG5hbWUpIC0+XG4gICAgICAgIEBuYW1lID0gaWYgbmFtZS5jb21waWxlIHRoZW4gbmFtZSBlbHNlIG5ldyBMaXRlcmFsIG5hbWVcblxuICAgIGFzc2lnbnM6IChuYW1lKSAtPlxuICAgICAgICBAbmFtZS5hc3NpZ25zIG5hbWVcblxuICAgIGNvbXBpbGVOb2RlOiAobykgLT5cbiAgICAgICAgQG5hbWUuY29tcGlsZVRvRnJhZ21lbnRzIG9cblxuICAgIHVud3JhcDogLT4gQG5hbWVcblxuICAgICMgVXRpbGl0eSBmdW5jdGlvbiB0aGF0IGNvbnZlcnRzIGFuIGFyYml0cmFyeSBudW1iZXIgb2YgZWxlbWVudHMsIG1peGVkIHdpdGggc3BsYXRzLCB0byBhIHByb3BlciBhcnJheS5cbiAgICBcbiAgICBAY29tcGlsZVNwbGF0dGVkQXJyYXk6IChvLCBsaXN0LCBhcHBseSkgLT5cbiAgICAgICAgXG4gICAgICAgIGluZGV4ID0gLTFcbiAgICAgICAgY29udGludWUgd2hpbGUgKG5vZGUgPSBsaXN0WysraW5kZXhdKSBhbmQgbm9kZSBub3QgaW5zdGFuY2VvZiBTcGxhdFxuICAgICAgICByZXR1cm4gW10gaWYgaW5kZXggPj0gbGlzdC5sZW5ndGhcbiAgICAgICAgaWYgbGlzdC5sZW5ndGggaXMgMVxuICAgICAgICAgICAgbm9kZSA9IGxpc3RbMF1cbiAgICAgICAgICAgIGZyYWdtZW50cyA9IG5vZGUuY29tcGlsZVRvRnJhZ21lbnRzIG8sIExFVkVMX0xJU1RcbiAgICAgICAgICAgIHJldHVybiBmcmFnbWVudHMgaWYgYXBwbHlcbiAgICAgICAgICAgIHJldHVybiBbXS5jb25jYXQgbm9kZS5tYWtlQ29kZShcIiN7IHV0aWxpdHkgJ3NsaWNlJywgbyB9LmNhbGwoXCIpLCBmcmFnbWVudHMsIG5vZGUubWFrZUNvZGUoXCIpXCIpXG4gICAgICAgIGFyZ3MgPSBsaXN0W2luZGV4Li5dXG4gICAgICAgIGZvciBub2RlLCBpIGluIGFyZ3NcbiAgICAgICAgICAgIGNvbXBpbGVkTm9kZSA9IG5vZGUuY29tcGlsZVRvRnJhZ21lbnRzIG8sIExFVkVMX0xJU1RcbiAgICAgICAgICAgIGFyZ3NbaV0gPSBpZiBub2RlIGluc3RhbmNlb2YgU3BsYXRcbiAgICAgICAgICAgIHRoZW4gW10uY29uY2F0IG5vZGUubWFrZUNvZGUoXCIjeyB1dGlsaXR5ICdzbGljZScsIG8gfS5jYWxsKFwiKSwgY29tcGlsZWROb2RlLCBub2RlLm1ha2VDb2RlKFwiKVwiKVxuICAgICAgICAgICAgZWxzZSBbXS5jb25jYXQgbm9kZS5tYWtlQ29kZShcIltcIiksIGNvbXBpbGVkTm9kZSwgbm9kZS5tYWtlQ29kZShcIl1cIilcbiAgICAgICAgaWYgaW5kZXggaXMgMFxuICAgICAgICAgICAgbm9kZSA9IGxpc3RbMF1cbiAgICAgICAgICAgIGNvbmNhdFBhcnQgPSAobm9kZS5qb2luRnJhZ21lbnRBcnJheXMgYXJnc1sxLi5dLCAnLCAnKVxuICAgICAgICAgICAgcmV0dXJuIGFyZ3NbMF0uY29uY2F0IG5vZGUubWFrZUNvZGUoXCIuY29uY2F0KFwiKSwgY29uY2F0UGFydCwgbm9kZS5tYWtlQ29kZShcIilcIilcbiAgICAgICAgYmFzZSA9IChub2RlLmNvbXBpbGVUb0ZyYWdtZW50cyBvLCBMRVZFTF9MSVNUIGZvciBub2RlIGluIGxpc3RbLi4uaW5kZXhdKVxuICAgICAgICBiYXNlID0gbGlzdFswXS5qb2luRnJhZ21lbnRBcnJheXMgYmFzZSwgJywgJ1xuICAgICAgICBjb25jYXRQYXJ0ID0gbGlzdFtpbmRleF0uam9pbkZyYWdtZW50QXJyYXlzIGFyZ3MsICcsICdcbiAgICAgICAgWy4uLiwgbGFzdF0gPSBsaXN0XG4gICAgICAgIFtdLmNvbmNhdCBsaXN0WzBdLm1ha2VDb2RlKFwiW1wiKSwgYmFzZSwgbGlzdFtpbmRleF0ubWFrZUNvZGUoXCJdLmNvbmNhdChcIiksIGNvbmNhdFBhcnQsIGxhc3QubWFrZUNvZGUoXCIpXCIpXG5cbiMgMDAwMDAwMDAgIDAwMCAgIDAwMCAgMDAwMDAwMDAgICAgMDAwMDAwMCAgIDAwMCAgIDAwMCAgIDAwMDAwMDAgIDAwMCAgIDAwMDAwMDAgICAwMDAgICAwMDAgIFxuIyAwMDAgICAgICAgIDAwMCAwMDAgICAwMDAgICAwMDAgIDAwMCAgIDAwMCAgMDAwMCAgMDAwICAwMDAgICAgICAgMDAwICAwMDAgICAwMDAgIDAwMDAgIDAwMCAgXG4jIDAwMDAwMDAgICAgIDAwMDAwICAgIDAwMDAwMDAwICAgMDAwMDAwMDAwICAwMDAgMCAwMDAgIDAwMDAwMDAgICAwMDAgIDAwMCAgIDAwMCAgMDAwIDAgMDAwICBcbiMgMDAwICAgICAgICAwMDAgMDAwICAgMDAwICAgICAgICAwMDAgICAwMDAgIDAwMCAgMDAwMCAgICAgICAwMDAgIDAwMCAgMDAwICAgMDAwICAwMDAgIDAwMDAgIFxuIyAwMDAwMDAwMCAgMDAwICAgMDAwICAwMDAgICAgICAgIDAwMCAgIDAwMCAgMDAwICAgMDAwICAwMDAwMDAwICAgMDAwICAgMDAwMDAwMCAgIDAwMCAgIDAwMCAgXG5cbiMgVXNlZCB0byBza2lwIHZhbHVlcyBpbnNpZGUgYW4gYXJyYXkgZGVzdHJ1Y3R1cmluZyAocGF0dGVybiBtYXRjaGluZykgb3IgcGFyYW1ldGVyIGxpc3QuXG5cbmV4cG9ydHMuRXhwYW5zaW9uID0gY2xhc3MgRXhwYW5zaW9uIGV4dGVuZHMgQmFzZVxuXG4gICAgaXNDb21wbGV4OiBOT1xuXG4gICAgY29tcGlsZU5vZGU6IChvKSAtPlxuICAgICAgICBAZXJyb3IgJ0V4cGFuc2lvbiBtdXN0IGJlIHVzZWQgaW5zaWRlIGEgZGVzdHJ1Y3R1cmluZyBhc3NpZ25tZW50IG9yIHBhcmFtZXRlciBsaXN0J1xuXG4gICAgYXNSZWZlcmVuY2U6IChvKSAtPlxuICAgICAgICB0aGlzXG5cbiAgICBlYWNoTmFtZTogKGl0ZXJhdG9yKSAtPlxuXG4jIDAwMCAgIDAwMCAgMDAwICAgMDAwICAwMDAgIDAwMCAgICAgIDAwMDAwMDAwICBcbiMgMDAwIDAgMDAwICAwMDAgICAwMDAgIDAwMCAgMDAwICAgICAgMDAwICAgICAgIFxuIyAwMDAwMDAwMDAgIDAwMDAwMDAwMCAgMDAwICAwMDAgICAgICAwMDAwMDAwICAgXG4jIDAwMCAgIDAwMCAgMDAwICAgMDAwICAwMDAgIDAwMCAgICAgIDAwMCAgICAgICBcbiMgMDAgICAgIDAwICAwMDAgICAwMDAgIDAwMCAgMDAwMDAwMCAgMDAwMDAwMDAgIFxuXG4jIEEgd2hpbGUgbG9vcCwgdGhlIG9ubHkgc29ydCBvZiBsb3ctbGV2ZWwgbG9vcCBleHBvc2VkIGJ5IEtvZmZlZS4gRnJvbVxuIyBpdCwgYWxsIG90aGVyIGxvb3BzIGNhbiBiZSBtYW51ZmFjdHVyZWQuIFVzZWZ1bCBpbiBjYXNlcyB3aGVyZSB5b3UgbmVlZCBtb3JlXG4jIGZsZXhpYmlsaXR5IG9yIG1vcmUgc3BlZWQgdGhhbiBhIGNvbXByZWhlbnNpb24gY2FuIHByb3ZpZGUuXG5cbmV4cG9ydHMuV2hpbGUgPSBjbGFzcyBXaGlsZSBleHRlbmRzIEJhc2VcbiAgICBcbiAgICBAOiAoY29uZGl0aW9uLCBvcHRpb25zKSAtPlxuICAgICAgICBAY29uZGl0aW9uID0gaWYgb3B0aW9ucz8uaW52ZXJ0IHRoZW4gY29uZGl0aW9uLmludmVydCgpIGVsc2UgY29uZGl0aW9uXG4gICAgICAgIEBndWFyZCAgICAgICA9IG9wdGlvbnM/Lmd1YXJkXG5cbiAgICBjaGlsZHJlbjogWydjb25kaXRpb24nLCAnZ3VhcmQnLCAnYm9keSddXG5cbiAgICBpc1N0YXRlbWVudDogWUVTXG5cbiAgICBtYWtlUmV0dXJuOiAocmVzKSAtPlxuICAgICAgICBpZiByZXNcbiAgICAgICAgICAgIHN1cGVyXG4gICAgICAgIGVsc2VcbiAgICAgICAgICAgIEByZXR1cm5zID0gbm90IEBqdW1wcyBsb29wOiB5ZXNcbiAgICAgICAgICAgIHRoaXNcblxuICAgIGFkZEJvZHk6IChAYm9keSkgLT5cbiAgICAgICAgdGhpc1xuXG4gICAganVtcHM6IC0+XG4gICAgICAgIHtleHByZXNzaW9uc30gPSBAYm9keVxuICAgICAgICByZXR1cm4gbm8gdW5sZXNzIGV4cHJlc3Npb25zLmxlbmd0aFxuICAgICAgICBmb3Igbm9kZSBpbiBleHByZXNzaW9uc1xuICAgICAgICAgICAgcmV0dXJuIGp1bXBOb2RlIGlmIGp1bXBOb2RlID0gbm9kZS5qdW1wcyBsb29wOiB5ZXNcbiAgICAgICAgbm9cblxuICAgICMgVGhlIG1haW4gZGlmZmVyZW5jZSBmcm9tIGEgSmF2YVNjcmlwdCAqd2hpbGUqIGlzIHRoYXQgdGhlIEtvZmZlZVxuICAgICMgKndoaWxlKiBjYW4gYmUgdXNlZCBhcyBhIHBhcnQgb2YgYSBsYXJnZXIgZXhwcmVzc2lvbiAtLSB3aGlsZSBsb29wcyBtYXlcbiAgICAjIHJldHVybiBhbiBhcnJheSBjb250YWluaW5nIHRoZSBjb21wdXRlZCByZXN1bHQgb2YgZWFjaCBpdGVyYXRpb24uXG4gICAgXG4gICAgY29tcGlsZU5vZGU6IChvKSAtPlxuICAgICAgICBvLmluZGVudCArPSBUQUJcbiAgICAgICAgc2V0ICAgICAgICAgID0gJydcbiAgICAgICAge2JvZHl9ICAgPSB0aGlzXG4gICAgICAgIGlmIGJvZHkuaXNFbXB0eSgpXG4gICAgICAgICAgICBib2R5ID0gQG1ha2VDb2RlICcnXG4gICAgICAgIGVsc2VcbiAgICAgICAgICAgIGlmIEByZXR1cm5zXG4gICAgICAgICAgICAgICAgYm9keS5tYWtlUmV0dXJuIHJ2YXIgPSBvLnNjb3BlLmZyZWVWYXJpYWJsZSAncmVzdWx0cydcbiAgICAgICAgICAgICAgICBzZXQgID0gXCIje0B0YWJ9I3tydmFyfSA9IFtdO1xcblwiXG4gICAgICAgICAgICBpZiBAZ3VhcmRcbiAgICAgICAgICAgICAgICBpZiBib2R5LmV4cHJlc3Npb25zLmxlbmd0aCA+IDFcbiAgICAgICAgICAgICAgICAgICAgYm9keS5leHByZXNzaW9ucy51bnNoaWZ0IG5ldyBJZiAobmV3IFBhcmVucyBAZ3VhcmQpLmludmVydCgpLCBuZXcgU3RhdGVtZW50TGl0ZXJhbCBcImNvbnRpbnVlXCJcbiAgICAgICAgICAgICAgICBlbHNlXG4gICAgICAgICAgICAgICAgICAgIGJvZHkgPSBCbG9jay53cmFwIFtuZXcgSWYgQGd1YXJkLCBib2R5XSBpZiBAZ3VhcmRcbiAgICAgICAgICAgIGJvZHkgPSBbXS5jb25jYXQgQG1ha2VDb2RlKFwiXFxuXCIpLCAoYm9keS5jb21waWxlVG9GcmFnbWVudHMgbywgTEVWRUxfVE9QKSwgQG1ha2VDb2RlKFwiXFxuI3tAdGFifVwiKVxuICAgICAgICBhbnN3ZXIgPSBbXS5jb25jYXQgQG1ha2VDb2RlKHNldCArIEB0YWIgKyBcIndoaWxlIChcIiksIEBjb25kaXRpb24uY29tcGlsZVRvRnJhZ21lbnRzKG8sIExFVkVMX1BBUkVOKSxcbiAgICAgICAgICAgIEBtYWtlQ29kZShcIikge1wiKSwgYm9keSwgQG1ha2VDb2RlKFwifVwiKVxuICAgICAgICBpZiBAcmV0dXJuc1xuICAgICAgICAgICAgYW5zd2VyLnB1c2ggQG1ha2VDb2RlIFwiXFxuI3tAdGFifXJldHVybiAje3J2YXJ9O1wiXG4gICAgICAgIGFuc3dlclxuXG4jICAwMDAwMDAwICAgMDAwMDAwMDAgICBcbiMgMDAwICAgMDAwICAwMDAgICAwMDAgIFxuIyAwMDAgICAwMDAgIDAwMDAwMDAwICAgXG4jIDAwMCAgIDAwMCAgMDAwICAgICAgICBcbiMgIDAwMDAwMDAgICAwMDAgICAgICAgIFxuXG4jIFNpbXBsZSBBcml0aG1ldGljIGFuZCBsb2dpY2FsIG9wZXJhdGlvbnMuIFBlcmZvcm1zIHNvbWUgY29udmVyc2lvbiBmcm9tIGludG8gdGhlaXIgSmF2YVNjcmlwdCBlcXVpdmFsZW50cy5cblxuZXhwb3J0cy5PcCA9IGNsYXNzIE9wIGV4dGVuZHMgQmFzZVxuICAgIEA6IChvcCwgZmlyc3QsIHNlY29uZCwgZmxpcCApIC0+XG4gICAgICAgIHJldHVybiBuZXcgSW4gZmlyc3QsIHNlY29uZCBpZiBvcCBpcyAnaW4nXG4gICAgICAgIGlmIG9wIGlzICdkbydcbiAgICAgICAgICAgIHJldHVybiBAZ2VuZXJhdGVEbyBmaXJzdFxuICAgICAgICBpZiBvcCBpcyAnbmV3J1xuICAgICAgICAgICAgcmV0dXJuIGZpcnN0Lm5ld0luc3RhbmNlKCkgaWYgZmlyc3QgaW5zdGFuY2VvZiBDYWxsIGFuZCBub3QgZmlyc3QuZG8gYW5kIG5vdCBmaXJzdC5pc05ld1xuICAgICAgICAgICAgZmlyc3QgPSBuZXcgUGFyZW5zIGZpcnN0ICAgICBpZiBmaXJzdCBpbnN0YW5jZW9mIENvZGUgYW5kIGZpcnN0LmJvdW5kIG9yIGZpcnN0LmRvXG4gICAgICAgIEBvcGVyYXRvciA9IENPTlZFUlNJT05TW29wXSBvciBvcFxuICAgICAgICBAZmlyc3QgICAgPSBmaXJzdFxuICAgICAgICBAc2Vjb25kICAgPSBzZWNvbmRcbiAgICAgICAgQGZsaXAgICAgID0gISFmbGlwXG4gICAgICAgIHJldHVybiB0aGlzXG5cbiAgICBDT05WRVJTSU9OUyA9ICMgVGhlIG1hcCBvZiBjb252ZXJzaW9ucyB0byBKYXZhU2NyaXB0IHN5bWJvbHMuXG4gICAgICAgICc9PSc6ICAgICAgICAnPT09J1xuICAgICAgICAnIT0nOiAgICAgICAgJyE9PSdcbiAgICAgICAgJ29mJzogICAgICAgICdpbidcbiAgICAgICAgJ3lpZWxkZnJvbSc6ICd5aWVsZConXG5cbiAgICBJTlZFUlNJT05TID0gIyBUaGUgbWFwIG9mIGludmVydGlibGUgb3BlcmF0b3JzLlxuICAgICAgICAnIT09JzogJz09PSdcbiAgICAgICAgJz09PSc6ICchPT0nXG5cbiAgICBjaGlsZHJlbjogWydmaXJzdCcsICdzZWNvbmQnXVxuXG4gICAgaXNOdW1iZXI6IC0+XG4gICAgICAgIEBpc1VuYXJ5KCkgYW5kIEBvcGVyYXRvciBpbiBbJysnLCAnLSddIGFuZFxuICAgICAgICAgICAgQGZpcnN0IGluc3RhbmNlb2YgVmFsdWUgYW5kIEBmaXJzdC5pc051bWJlcigpXG5cbiAgICBpc1lpZWxkOiAtPlxuICAgICAgICBAb3BlcmF0b3IgaW4gWyd5aWVsZCcsICd5aWVsZConXVxuXG4gICAgaXNVbmFyeTogLT5cbiAgICAgICAgbm90IEBzZWNvbmRcblxuICAgIGlzQ29tcGxleDogLT5cbiAgICAgICAgbm90IEBpc051bWJlcigpXG5cbiAgICAjIEFtIEkgY2FwYWJsZSBvZiBbUHl0aG9uLXN0eWxlIGNvbXBhcmlzb24gY2hhaW5pbmddKGh0dHBzOi8vZG9jcy5weXRob24ub3JnLzMvcmVmZXJlbmNlL2V4cHJlc3Npb25zLmh0bWwjbm90LWluKT9cbiAgICBcbiAgICBpc0NoYWluYWJsZTogLT5cbiAgICAgICAgQG9wZXJhdG9yIGluIFsnPCcsICc+JywgJz49JywgJzw9JywgJz09PScsICchPT0nXVxuXG4gICAgaW52ZXJ0OiAtPlxuICAgICAgICBpZiBAaXNDaGFpbmFibGUoKSBhbmQgQGZpcnN0LmlzQ2hhaW5hYmxlKClcbiAgICAgICAgICAgIGFsbEludmVydGFibGUgPSB5ZXNcbiAgICAgICAgICAgIGN1cnIgPSB0aGlzXG4gICAgICAgICAgICB3aGlsZSBjdXJyIGFuZCBjdXJyLm9wZXJhdG9yXG4gICAgICAgICAgICAgICAgYWxsSW52ZXJ0YWJsZSBhbmQ9IChjdXJyLm9wZXJhdG9yIG9mIElOVkVSU0lPTlMpXG4gICAgICAgICAgICAgICAgY3VyciA9IGN1cnIuZmlyc3RcbiAgICAgICAgICAgIHJldHVybiBuZXcgUGFyZW5zKHRoaXMpLmludmVydCgpIHVubGVzcyBhbGxJbnZlcnRhYmxlXG4gICAgICAgICAgICBjdXJyID0gdGhpc1xuICAgICAgICAgICAgd2hpbGUgY3VyciBhbmQgY3Vyci5vcGVyYXRvclxuICAgICAgICAgICAgICAgIGN1cnIuaW52ZXJ0ID0gIWN1cnIuaW52ZXJ0XG4gICAgICAgICAgICAgICAgY3Vyci5vcGVyYXRvciA9IElOVkVSU0lPTlNbY3Vyci5vcGVyYXRvcl1cbiAgICAgICAgICAgICAgICBjdXJyID0gY3Vyci5maXJzdFxuICAgICAgICAgICAgdGhpc1xuICAgICAgICBlbHNlIGlmIG9wID0gSU5WRVJTSU9OU1tAb3BlcmF0b3JdXG4gICAgICAgICAgICBAb3BlcmF0b3IgPSBvcFxuICAgICAgICAgICAgaWYgQGZpcnN0LnVud3JhcCgpIGluc3RhbmNlb2YgT3BcbiAgICAgICAgICAgICAgICBAZmlyc3QuaW52ZXJ0KClcbiAgICAgICAgICAgIHRoaXNcbiAgICAgICAgZWxzZSBpZiBAc2Vjb25kXG4gICAgICAgICAgICBuZXcgUGFyZW5zKHRoaXMpLmludmVydCgpXG4gICAgICAgIGVsc2UgaWYgQG9wZXJhdG9yIGlzICchJyBhbmQgKGZzdCA9IEBmaXJzdC51bndyYXAoKSkgaW5zdGFuY2VvZiBPcCBhbmRcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgZnN0Lm9wZXJhdG9yIGluIFsnIScsICdpbicsICdpbnN0YW5jZW9mJ11cbiAgICAgICAgICAgIGZzdFxuICAgICAgICBlbHNlXG4gICAgICAgICAgICBuZXcgT3AgJyEnLCB0aGlzXG5cbiAgICB1bmZvbGRTb2FrOiAobykgLT5cbiAgICAgICAgQG9wZXJhdG9yIGluIFsnKysnLCAnLS0nLCAnZGVsZXRlJ10gYW5kIHVuZm9sZFNvYWsgbywgdGhpcywgJ2ZpcnN0J1xuXG4gICAgZ2VuZXJhdGVEbzogKGV4cCkgLT5cbiAgICAgICAgcGFzc2VkUGFyYW1zID0gW11cbiAgICAgICAgZnVuYyA9IGlmIGV4cCBpbnN0YW5jZW9mIEFzc2lnbiBhbmQgKHJlZiA9IGV4cC52YWx1ZS51bndyYXAoKSkgaW5zdGFuY2VvZiBDb2RlXG4gICAgICAgICAgICByZWZcbiAgICAgICAgZWxzZVxuICAgICAgICAgICAgZXhwXG4gICAgICAgIGZvciBwYXJhbSBpbiBmdW5jLnBhcmFtcyBvciBbXVxuICAgICAgICAgICAgaWYgcGFyYW0udmFsdWVcbiAgICAgICAgICAgICAgICBwYXNzZWRQYXJhbXMucHVzaCBwYXJhbS52YWx1ZVxuICAgICAgICAgICAgICAgIGRlbGV0ZSBwYXJhbS52YWx1ZVxuICAgICAgICAgICAgZWxzZVxuICAgICAgICAgICAgICAgIHBhc3NlZFBhcmFtcy5wdXNoIHBhcmFtXG4gICAgICAgIGNhbGwgPSBuZXcgQ2FsbCBleHAsIHBhc3NlZFBhcmFtc1xuICAgICAgICBjYWxsLmRvID0geWVzXG4gICAgICAgIGNhbGxcblxuICAgIGNvbXBpbGVOb2RlOiAobykgLT5cbiAgICAgICAgaXNDaGFpbiA9IEBpc0NoYWluYWJsZSgpIGFuZCBAZmlyc3QuaXNDaGFpbmFibGUoKVxuICAgICAgICAjIEluIGNoYWlucywgdGhlcmUncyBubyBuZWVkIHRvIHdyYXAgYmFyZSBvYmogbGl0ZXJhbHMgaW4gcGFyZW5zLFxuICAgICAgICAjIGFzIHRoZSBjaGFpbmVkIGV4cHJlc3Npb24gaXMgd3JhcHBlZC5cbiAgICAgICAgQGZpcnN0LmZyb250ID0gQGZyb250IHVubGVzcyBpc0NoYWluXG4gICAgICAgIGlmIEBvcGVyYXRvciBpcyAnZGVsZXRlJyBhbmQgby5zY29wZS5jaGVjayhAZmlyc3QudW53cmFwQWxsKCkudmFsdWUpXG4gICAgICAgICAgICBAZXJyb3IgJ2RlbGV0ZSBvcGVyYW5kIG1heSBub3QgYmUgYXJndW1lbnQgb3IgdmFyJ1xuICAgICAgICBpZiBAb3BlcmF0b3IgaW4gWyctLScsICcrKyddXG4gICAgICAgICAgICBtZXNzYWdlID0gaXNVbmFzc2lnbmFibGUgQGZpcnN0LnVud3JhcEFsbCgpLnZhbHVlXG4gICAgICAgICAgICBAZmlyc3QuZXJyb3IgbWVzc2FnZSBpZiBtZXNzYWdlXG4gICAgICAgIHJldHVybiBAY29tcGlsZVlpZWxkIG8gaWYgQGlzWWllbGQoKVxuICAgICAgICByZXR1cm4gQGNvbXBpbGVVbmFyeSBvIGlmIEBpc1VuYXJ5KClcbiAgICAgICAgcmV0dXJuIEBjb21waWxlQ2hhaW4gbyBpZiBpc0NoYWluXG4gICAgICAgIHN3aXRjaCBAb3BlcmF0b3JcbiAgICAgICAgICAgIHdoZW4gJz8nICAgIHRoZW4gQGNvbXBpbGVFeGlzdGVuY2Ugb1xuICAgICAgICAgICAgd2hlbiAnKionIHRoZW4gQGNvbXBpbGVQb3dlciBvXG4gICAgICAgICAgICB3aGVuICcvLycgdGhlbiBAY29tcGlsZUZsb29yRGl2aXNpb24gb1xuICAgICAgICAgICAgd2hlbiAnJSUnIHRoZW4gQGNvbXBpbGVNb2R1bG8gb1xuICAgICAgICAgICAgZWxzZVxuICAgICAgICAgICAgICAgIGxocyA9IEBmaXJzdC5jb21waWxlVG9GcmFnbWVudHMgbywgTEVWRUxfT1BcbiAgICAgICAgICAgICAgICByaHMgPSBAc2Vjb25kLmNvbXBpbGVUb0ZyYWdtZW50cyBvLCBMRVZFTF9PUFxuICAgICAgICAgICAgICAgIGFuc3dlciA9IFtdLmNvbmNhdCBsaHMsIEBtYWtlQ29kZShcIiAje0BvcGVyYXRvcn0gXCIpLCByaHNcbiAgICAgICAgICAgICAgICBpZiBvLmxldmVsIDw9IExFVkVMX09QIHRoZW4gYW5zd2VyIGVsc2UgQHdyYXBJbkJyYWNlcyBhbnN3ZXJcblxuICAgICMgTWltaWMgUHl0aG9uJ3MgY2hhaW5lZCBjb21wYXJpc29ucyB3aGVuIG11bHRpcGxlIGNvbXBhcmlzb24gb3BlcmF0b3JzIGFyZVxuICAgICMgdXNlZCBzZXF1ZW50aWFsbHkuIEZvciBleGFtcGxlOlxuICAgICNcbiAgICAjICAgICAgICAgICBiaW4va29mZmVlIC1lICdjb25zb2xlLmxvZyA1MCA8IDY1ID4gMTAnXG4gICAgIyAgICAgICAgICAgdHJ1ZVxuICAgIFxuICAgIGNvbXBpbGVDaGFpbjogKG8pIC0+XG4gICAgICAgIFtAZmlyc3Quc2Vjb25kLCBzaGFyZWRdID0gQGZpcnN0LnNlY29uZC5jYWNoZSBvXG4gICAgICAgIGZzdCA9IEBmaXJzdC5jb21waWxlVG9GcmFnbWVudHMgbywgTEVWRUxfT1BcbiAgICAgICAgZnJhZ21lbnRzID0gZnN0LmNvbmNhdCBAbWFrZUNvZGUoXCIgI3tpZiBAaW52ZXJ0IHRoZW4gJyYmJyBlbHNlICd8fCd9IFwiKSxcbiAgICAgICAgICAgIChzaGFyZWQuY29tcGlsZVRvRnJhZ21lbnRzIG8pLCBAbWFrZUNvZGUoXCIgI3tAb3BlcmF0b3J9IFwiKSwgKEBzZWNvbmQuY29tcGlsZVRvRnJhZ21lbnRzIG8sIExFVkVMX09QKVxuICAgICAgICBAd3JhcEluQnJhY2VzIGZyYWdtZW50c1xuXG4gICAgIyBLZWVwIHJlZmVyZW5jZSB0byB0aGUgbGVmdCBleHByZXNzaW9uLCB1bmxlc3MgdGhpcyBhbiBleGlzdGVudGlhbCBhc3NpZ25tZW50XG4gICAgY29tcGlsZUV4aXN0ZW5jZTogKG8pIC0+XG4gICAgICAgIGlmIEBmaXJzdC5pc0NvbXBsZXgoKVxuICAgICAgICAgICAgcmVmID0gbmV3IElkZW50aWZpZXJMaXRlcmFsIG8uc2NvcGUuZnJlZVZhcmlhYmxlICdyZWYnXG4gICAgICAgICAgICBmc3QgPSBuZXcgUGFyZW5zIG5ldyBBc3NpZ24gcmVmLCBAZmlyc3RcbiAgICAgICAgZWxzZVxuICAgICAgICAgICAgZnN0ID0gQGZpcnN0XG4gICAgICAgICAgICByZWYgPSBmc3RcbiAgICAgICAgbmV3IElmKG5ldyBFeGlzdGVuY2UoZnN0KSwgcmVmLCB0eXBlOiAnaWYnKS5hZGRFbHNlKEBzZWNvbmQpLmNvbXBpbGVUb0ZyYWdtZW50cyBvXG5cbiAgICAjIENvbXBpbGUgYSB1bmFyeSAqKk9wKiouXG4gICAgY29tcGlsZVVuYXJ5OiAobykgLT5cbiAgICAgICAgcGFydHMgPSBbXVxuICAgICAgICBvcCA9IEBvcGVyYXRvclxuICAgICAgICBwYXJ0cy5wdXNoIFtAbWFrZUNvZGUgb3BdXG4gICAgICAgIGlmIG9wIGlzICchJyBhbmQgQGZpcnN0IGluc3RhbmNlb2YgRXhpc3RlbmNlXG4gICAgICAgICAgICBAZmlyc3QubmVnYXRlZCA9IG5vdCBAZmlyc3QubmVnYXRlZFxuICAgICAgICAgICAgcmV0dXJuIEBmaXJzdC5jb21waWxlVG9GcmFnbWVudHMgb1xuICAgICAgICBpZiBvLmxldmVsID49IExFVkVMX0FDQ0VTU1xuICAgICAgICAgICAgcmV0dXJuIChuZXcgUGFyZW5zIHRoaXMpLmNvbXBpbGVUb0ZyYWdtZW50cyBvXG4gICAgICAgIHBsdXNNaW51cyA9IG9wIGluIFsnKycsICctJ11cbiAgICAgICAgcGFydHMucHVzaCBbQG1ha2VDb2RlKCcgJyldIGlmIG9wIGluIFsnbmV3JywgJ3R5cGVvZicsICdkZWxldGUnXSBvclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBwbHVzTWludXMgYW5kIEBmaXJzdCBpbnN0YW5jZW9mIE9wIGFuZCBAZmlyc3Qub3BlcmF0b3IgaXMgb3BcbiAgICAgICAgaWYgKHBsdXNNaW51cyBhbmQgQGZpcnN0IGluc3RhbmNlb2YgT3ApIG9yIChvcCBpcyAnbmV3JyBhbmQgQGZpcnN0LmlzU3RhdGVtZW50IG8pXG4gICAgICAgICAgICBAZmlyc3QgPSBuZXcgUGFyZW5zIEBmaXJzdFxuICAgICAgICBwYXJ0cy5wdXNoIEBmaXJzdC5jb21waWxlVG9GcmFnbWVudHMgbywgTEVWRUxfT1BcbiAgICAgICAgcGFydHMucmV2ZXJzZSgpIGlmIEBmbGlwXG4gICAgICAgIEBqb2luRnJhZ21lbnRBcnJheXMgcGFydHMsICcnXG5cbiAgICBjb21waWxlWWllbGQ6IChvKSAtPlxuICAgICAgICBwYXJ0cyA9IFtdXG4gICAgICAgIG9wID0gQG9wZXJhdG9yXG4gICAgICAgIHVubGVzcyBvLnNjb3BlLnBhcmVudD9cbiAgICAgICAgICAgIEBlcnJvciAneWllbGQgY2FuIG9ubHkgb2NjdXIgaW5zaWRlIGZ1bmN0aW9ucydcbiAgICAgICAgaWYgJ2V4cHJlc3Npb24nIGluIE9iamVjdC5rZXlzKEBmaXJzdCkgYW5kIG5vdCAoQGZpcnN0IGluc3RhbmNlb2YgVGhyb3cpXG4gICAgICAgICAgICBwYXJ0cy5wdXNoIEBmaXJzdC5leHByZXNzaW9uLmNvbXBpbGVUb0ZyYWdtZW50cyBvLCBMRVZFTF9PUCBpZiBAZmlyc3QuZXhwcmVzc2lvbj9cbiAgICAgICAgZWxzZVxuICAgICAgICAgICAgcGFydHMucHVzaCBbQG1ha2VDb2RlIFwiKFwiXSBpZiBvLmxldmVsID49IExFVkVMX1BBUkVOXG4gICAgICAgICAgICBwYXJ0cy5wdXNoIFtAbWFrZUNvZGUgb3BdXG4gICAgICAgICAgICBwYXJ0cy5wdXNoIFtAbWFrZUNvZGUgXCIgXCJdIGlmIEBmaXJzdC5iYXNlPy52YWx1ZSAhPSAnJ1xuICAgICAgICAgICAgcGFydHMucHVzaCBAZmlyc3QuY29tcGlsZVRvRnJhZ21lbnRzIG8sIExFVkVMX09QXG4gICAgICAgICAgICBwYXJ0cy5wdXNoIFtAbWFrZUNvZGUgXCIpXCJdIGlmIG8ubGV2ZWwgPj0gTEVWRUxfUEFSRU5cbiAgICAgICAgQGpvaW5GcmFnbWVudEFycmF5cyBwYXJ0cywgJydcblxuICAgIGNvbXBpbGVQb3dlcjogKG8pIC0+XG4gICAgICAgICMgTWFrZSBhIE1hdGgucG93IGNhbGxcbiAgICAgICAgcG93ID0gbmV3IFZhbHVlIG5ldyBJZGVudGlmaWVyTGl0ZXJhbCgnTWF0aCcpLCBbbmV3IEFjY2VzcyBuZXcgUHJvcGVydHlOYW1lICdwb3cnXVxuICAgICAgICBuZXcgQ2FsbChwb3csIFtAZmlyc3QsIEBzZWNvbmRdKS5jb21waWxlVG9GcmFnbWVudHMgb1xuXG4gICAgY29tcGlsZUZsb29yRGl2aXNpb246IChvKSAtPlxuICAgICAgICBmbG9vciA9IG5ldyBWYWx1ZSBuZXcgSWRlbnRpZmllckxpdGVyYWwoJ01hdGgnKSwgW25ldyBBY2Nlc3MgbmV3IFByb3BlcnR5TmFtZSAnZmxvb3InXVxuICAgICAgICBzZWNvbmQgPSBpZiBAc2Vjb25kLmlzQ29tcGxleCgpIHRoZW4gbmV3IFBhcmVucyBAc2Vjb25kIGVsc2UgQHNlY29uZFxuICAgICAgICBkaXYgPSBuZXcgT3AgJy8nLCBAZmlyc3QsIHNlY29uZFxuICAgICAgICBuZXcgQ2FsbChmbG9vciwgW2Rpdl0pLmNvbXBpbGVUb0ZyYWdtZW50cyBvXG5cbiAgICBjb21waWxlTW9kdWxvOiAobykgLT5cbiAgICAgICAgbW9kID0gbmV3IFZhbHVlIG5ldyBMaXRlcmFsIHV0aWxpdHkgJ21vZHVsbycsIG9cbiAgICAgICAgbmV3IENhbGwobW9kLCBbQGZpcnN0LCBAc2Vjb25kXSkuY29tcGlsZVRvRnJhZ21lbnRzIG9cblxuICAgIHRvU3RyaW5nOiAoaWR0KSAtPlxuICAgICAgICBzdXBlciBpZHQsIEBjb25zdHJ1Y3Rvci5uYW1lICsgJyAnICsgQG9wZXJhdG9yXG5cbiMgMDAwICAwMDAgICAwMDAgIFxuIyAwMDAgIDAwMDAgIDAwMCAgXG4jIDAwMCAgMDAwIDAgMDAwICBcbiMgMDAwICAwMDAgIDAwMDAgIFxuIyAwMDAgIDAwMCAgIDAwMCAgXG5cbmV4cG9ydHMuSW4gPSBjbGFzcyBJbiBleHRlbmRzIEJhc2VcbiAgICBcbiAgICBAOiAoQG9iamVjdCwgQGFycmF5KSAtPlxuXG4gICAgY2hpbGRyZW46IFsnb2JqZWN0JywgJ2FycmF5J11cblxuICAgIGludmVydDogTkVHQVRFXG5cbiAgICBjb21waWxlTm9kZTogKG8pIC0+XG4gICAgICAgIGlmIEBhcnJheSBpbnN0YW5jZW9mIFZhbHVlIGFuZCBAYXJyYXkuaXNBcnJheSgpIGFuZCBAYXJyYXkuYmFzZS5vYmplY3RzLmxlbmd0aFxuICAgICAgICAgICAgZm9yIG9iaiBpbiBAYXJyYXkuYmFzZS5vYmplY3RzIHdoZW4gb2JqIGluc3RhbmNlb2YgU3BsYXRcbiAgICAgICAgICAgICAgICBoYXNTcGxhdCA9IHllc1xuICAgICAgICAgICAgICAgIGJyZWFrXG4gICAgICAgICAgICAjIGBjb21waWxlT3JUZXN0YCBvbmx5IGlmIHdlIGhhdmUgYW4gYXJyYXkgbGl0ZXJhbCB3aXRoIG5vIHNwbGF0c1xuICAgICAgICAgICAgcmV0dXJuIEBjb21waWxlT3JUZXN0IG8gdW5sZXNzIGhhc1NwbGF0XG4gICAgICAgIEBjb21waWxlTG9vcFRlc3Qgb1xuXG4gICAgY29tcGlsZU9yVGVzdDogKG8pIC0+XG4gICAgICAgIFtzdWIsIHJlZl0gPSBAb2JqZWN0LmNhY2hlIG8sIExFVkVMX09QXG4gICAgICAgIFtjbXAsIGNual0gPSBpZiBAbmVnYXRlZCB0aGVuIFsnICE9PSAnLCAnICYmICddIGVsc2UgWycgPT09ICcsICcgfHwgJ11cbiAgICAgICAgdGVzdHMgPSBbXVxuICAgICAgICBmb3IgaXRlbSwgaSBpbiBAYXJyYXkuYmFzZS5vYmplY3RzXG4gICAgICAgICAgICBpZiBpIHRoZW4gdGVzdHMucHVzaCBAbWFrZUNvZGUgY25qXG4gICAgICAgICAgICB0ZXN0cyA9IHRlc3RzLmNvbmNhdCAoaWYgaSB0aGVuIHJlZiBlbHNlIHN1YiksIEBtYWtlQ29kZShjbXApLCBpdGVtLmNvbXBpbGVUb0ZyYWdtZW50cyhvLCBMRVZFTF9BQ0NFU1MpXG4gICAgICAgIGlmIG8ubGV2ZWwgPCBMRVZFTF9PUCB0aGVuIHRlc3RzIGVsc2UgQHdyYXBJbkJyYWNlcyB0ZXN0c1xuXG4gICAgY29tcGlsZUxvb3BUZXN0OiAobykgLT5cbiAgICAgICAgW3N1YiwgcmVmXSA9IEBvYmplY3QuY2FjaGUgbywgTEVWRUxfTElTVFxuICAgICAgICBmcmFnbWVudHMgPSBbXS5jb25jYXQgQG1ha2VDb2RlKHV0aWxpdHkoJ2luZGV4T2YnLCBvKSArIFwiLmNhbGwoXCIpLCBAYXJyYXkuY29tcGlsZVRvRnJhZ21lbnRzKG8sIExFVkVMX0xJU1QpLFxuICAgICAgICAgICAgQG1ha2VDb2RlKFwiLCBcIiksIHJlZiwgQG1ha2VDb2RlKFwiKSBcIiArIGlmIEBuZWdhdGVkIHRoZW4gJzwgMCcgZWxzZSAnPj0gMCcpXG4gICAgICAgIHJldHVybiBmcmFnbWVudHMgaWYgZnJhZ21lbnRzVG9UZXh0KHN1YikgaXMgZnJhZ21lbnRzVG9UZXh0KHJlZilcbiAgICAgICAgZnJhZ21lbnRzID0gc3ViLmNvbmNhdCBAbWFrZUNvZGUoJywgJyksIGZyYWdtZW50c1xuICAgICAgICBpZiBvLmxldmVsIDwgTEVWRUxfTElTVCB0aGVuIGZyYWdtZW50cyBlbHNlIEB3cmFwSW5CcmFjZXMgZnJhZ21lbnRzXG5cbiAgICB0b1N0cmluZzogKGlkdCkgLT5cbiAgICAgICAgc3VwZXIgaWR0LCBAY29uc3RydWN0b3IubmFtZSArIGlmIEBuZWdhdGVkIHRoZW4gJyEnIGVsc2UgJydcblxuIyAwMDAwMDAwMDAgIDAwMDAwMDAwICAgMDAwICAgMDAwICBcbiMgICAgMDAwICAgICAwMDAgICAwMDAgICAwMDAgMDAwICAgXG4jICAgIDAwMCAgICAgMDAwMDAwMCAgICAgIDAwMDAwICAgIFxuIyAgICAwMDAgICAgIDAwMCAgIDAwMCAgICAgMDAwICAgICBcbiMgICAgMDAwICAgICAwMDAgICAwMDAgICAgIDAwMCAgICAgXG5cbiMgQSBjbGFzc2ljICp0cnkvY2F0Y2gvZmluYWxseSogYmxvY2suXG5cbmV4cG9ydHMuVHJ5ID0gY2xhc3MgVHJ5IGV4dGVuZHMgQmFzZVxuICAgIFxuICAgIEA6IChAYXR0ZW1wdCwgQGVycm9yVmFyaWFibGUsIEByZWNvdmVyeSwgQGVuc3VyZSkgLT5cblxuICAgIGNoaWxkcmVuOiBbJ2F0dGVtcHQnLCAncmVjb3ZlcnknLCAnZW5zdXJlJ11cblxuICAgIGlzU3RhdGVtZW50OiBZRVNcblxuICAgIGp1bXBzOiAobykgLT4gQGF0dGVtcHQuanVtcHMobykgb3IgQHJlY292ZXJ5Py5qdW1wcyhvKVxuXG4gICAgbWFrZVJldHVybjogKHJlcykgLT5cbiAgICAgICAgQGF0dGVtcHQgID0gQGF0dGVtcHQgLm1ha2VSZXR1cm4gcmVzIGlmIEBhdHRlbXB0XG4gICAgICAgIEByZWNvdmVyeSA9IEByZWNvdmVyeS5tYWtlUmV0dXJuIHJlcyBpZiBAcmVjb3ZlcnlcbiAgICAgICAgdGhpc1xuXG4gICAgIyBDb21waWxhdGlvbiBpcyBtb3JlIG9yIGxlc3MgYXMgeW91IHdvdWxkIGV4cGVjdCAtLSB0aGUgKmZpbmFsbHkqIGNsYXVzZVxuICAgICMgaXMgb3B0aW9uYWwsIHRoZSAqY2F0Y2gqIGlzIG5vdC5cbiAgICBjb21waWxlTm9kZTogKG8pIC0+XG4gICAgICAgIG8uaW5kZW50ICs9IFRBQlxuICAgICAgICB0cnlQYXJ0ICAgPSBAYXR0ZW1wdC5jb21waWxlVG9GcmFnbWVudHMgbywgTEVWRUxfVE9QXG5cbiAgICAgICAgY2F0Y2hQYXJ0ID0gaWYgQHJlY292ZXJ5XG4gICAgICAgICAgICBnZW5lcmF0ZWRFcnJvclZhcmlhYmxlTmFtZSA9IG8uc2NvcGUuZnJlZVZhcmlhYmxlICdlcnJvcicsIHJlc2VydmU6IG5vXG4gICAgICAgICAgICBwbGFjZWhvbGRlciA9IG5ldyBJZGVudGlmaWVyTGl0ZXJhbCBnZW5lcmF0ZWRFcnJvclZhcmlhYmxlTmFtZVxuICAgICAgICAgICAgaWYgQGVycm9yVmFyaWFibGVcbiAgICAgICAgICAgICAgICBtZXNzYWdlID0gaXNVbmFzc2lnbmFibGUgQGVycm9yVmFyaWFibGUudW53cmFwQWxsKCkudmFsdWVcbiAgICAgICAgICAgICAgICBAZXJyb3JWYXJpYWJsZS5lcnJvciBtZXNzYWdlIGlmIG1lc3NhZ2VcbiAgICAgICAgICAgICAgICBAcmVjb3ZlcnkudW5zaGlmdCBuZXcgQXNzaWduIEBlcnJvclZhcmlhYmxlLCBwbGFjZWhvbGRlclxuICAgICAgICAgICAgW10uY29uY2F0IEBtYWtlQ29kZShcIiBjYXRjaCAoXCIpLCBwbGFjZWhvbGRlci5jb21waWxlVG9GcmFnbWVudHMobyksIEBtYWtlQ29kZShcIikge1xcblwiKSxcbiAgICAgICAgICAgICAgICBAcmVjb3ZlcnkuY29tcGlsZVRvRnJhZ21lbnRzKG8sIExFVkVMX1RPUCksIEBtYWtlQ29kZShcIlxcbiN7QHRhYn19XCIpXG4gICAgICAgIGVsc2UgdW5sZXNzIEBlbnN1cmUgb3IgQHJlY292ZXJ5XG4gICAgICAgICAgICBnZW5lcmF0ZWRFcnJvclZhcmlhYmxlTmFtZSA9IG8uc2NvcGUuZnJlZVZhcmlhYmxlICdlcnJvcicsIHJlc2VydmU6IG5vXG4gICAgICAgICAgICBbQG1ha2VDb2RlKFwiIGNhdGNoICgje2dlbmVyYXRlZEVycm9yVmFyaWFibGVOYW1lfSkge31cIildXG4gICAgICAgIGVsc2VcbiAgICAgICAgICAgIFtdXG5cbiAgICAgICAgZW5zdXJlUGFydCA9IGlmIEBlbnN1cmUgdGhlbiAoW10uY29uY2F0IEBtYWtlQ29kZShcIiBmaW5hbGx5IHtcXG5cIiksIEBlbnN1cmUuY29tcGlsZVRvRnJhZ21lbnRzKG8sIExFVkVMX1RPUCksXG4gICAgICAgICAgICBAbWFrZUNvZGUoXCJcXG4je0B0YWJ9fVwiKSkgZWxzZSBbXVxuXG4gICAgICAgIFtdLmNvbmNhdCBAbWFrZUNvZGUoXCIje0B0YWJ9dHJ5IHtcXG5cIiksXG4gICAgICAgICAgICB0cnlQYXJ0LFxuICAgICAgICAgICAgQG1ha2VDb2RlKFwiXFxuI3tAdGFifX1cIiksIGNhdGNoUGFydCwgZW5zdXJlUGFydFxuXG4jIDAwMDAwMDAwMCAgMDAwICAgMDAwICAwMDAwMDAwMCAgICAwMDAwMDAwICAgMDAwICAgMDAwICBcbiMgICAgMDAwICAgICAwMDAgICAwMDAgIDAwMCAgIDAwMCAgMDAwICAgMDAwICAwMDAgMCAwMDAgIFxuIyAgICAwMDAgICAgIDAwMDAwMDAwMCAgMDAwMDAwMCAgICAwMDAgICAwMDAgIDAwMDAwMDAwMCAgXG4jICAgIDAwMCAgICAgMDAwICAgMDAwICAwMDAgICAwMDAgIDAwMCAgIDAwMCAgMDAwICAgMDAwICBcbiMgICAgMDAwICAgICAwMDAgICAwMDAgIDAwMCAgIDAwMCAgIDAwMDAwMDAgICAwMCAgICAgMDAgIFxuXG4jIFNpbXBsZSBub2RlIHRvIHRocm93IGFuIGV4Y2VwdGlvbi5cblxuZXhwb3J0cy5UaHJvdyA9IGNsYXNzIFRocm93IGV4dGVuZHMgQmFzZVxuICAgIFxuICAgIEA6IChAZXhwcmVzc2lvbikgLT5cblxuICAgIGNoaWxkcmVuOiBbJ2V4cHJlc3Npb24nXVxuXG4gICAgaXNTdGF0ZW1lbnQ6IFlFU1xuICAgIGp1bXBzOiAgICAgICBOT1xuXG4gICAgIyBBICoqVGhyb3cqKiBpcyBhbHJlYWR5IGEgcmV0dXJuLCBvZiBzb3J0cy4uLlxuICAgIG1ha2VSZXR1cm46IFRISVNcblxuICAgIGNvbXBpbGVOb2RlOiAobykgLT5cbiAgICAgICAgW10uY29uY2F0IEBtYWtlQ29kZShAdGFiICsgXCJ0aHJvdyBcIiksIEBleHByZXNzaW9uLmNvbXBpbGVUb0ZyYWdtZW50cyhvKSwgQG1ha2VDb2RlKFwiO1wiKVxuXG4jIDAwMDAwMDAwICAwMDAgICAwMDAgIDAwMCAgIDAwMDAwMDAgIDAwMDAwMDAwMCAgMDAwMDAwMDAgIDAwMCAgIDAwMCAgIDAwMDAwMDAgIDAwMDAwMDAwICBcbiMgMDAwICAgICAgICAwMDAgMDAwICAgMDAwICAwMDAgICAgICAgICAgMDAwICAgICAwMDAgICAgICAgMDAwMCAgMDAwICAwMDAgICAgICAgMDAwICAgICAgIFxuIyAwMDAwMDAwICAgICAwMDAwMCAgICAwMDAgIDAwMDAwMDAgICAgICAwMDAgICAgIDAwMDAwMDAgICAwMDAgMCAwMDAgIDAwMCAgICAgICAwMDAwMDAwICAgXG4jIDAwMCAgICAgICAgMDAwIDAwMCAgIDAwMCAgICAgICAwMDAgICAgIDAwMCAgICAgMDAwICAgICAgIDAwMCAgMDAwMCAgMDAwICAgICAgIDAwMCAgICAgICBcbiMgMDAwMDAwMDAgIDAwMCAgIDAwMCAgMDAwICAwMDAwMDAwICAgICAgMDAwICAgICAwMDAwMDAwMCAgMDAwICAgMDAwICAgMDAwMDAwMCAgMDAwMDAwMDAgIFxuXG4jIENoZWNrcyBhIHZhcmlhYmxlIGZvciBleGlzdGVuY2UgLS0gbm90ICpudWxsKiBhbmQgbm90ICp1bmRlZmluZWQqLiBUaGlzIGlzXG4jIHNpbWlsYXIgdG8gYC5uaWw/YCBpbiBSdWJ5LCBhbmQgYXZvaWRzIGhhdmluZyB0byBjb25zdWx0IGEgSmF2YVNjcmlwdCB0cnV0aFxuIyB0YWJsZS5cblxuZXhwb3J0cy5FeGlzdGVuY2UgPSBjbGFzcyBFeGlzdGVuY2UgZXh0ZW5kcyBCYXNlXG4gICAgXG4gICAgQDogKEBleHByZXNzaW9uKSAtPlxuXG4gICAgY2hpbGRyZW46IFsnZXhwcmVzc2lvbiddXG5cbiAgICBpbnZlcnQ6IE5FR0FURVxuXG4gICAgY29tcGlsZU5vZGU6IChvKSAtPlxuICAgICAgICBAZXhwcmVzc2lvbi5mcm9udCA9IEBmcm9udFxuICAgICAgICBjb2RlID0gQGV4cHJlc3Npb24uY29tcGlsZSBvLCBMRVZFTF9PUFxuICAgICAgICBpZiBAZXhwcmVzc2lvbi51bndyYXAoKSBpbnN0YW5jZW9mIElkZW50aWZpZXJMaXRlcmFsIGFuZCBub3Qgby5zY29wZS5jaGVjayBjb2RlXG4gICAgICAgICAgICBbY21wLCBjbmpdID0gaWYgQG5lZ2F0ZWQgdGhlbiBbJz09PScsICd8fCddIGVsc2UgWychPT0nLCAnJiYnXVxuICAgICAgICAgICAgY29kZSA9IFwidHlwZW9mICN7Y29kZX0gI3tjbXB9IFxcXCJ1bmRlZmluZWRcXFwiICN7Y25qfSAje2NvZGV9ICN7Y21wfSBudWxsXCJcbiAgICAgICAgZWxzZVxuICAgICAgICAgICAgIyBkbyBub3QgdXNlIHN0cmljdCBlcXVhbGl0eSBoZXJlOyBpdCB3aWxsIGJyZWFrIGV4aXN0aW5nIGNvZGVcbiAgICAgICAgICAgIGNvZGUgPSBcIiN7Y29kZX0gI3tpZiBAbmVnYXRlZCB0aGVuICc9PScgZWxzZSAnIT0nfSBudWxsXCJcbiAgICAgICAgW0BtYWtlQ29kZShpZiBvLmxldmVsIDw9IExFVkVMX0NPTkQgdGhlbiBjb2RlIGVsc2UgXCIoI3tjb2RlfSlcIildXG5cbiMgMDAwMDAwMDAgICAgMDAwMDAwMCAgIDAwMDAwMDAwICAgMDAwMDAwMDAgIDAwMCAgIDAwMCAgIDAwMDAwMDAgIFxuIyAwMDAgICAwMDAgIDAwMCAgIDAwMCAgMDAwICAgMDAwICAwMDAgICAgICAgMDAwMCAgMDAwICAwMDAgICAgICAgXG4jIDAwMDAwMDAwICAgMDAwMDAwMDAwICAwMDAwMDAwICAgIDAwMDAwMDAgICAwMDAgMCAwMDAgIDAwMDAwMDAgICBcbiMgMDAwICAgICAgICAwMDAgICAwMDAgIDAwMCAgIDAwMCAgMDAwICAgICAgIDAwMCAgMDAwMCAgICAgICAwMDAgIFxuIyAwMDAgICAgICAgIDAwMCAgIDAwMCAgMDAwICAgMDAwICAwMDAwMDAwMCAgMDAwICAgMDAwICAwMDAwMDAwICAgXG5cbiMgQW4gZXh0cmEgc2V0IG9mIHBhcmVudGhlc2VzLCBzcGVjaWZpZWQgZXhwbGljaXRseSBpbiB0aGUgc291cmNlLiBBdCBvbmUgdGltZVxuIyB3ZSB0cmllZCB0byBjbGVhbiB1cCB0aGUgcmVzdWx0cyBieSBkZXRlY3RpbmcgYW5kIHJlbW92aW5nIHJlZHVuZGFudFxuIyBwYXJlbnRoZXNlcywgYnV0IG5vIGxvbmdlciAtLSB5b3UgY2FuIHB1dCBpbiBhcyBtYW55IGFzIHlvdSBwbGVhc2UuXG4jXG4jIFBhcmVudGhlc2VzIGFyZSBhIGdvb2Qgd2F5IHRvIGZvcmNlIGFueSBzdGF0ZW1lbnQgdG8gYmVjb21lIGFuIGV4cHJlc3Npb24uXG5cbmV4cG9ydHMuUGFyZW5zID0gY2xhc3MgUGFyZW5zIGV4dGVuZHMgQmFzZVxuICAgIFxuICAgIEA6IChAYm9keSkgLT5cblxuICAgIGNoaWxkcmVuOiBbJ2JvZHknXVxuXG4gICAgdW53cmFwOiAgICAtPiBAYm9keVxuICAgIGlzQ29tcGxleDogLT4gQGJvZHkuaXNDb21wbGV4KClcblxuICAgIGNvbXBpbGVOb2RlOiAobykgLT5cbiAgICAgICAgZXhwciA9IEBib2R5LnVud3JhcCgpXG4gICAgICAgIGlmIGV4cHIgaW5zdGFuY2VvZiBWYWx1ZSBhbmQgZXhwci5pc0F0b21pYygpXG4gICAgICAgICAgICBleHByLmZyb250ID0gQGZyb250XG4gICAgICAgICAgICByZXR1cm4gZXhwci5jb21waWxlVG9GcmFnbWVudHMgb1xuICAgICAgICBmcmFnbWVudHMgPSBleHByLmNvbXBpbGVUb0ZyYWdtZW50cyBvLCBMRVZFTF9QQVJFTlxuICAgICAgICBiYXJlID0gby5sZXZlbCA8IExFVkVMX09QIGFuZCAoZXhwciBpbnN0YW5jZW9mIE9wIG9yIGV4cHIgaW5zdGFuY2VvZiBDYWxsIG9yXG4gICAgICAgICAgICAoZXhwciBpbnN0YW5jZW9mIEZvciBhbmQgZXhwci5yZXR1cm5zKSkgYW5kIChvLmxldmVsIDwgTEVWRUxfQ09ORCBvclxuICAgICAgICAgICAgICAgIGZyYWdtZW50cy5sZW5ndGggPD0gMylcbiAgICAgICAgaWYgYmFyZSB0aGVuIGZyYWdtZW50cyBlbHNlIEB3cmFwSW5CcmFjZXMgZnJhZ21lbnRzXG5cbiMgMDAwICAwMDAgICAwMDAgIDAwMDAwMDAwMCAgMDAwMDAwMDAgIDAwMDAwMDAwICAgMDAwMDAwMDAgICAgMDAwMDAwMCAgIDAwMCAgICAgICAwMDAwMDAwICAgMDAwMDAwMDAwICAwMDAgICAwMDAwMDAwICAgMDAwICAgMDAwICAgMDAwMDAwMCAgXG4jIDAwMCAgMDAwMCAgMDAwICAgICAwMDAgICAgIDAwMCAgICAgICAwMDAgICAwMDAgIDAwMCAgIDAwMCAgMDAwICAgMDAwICAwMDAgICAgICAwMDAgICAwMDAgICAgIDAwMCAgICAgMDAwICAwMDAgICAwMDAgIDAwMDAgIDAwMCAgMDAwICAgICAgIFxuIyAwMDAgIDAwMCAwIDAwMCAgICAgMDAwICAgICAwMDAwMDAwICAgMDAwMDAwMCAgICAwMDAwMDAwMCAgIDAwMCAgIDAwMCAgMDAwICAgICAgMDAwMDAwMDAwICAgICAwMDAgICAgIDAwMCAgMDAwICAgMDAwICAwMDAgMCAwMDAgIDAwMDAwMDAgICBcbiMgMDAwICAwMDAgIDAwMDAgICAgIDAwMCAgICAgMDAwICAgICAgIDAwMCAgIDAwMCAgMDAwICAgICAgICAwMDAgICAwMDAgIDAwMCAgICAgIDAwMCAgIDAwMCAgICAgMDAwICAgICAwMDAgIDAwMCAgIDAwMCAgMDAwICAwMDAwICAgICAgIDAwMCAgXG4jIDAwMCAgMDAwICAgMDAwICAgICAwMDAgICAgIDAwMDAwMDAwICAwMDAgICAwMDAgIDAwMCAgICAgICAgIDAwMDAwMDAgICAwMDAwMDAwICAwMDAgICAwMDAgICAgIDAwMCAgICAgMDAwICAgMDAwMDAwMCAgIDAwMCAgIDAwMCAgMDAwMDAwMCAgIFxuXG4jIFN0cmluZ3Mgd2l0aCBpbnRlcnBvbGF0aW9ucyBhcmUgaW4gZmFjdCBqdXN0IGEgdmFyaWF0aW9uIG9mIGBQYXJlbnNgIHdpdGggc3RyaW5nIGNvbmNhdGVuYXRpb24gaW5zaWRlLlxuXG5leHBvcnRzLlN0cmluZ1dpdGhJbnRlcnBvbGF0aW9ucyA9IGNsYXNzIFN0cmluZ1dpdGhJbnRlcnBvbGF0aW9ucyBleHRlbmRzIFBhcmVuc1xuICAgIFxuICAgIGNvbXBpbGVOb2RlOiAobykgLT5cbiAgICAgICAgXG4gICAgICAgICMgVGhpcyBtZXRob2QgcHJvZHVjZXMgYW4gaW50ZXJwb2xhdGVkIHN0cmluZyB1c2luZyB0aGUgbmV3IEVTMjAxNSBzeW50YXgsXG4gICAgICAgICMgd2hpY2ggaXMgb3B0LWluIGJ5IHVzaW5nIHRhZ2dlZCB0ZW1wbGF0ZSBsaXRlcmFscy4gXG4gICAgICAgICMgSWYgdGhpcyBTdHJpbmdXaXRoSW50ZXJwb2xhdGlvbnMgaXNu4oCZdCBpbnNpZGUgYSB0YWdnZWQgdGVtcGxhdGUgbGl0ZXJhbCwgZmFsbCBiYWNrIHRvIHRoZSBLb2ZmZWUgMS54IG91dHB1dC5cbiAgICAgICAgXG4gICAgICAgIHVubGVzcyBvLmluVGFnZ2VkVGVtcGxhdGVDYWxsXG4gICAgICAgICAgICByZXR1cm4gc3VwZXJcblxuICAgICAgICBleHByID0gQGJvZHkudW53cmFwKCkgIyBBc3N1bXB0aW9uOiBleHByIGlzIFZhbHVlPlN0cmluZ0xpdGVyYWwgb3IgT3BcblxuICAgICAgICBlbGVtZW50cyA9IFtdXG4gICAgICAgIGV4cHIudHJhdmVyc2VDaGlsZHJlbiBubywgKG5vZGUpIC0+XG4gICAgICAgICAgICBpZiBub2RlIGluc3RhbmNlb2YgU3RyaW5nTGl0ZXJhbFxuICAgICAgICAgICAgICAgIGVsZW1lbnRzLnB1c2ggbm9kZVxuICAgICAgICAgICAgICAgIHJldHVybiB5ZXNcbiAgICAgICAgICAgIGVsc2UgaWYgbm9kZSBpbnN0YW5jZW9mIFBhcmVuc1xuICAgICAgICAgICAgICAgIGVsZW1lbnRzLnB1c2ggbm9kZVxuICAgICAgICAgICAgICAgIHJldHVybiBub1xuICAgICAgICAgICAgcmV0dXJuIHllc1xuXG4gICAgICAgIGZyYWdtZW50cyA9IFtdXG4gICAgICAgIGZyYWdtZW50cy5wdXNoIEBtYWtlQ29kZSAnYCdcbiAgICAgICAgZm9yIGVsZW1lbnQgaW4gZWxlbWVudHNcbiAgICAgICAgICAgIGlmIGVsZW1lbnQgaW5zdGFuY2VvZiBTdHJpbmdMaXRlcmFsXG4gICAgICAgICAgICAgICAgdmFsdWUgPSBlbGVtZW50LnZhbHVlWzEuLi4tMV1cbiAgICAgICAgICAgICAgICAjIEJhY2t0aWNrcyBhbmQgYCR7YCBpbnNpZGUgdGVtcGxhdGUgbGl0ZXJhbHMgbXVzdCBiZSBlc2NhcGVkLlxuICAgICAgICAgICAgICAgIHZhbHVlID0gdmFsdWUucmVwbGFjZSAvKFxcXFwqKShgfFxcJFxceykvZywgKG1hdGNoLCBiYWNrc2xhc2hlcywgdG9CZUVzY2FwZWQpIC0+XG4gICAgICAgICAgICAgICAgICAgIGlmIGJhY2tzbGFzaGVzLmxlbmd0aCAlIDIgaXMgMFxuICAgICAgICAgICAgICAgICAgICAgICAgXCIje2JhY2tzbGFzaGVzfVxcXFwje3RvQmVFc2NhcGVkfVwiXG4gICAgICAgICAgICAgICAgICAgIGVsc2VcbiAgICAgICAgICAgICAgICAgICAgICAgIG1hdGNoXG4gICAgICAgICAgICAgICAgZnJhZ21lbnRzLnB1c2ggQG1ha2VDb2RlIHZhbHVlXG4gICAgICAgICAgICBlbHNlXG4gICAgICAgICAgICAgICAgZnJhZ21lbnRzLnB1c2ggQG1ha2VDb2RlICckeydcbiAgICAgICAgICAgICAgICBmcmFnbWVudHMucHVzaCBlbGVtZW50LmNvbXBpbGVUb0ZyYWdtZW50cyhvLCBMRVZFTF9QQVJFTikuLi5cbiAgICAgICAgICAgICAgICBmcmFnbWVudHMucHVzaCBAbWFrZUNvZGUgJ30nXG4gICAgICAgIGZyYWdtZW50cy5wdXNoIEBtYWtlQ29kZSAnYCdcblxuICAgICAgICBmcmFnbWVudHNcblxuIyAwMDAwMDAwMCAgIDAwMDAwMDAgICAwMDAwMDAwMCAgIFxuIyAwMDAgICAgICAgMDAwICAgMDAwICAwMDAgICAwMDAgIFxuIyAwMDAwMDAgICAgMDAwICAgMDAwICAwMDAwMDAwICAgIFxuIyAwMDAgICAgICAgMDAwICAgMDAwICAwMDAgICAwMDAgIFxuIyAwMDAgICAgICAgIDAwMDAwMDAgICAwMDAgICAwMDAgIFxuXG4jIFJlcGxhY2VtZW50IGZvciB0aGUgKmZvciogbG9vcCBpcyBvdXIgYXJyYXkgYW5kIG9iamVjdFxuIyBjb21wcmVoZW5zaW9ucywgdGhhdCBjb21waWxlIGludG8gKmZvciogbG9vcHMgaGVyZS4gVGhleSBhbHNvIGFjdCBhcyBhblxuIyBleHByZXNzaW9uLCBhYmxlIHRvIHJldHVybiB0aGUgcmVzdWx0IG9mIGVhY2ggZmlsdGVyZWQgaXRlcmF0aW9uLlxuI1xuIyBVbmxpa2UgUHl0aG9uIGFycmF5IGNvbXByZWhlbnNpb25zLCB0aGV5IGNhbiBiZSBtdWx0aS1saW5lLCBhbmQgeW91IGNhbiBwYXNzXG4jIHRoZSBjdXJyZW50IGluZGV4IG9mIHRoZSBsb29wIGFzIGEgc2Vjb25kIHBhcmFtZXRlci4gVW5saWtlIFJ1YnkgYmxvY2tzLFxuIyB5b3UgY2FuIG1hcCBhbmQgZmlsdGVyIGluIGEgc2luZ2xlIHBhc3MuXG5cbmV4cG9ydHMuRm9yID0gY2xhc3MgRm9yIGV4dGVuZHMgV2hpbGVcbiAgICBAOiAoYm9keSwgc291cmNlKSAtPlxuICAgICAgICB7QHNvdXJjZSwgQGd1YXJkLCBAc3RlcCwgQG5hbWUsIEBpbmRleH0gPSBzb3VyY2VcbiAgICAgICAgQGJvZHkgICA9IEJsb2NrLndyYXAgW2JvZHldXG4gICAgICAgIEBvd24gICAgPSAhIXNvdXJjZS5vd25cbiAgICAgICAgQG9iamVjdCA9ICEhc291cmNlLm9iamVjdFxuICAgICAgICBAZnJvbSAgID0gISFzb3VyY2UuZnJvbVxuICAgICAgICBAaW5kZXguZXJyb3IgJ2Nhbm5vdCB1c2UgaW5kZXggd2l0aCBmb3ItZnJvbScgaWYgQGZyb20gYW5kIEBpbmRleFxuICAgICAgICBzb3VyY2Uub3duVGFnLmVycm9yIFwiY2Fubm90IHVzZSBvd24gd2l0aCBmb3ItI3tpZiBAZnJvbSB0aGVuICdmcm9tJyBlbHNlICdpbid9XCIgaWYgQG93biBhbmQgbm90IEBvYmplY3RcbiAgICAgICAgW0BuYW1lLCBAaW5kZXhdID0gW0BpbmRleCwgQG5hbWVdIGlmIEBvYmplY3RcbiAgICAgICAgQGluZGV4LmVycm9yICdpbmRleCBjYW5ub3QgYmUgYSBwYXR0ZXJuIG1hdGNoaW5nIGV4cHJlc3Npb24nIGlmIEBpbmRleCBpbnN0YW5jZW9mIFZhbHVlIGFuZCBub3QgQGluZGV4LmlzQXNzaWduYWJsZSgpXG4gICAgICAgIEByYW5nZSAgID0gQHNvdXJjZSBpbnN0YW5jZW9mIFZhbHVlIGFuZCBAc291cmNlLmJhc2UgaW5zdGFuY2VvZiBSYW5nZSBhbmQgbm90IEBzb3VyY2UucHJvcGVydGllcy5sZW5ndGggYW5kIG5vdCBAZnJvbVxuICAgICAgICBAcGF0dGVybiA9IEBuYW1lIGluc3RhbmNlb2YgVmFsdWVcbiAgICAgICAgQGluZGV4LmVycm9yICdpbmRleGVzIGRvIG5vdCBhcHBseSB0byByYW5nZSBsb29wcycgaWYgQHJhbmdlIGFuZCBAaW5kZXhcbiAgICAgICAgQG5hbWUuZXJyb3IgJ2Nhbm5vdCBwYXR0ZXJuIG1hdGNoIG92ZXIgcmFuZ2UgbG9vcHMnIGlmIEByYW5nZSBhbmQgQHBhdHRlcm5cbiAgICAgICAgQHJldHVybnMgPSBmYWxzZVxuXG4gICAgY2hpbGRyZW46IFsnYm9keScsICdzb3VyY2UnLCAnZ3VhcmQnLCAnc3RlcCddXG5cbiAgICAjIFdlbGNvbWUgdG8gdGhlIGhhaXJpZXN0IG1ldGhvZCBpbiBhbGwgb2YgS29mZmVlLiBIYW5kbGVzIHRoZSBpbm5lclxuICAgICMgbG9vcCwgZmlsdGVyaW5nLCBzdGVwcGluZywgYW5kIHJlc3VsdCBzYXZpbmcgZm9yIGFycmF5LCBvYmplY3QsIGFuZCByYW5nZVxuICAgICMgY29tcHJlaGVuc2lvbnMuIFNvbWUgb2YgdGhlIGdlbmVyYXRlZCBjb2RlIGNhbiBiZSBzaGFyZWQgaW4gY29tbW9uLCBhbmRcbiAgICAjIHNvbWUgY2Fubm90LlxuICAgIGNvbXBpbGVOb2RlOiAobykgLT5cbiAgICAgICAgYm9keSAgICAgICAgPSBCbG9jay53cmFwIFtAYm9keV1cbiAgICAgICAgWy4uLiwgbGFzdF0gPSBib2R5LmV4cHJlc3Npb25zXG4gICAgICAgIEByZXR1cm5zICAgID0gbm8gaWYgbGFzdD8uanVtcHMoKSBpbnN0YW5jZW9mIFJldHVyblxuICAgICAgICBzb3VyY2UgICAgICA9IGlmIEByYW5nZSB0aGVuIEBzb3VyY2UuYmFzZSBlbHNlIEBzb3VyY2VcbiAgICAgICAgc2NvcGUgICAgICAgPSBvLnNjb3BlXG4gICAgICAgIG5hbWUgICAgICAgID0gQG5hbWUgIGFuZCAoQG5hbWUuY29tcGlsZSBvLCBMRVZFTF9MSVNUKSBpZiBub3QgQHBhdHRlcm5cbiAgICAgICAgaW5kZXggICAgICAgPSBAaW5kZXggYW5kIChAaW5kZXguY29tcGlsZSBvLCBMRVZFTF9MSVNUKVxuICAgICAgICBzY29wZS5maW5kKG5hbWUpICBpZiBuYW1lIGFuZCBub3QgQHBhdHRlcm5cbiAgICAgICAgc2NvcGUuZmluZChpbmRleCkgaWYgaW5kZXggYW5kIEBpbmRleCBub3QgaW5zdGFuY2VvZiBWYWx1ZVxuICAgICAgICBydmFyID0gc2NvcGUuZnJlZVZhcmlhYmxlICdyZXN1bHRzJyBpZiBAcmV0dXJuc1xuICAgICAgICBpZiBAZnJvbVxuICAgICAgICAgICAgaXZhciA9IHNjb3BlLmZyZWVWYXJpYWJsZSAneCcsIHNpbmdsZTogdHJ1ZSBpZiBAcGF0dGVyblxuICAgICAgICBlbHNlXG4gICAgICAgICAgICBpdmFyID0gKEBvYmplY3QgYW5kIGluZGV4KSBvciBzY29wZS5mcmVlVmFyaWFibGUgJ2knLCBzaW5nbGU6IHRydWVcbiAgICAgICAga3ZhciA9ICgoQHJhbmdlIG9yIEBmcm9tKSBhbmQgbmFtZSkgb3IgaW5kZXggb3IgaXZhclxuICAgICAgICBrdmFyQXNzaWduICA9IGlmIGt2YXIgIT0gaXZhciB0aGVuIFwiI3trdmFyfSA9IFwiIGVsc2UgXCJcIlxuICAgICAgICBpZiBAc3RlcCBhbmQgbm90IEByYW5nZVxuICAgICAgICAgICAgW3N0ZXAsIHN0ZXBWYXJdID0gQGNhY2hlVG9Db2RlRnJhZ21lbnRzIEBzdGVwLmNhY2hlIG8sIExFVkVMX0xJU1QsIGlzQ29tcGxleE9yQXNzaWduYWJsZVxuICAgICAgICAgICAgc3RlcE51bSA9IE51bWJlciBzdGVwVmFyIGlmIEBzdGVwLmlzTnVtYmVyKClcbiAgICAgICAgbmFtZSAgICAgID0gaXZhciBpZiBAcGF0dGVyblxuICAgICAgICB2YXJQYXJ0ICAgPSAnJ1xuICAgICAgICBndWFyZFBhcnQgPSAnJ1xuICAgICAgICBkZWZQYXJ0ICAgPSAnJ1xuICAgICAgICBpZHQxICAgICAgPSBAdGFiICsgVEFCXG4gICAgICAgIGlmIEByYW5nZVxuICAgICAgICAgICAgZm9yUGFydEZyYWdtZW50cyA9IHNvdXJjZS5jb21waWxlVG9GcmFnbWVudHMgbWVyZ2UgbyxcbiAgICAgICAgICAgICAgICB7aW5kZXg6IGl2YXIsIG5hbWUsIEBzdGVwLCBpc0NvbXBsZXg6IGlzQ29tcGxleE9yQXNzaWduYWJsZX1cbiAgICAgICAgZWxzZVxuICAgICAgICAgICAgc3ZhciA9IEBzb3VyY2UuY29tcGlsZSBvLCBMRVZFTF9MSVNUXG4gICAgICAgICAgICBpZiAobmFtZSBvciBAb3duKSBhbmQgQHNvdXJjZS51bndyYXAoKSBub3QgaW5zdGFuY2VvZiBJZGVudGlmaWVyTGl0ZXJhbFxuICAgICAgICAgICAgICAgIGRlZlBhcnQgKz0gXCIje0B0YWJ9I3tyZWYgPSBzY29wZS5mcmVlVmFyaWFibGUgJ3JlZid9ID0gI3tzdmFyfTtcXG5cIlxuICAgICAgICAgICAgICAgIHN2YXIgPSByZWZcbiAgICAgICAgICAgIGlmIG5hbWUgYW5kIG5vdCBAcGF0dGVybiBhbmQgbm90IEBmcm9tXG4gICAgICAgICAgICAgICAgbmFtZVBhcnQgPSBcIiN7bmFtZX0gPSAje3N2YXJ9WyN7a3Zhcn1dXCJcbiAgICAgICAgICAgIGlmIG5vdCBAb2JqZWN0IGFuZCBub3QgQGZyb21cbiAgICAgICAgICAgICAgICBkZWZQYXJ0ICs9IFwiI3tAdGFifSN7c3RlcH07XFxuXCIgaWYgc3RlcCAhPSBzdGVwVmFyXG4gICAgICAgICAgICAgICAgZG93biA9IHN0ZXBOdW0gPCAwXG4gICAgICAgICAgICAgICAgbHZhciA9IHNjb3BlLmZyZWVWYXJpYWJsZSAnbGVuJyB1bmxlc3MgQHN0ZXAgYW5kIHN0ZXBOdW0/IGFuZCBkb3duXG4gICAgICAgICAgICAgICAgZGVjbGFyZSA9IFwiI3trdmFyQXNzaWdufSN7aXZhcn0gPSAwLCAje2x2YXJ9ID0gI3tzdmFyfS5sZW5ndGhcIlxuICAgICAgICAgICAgICAgIGRlY2xhcmVEb3duID0gXCIje2t2YXJBc3NpZ259I3tpdmFyfSA9ICN7c3Zhcn0ubGVuZ3RoIC0gMVwiXG4gICAgICAgICAgICAgICAgY29tcGFyZSA9IFwiI3tpdmFyfSA8ICN7bHZhcn1cIlxuICAgICAgICAgICAgICAgIGNvbXBhcmVEb3duID0gXCIje2l2YXJ9ID49IDBcIlxuICAgICAgICAgICAgICAgIGlmIEBzdGVwXG4gICAgICAgICAgICAgICAgICAgIGlmIHN0ZXBOdW0/XG4gICAgICAgICAgICAgICAgICAgICAgICBpZiBkb3duXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgY29tcGFyZSA9IGNvbXBhcmVEb3duXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgZGVjbGFyZSA9IGRlY2xhcmVEb3duXG4gICAgICAgICAgICAgICAgICAgIGVsc2VcbiAgICAgICAgICAgICAgICAgICAgICAgIGNvbXBhcmUgPSBcIiN7c3RlcFZhcn0gPiAwID8gI3tjb21wYXJlfSA6ICN7Y29tcGFyZURvd259XCJcbiAgICAgICAgICAgICAgICAgICAgICAgIGRlY2xhcmUgPSBcIigje3N0ZXBWYXJ9ID4gMCA/ICgje2RlY2xhcmV9KSA6ICN7ZGVjbGFyZURvd259KVwiXG4gICAgICAgICAgICAgICAgICAgIGluY3JlbWVudCA9IFwiI3tpdmFyfSArPSAje3N0ZXBWYXJ9XCJcbiAgICAgICAgICAgICAgICBlbHNlXG4gICAgICAgICAgICAgICAgICAgIGluY3JlbWVudCA9IFwiI3tpZiBrdmFyICE9IGl2YXIgdGhlbiBcIisrI3tpdmFyfVwiIGVsc2UgXCIje2l2YXJ9KytcIn1cIlxuICAgICAgICAgICAgICAgIGZvclBhcnRGcmFnbWVudHMgPSBbQG1ha2VDb2RlKFwiI3tkZWNsYXJlfTsgI3tjb21wYXJlfTsgI3trdmFyQXNzaWdufSN7aW5jcmVtZW50fVwiKV1cbiAgICAgICAgaWYgQHJldHVybnNcbiAgICAgICAgICAgIHJlc3VsdFBhcnQgICA9IFwiI3tAdGFifSN7cnZhcn0gPSBbXTtcXG5cIlxuICAgICAgICAgICAgcmV0dXJuUmVzdWx0ID0gXCJcXG4je0B0YWJ9cmV0dXJuICN7cnZhcn07XCJcbiAgICAgICAgICAgIGJvZHkubWFrZVJldHVybiBydmFyXG4gICAgICAgIGlmIEBndWFyZFxuICAgICAgICAgICAgaWYgYm9keS5leHByZXNzaW9ucy5sZW5ndGggPiAxXG4gICAgICAgICAgICAgICAgYm9keS5leHByZXNzaW9ucy51bnNoaWZ0IG5ldyBJZiAobmV3IFBhcmVucyBAZ3VhcmQpLmludmVydCgpLCBuZXcgU3RhdGVtZW50TGl0ZXJhbCBcImNvbnRpbnVlXCJcbiAgICAgICAgICAgIGVsc2VcbiAgICAgICAgICAgICAgICBib2R5ID0gQmxvY2sud3JhcCBbbmV3IElmIEBndWFyZCwgYm9keV0gaWYgQGd1YXJkXG4gICAgICAgIGlmIEBwYXR0ZXJuXG4gICAgICAgICAgICBib2R5LmV4cHJlc3Npb25zLnVuc2hpZnQgbmV3IEFzc2lnbiBAbmFtZSwgaWYgQGZyb20gdGhlbiBuZXcgSWRlbnRpZmllckxpdGVyYWwga3ZhciBlbHNlIG5ldyBMaXRlcmFsIFwiI3tzdmFyfVsje2t2YXJ9XVwiXG4gICAgICAgIGRlZlBhcnRGcmFnbWVudHMgPSBbXS5jb25jYXQgQG1ha2VDb2RlKGRlZlBhcnQpLCBAcGx1Y2tEaXJlY3RDYWxsKG8sIGJvZHkpXG4gICAgICAgIHZhclBhcnQgPSBcIlxcbiN7aWR0MX0je25hbWVQYXJ0fTtcIiBpZiBuYW1lUGFydFxuICAgICAgICBpZiBAb2JqZWN0XG4gICAgICAgICAgICBmb3JQYXJ0RnJhZ21lbnRzID0gW0BtYWtlQ29kZShcIiN7a3Zhcn0gaW4gI3tzdmFyfVwiKV1cbiAgICAgICAgICAgIGd1YXJkUGFydCA9IFwiXFxuI3tpZHQxfWlmICghI3t1dGlsaXR5ICdoYXNQcm9wJywgb30uY2FsbCgje3N2YXJ9LCAje2t2YXJ9KSkgY29udGludWU7XCIgaWYgQG93blxuICAgICAgICBlbHNlIGlmIEBmcm9tXG4gICAgICAgICAgICBmb3JQYXJ0RnJhZ21lbnRzID0gW0BtYWtlQ29kZShcIiN7a3Zhcn0gb2YgI3tzdmFyfVwiKV1cbiAgICAgICAgYm9keUZyYWdtZW50cyA9IGJvZHkuY29tcGlsZVRvRnJhZ21lbnRzIG1lcmdlKG8sIGluZGVudDogaWR0MSksIExFVkVMX1RPUFxuICAgICAgICBpZiBib2R5RnJhZ21lbnRzIGFuZCBib2R5RnJhZ21lbnRzLmxlbmd0aCA+IDBcbiAgICAgICAgICAgIGJvZHlGcmFnbWVudHMgPSBbXS5jb25jYXQgQG1ha2VDb2RlKFwiXFxuXCIpLCBib2R5RnJhZ21lbnRzLCBAbWFrZUNvZGUoXCJcXG5cIilcbiAgICAgICAgW10uY29uY2F0IGRlZlBhcnRGcmFnbWVudHMsIEBtYWtlQ29kZShcIiN7cmVzdWx0UGFydCBvciAnJ30je0B0YWJ9Zm9yIChcIiksXG4gICAgICAgICAgICBmb3JQYXJ0RnJhZ21lbnRzLCBAbWFrZUNvZGUoXCIpIHsje2d1YXJkUGFydH0je3ZhclBhcnR9XCIpLCBib2R5RnJhZ21lbnRzLFxuICAgICAgICAgICAgQG1ha2VDb2RlKFwiI3tAdGFifX0je3JldHVyblJlc3VsdCBvciAnJ31cIilcblxuICAgIHBsdWNrRGlyZWN0Q2FsbDogKG8sIGJvZHkpIC0+XG4gICAgICAgIGRlZnMgPSBbXVxuICAgICAgICBmb3IgZXhwciwgaWR4IGluIGJvZHkuZXhwcmVzc2lvbnNcbiAgICAgICAgICAgIGV4cHIgPSBleHByLnVud3JhcEFsbCgpXG4gICAgICAgICAgICBjb250aW51ZSB1bmxlc3MgZXhwciBpbnN0YW5jZW9mIENhbGxcbiAgICAgICAgICAgIHZhbCA9IGV4cHIudmFyaWFibGU/LnVud3JhcEFsbCgpXG4gICAgICAgICAgICBjb250aW51ZSB1bmxlc3MgKHZhbCBpbnN0YW5jZW9mIENvZGUpIG9yXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICh2YWwgaW5zdGFuY2VvZiBWYWx1ZSBhbmRcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgdmFsLmJhc2U/LnVud3JhcEFsbCgpIGluc3RhbmNlb2YgQ29kZSBhbmRcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgdmFsLnByb3BlcnRpZXMubGVuZ3RoIGlzIDEgYW5kXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHZhbC5wcm9wZXJ0aWVzWzBdLm5hbWU/LnZhbHVlIGluIFsnY2FsbCcsICdhcHBseSddKVxuICAgICAgICAgICAgZm4gICAgICA9IHZhbC5iYXNlPy51bndyYXBBbGwoKSBvciB2YWxcbiAgICAgICAgICAgIHJlZiAgICAgPSBuZXcgSWRlbnRpZmllckxpdGVyYWwgby5zY29wZS5mcmVlVmFyaWFibGUgJ2ZuJ1xuICAgICAgICAgICAgYmFzZSAgICA9IG5ldyBWYWx1ZSByZWZcbiAgICAgICAgICAgIGlmIHZhbC5iYXNlXG4gICAgICAgICAgICAgICAgW3ZhbC5iYXNlLCBiYXNlXSA9IFtiYXNlLCB2YWxdXG4gICAgICAgICAgICBib2R5LmV4cHJlc3Npb25zW2lkeF0gPSBuZXcgQ2FsbCBiYXNlLCBleHByLmFyZ3NcbiAgICAgICAgICAgIGRlZnMgPSBkZWZzLmNvbmNhdCBAbWFrZUNvZGUoQHRhYiksIChuZXcgQXNzaWduKHJlZiwgZm4pLmNvbXBpbGVUb0ZyYWdtZW50cyhvLCBMRVZFTF9UT1ApKSwgQG1ha2VDb2RlKCc7XFxuJylcbiAgICAgICAgZGVmc1xuXG4jICAwMDAwMDAwICAwMDAgICAwMDAgIDAwMCAgMDAwMDAwMDAwICAgMDAwMDAwMCAgMDAwICAgMDAwICBcbiMgMDAwICAgICAgIDAwMCAwIDAwMCAgMDAwICAgICAwMDAgICAgIDAwMCAgICAgICAwMDAgICAwMDAgIFxuIyAwMDAwMDAwICAgMDAwMDAwMDAwICAwMDAgICAgIDAwMCAgICAgMDAwICAgICAgIDAwMDAwMDAwMCAgXG4jICAgICAgMDAwICAwMDAgICAwMDAgIDAwMCAgICAgMDAwICAgICAwMDAgICAgICAgMDAwICAgMDAwICBcbiMgMDAwMDAwMCAgIDAwICAgICAwMCAgMDAwICAgICAwMDAgICAgICAwMDAwMDAwICAwMDAgICAwMDAgIFxuXG4jIEEgSmF2YVNjcmlwdCAqc3dpdGNoKiBzdGF0ZW1lbnQuIENvbnZlcnRzIGludG8gYSByZXR1cm5hYmxlIGV4cHJlc3Npb24gb24tZGVtYW5kLlxuXG5leHBvcnRzLlN3aXRjaCA9IGNsYXNzIFN3aXRjaCBleHRlbmRzIEJhc2VcbiAgICBAOiAoQHN1YmplY3QsIEBjYXNlcywgQG90aGVyd2lzZSkgLT5cblxuICAgIGNoaWxkcmVuOiBbJ3N1YmplY3QnLCAnY2FzZXMnLCAnb3RoZXJ3aXNlJ11cblxuICAgIGlzU3RhdGVtZW50OiBZRVNcblxuICAgIGp1bXBzOiAobyA9IHtibG9jazogeWVzfSkgLT5cbiAgICAgICAgZm9yIFtjb25kcywgYmxvY2tdIGluIEBjYXNlc1xuICAgICAgICAgICAgcmV0dXJuIGp1bXBOb2RlIGlmIGp1bXBOb2RlID0gYmxvY2suanVtcHMgb1xuICAgICAgICBAb3RoZXJ3aXNlPy5qdW1wcyBvXG5cbiAgICBtYWtlUmV0dXJuOiAocmVzKSAtPlxuICAgICAgICBwYWlyWzFdLm1ha2VSZXR1cm4gcmVzIGZvciBwYWlyIGluIEBjYXNlc1xuICAgICAgICBAb3RoZXJ3aXNlIG9yPSBuZXcgQmxvY2sgW25ldyBMaXRlcmFsICd2b2lkIDAnXSBpZiByZXNcbiAgICAgICAgQG90aGVyd2lzZT8ubWFrZVJldHVybiByZXNcbiAgICAgICAgdGhpc1xuXG4gICAgY29tcGlsZU5vZGU6IChvKSAtPlxuICAgICAgICBpZHQxID0gby5pbmRlbnQgKyBUQUJcbiAgICAgICAgaWR0MiA9IG8uaW5kZW50ID0gaWR0MSArIFRBQlxuICAgICAgICBmcmFnbWVudHMgPSBbXS5jb25jYXQgQG1ha2VDb2RlKEB0YWIgKyBcInN3aXRjaCAoXCIpLFxuICAgICAgICAgICAgKGlmIEBzdWJqZWN0IHRoZW4gQHN1YmplY3QuY29tcGlsZVRvRnJhZ21lbnRzKG8sIExFVkVMX1BBUkVOKSBlbHNlIEBtYWtlQ29kZSBcImZhbHNlXCIpLFxuICAgICAgICAgICAgQG1ha2VDb2RlKFwiKSB7XFxuXCIpXG4gICAgICAgIGZvciBbY29uZGl0aW9ucywgYmxvY2tdLCBpIGluIEBjYXNlc1xuICAgICAgICAgICAgZm9yIGNvbmQgaW4gZmxhdHRlbiBbY29uZGl0aW9uc11cbiAgICAgICAgICAgICAgICBjb25kICAgID0gY29uZC5pbnZlcnQoKSB1bmxlc3MgQHN1YmplY3RcbiAgICAgICAgICAgICAgICBmcmFnbWVudHMgPSBmcmFnbWVudHMuY29uY2F0IEBtYWtlQ29kZShpZHQxICsgXCJjYXNlIFwiKSwgY29uZC5jb21waWxlVG9GcmFnbWVudHMobywgTEVWRUxfUEFSRU4pLCBAbWFrZUNvZGUoXCI6XFxuXCIpXG4gICAgICAgICAgICBmcmFnbWVudHMgPSBmcmFnbWVudHMuY29uY2F0IGJvZHksIEBtYWtlQ29kZSgnXFxuJykgaWYgKGJvZHkgPSBibG9jay5jb21waWxlVG9GcmFnbWVudHMgbywgTEVWRUxfVE9QKS5sZW5ndGggPiAwXG4gICAgICAgICAgICBicmVhayBpZiBpIGlzIEBjYXNlcy5sZW5ndGggLSAxIGFuZCBub3QgQG90aGVyd2lzZVxuICAgICAgICAgICAgZXhwciA9IEBsYXN0Tm9uQ29tbWVudCBibG9jay5leHByZXNzaW9uc1xuICAgICAgICAgICAgY29udGludWUgaWYgZXhwciBpbnN0YW5jZW9mIFJldHVybiBvciAoZXhwciBpbnN0YW5jZW9mIExpdGVyYWwgYW5kIGV4cHIuanVtcHMoKSBhbmQgZXhwci52YWx1ZSAhPSAnZGVidWdnZXInKVxuICAgICAgICAgICAgZnJhZ21lbnRzLnB1c2ggY29uZC5tYWtlQ29kZShpZHQyICsgJ2JyZWFrO1xcbicpXG4gICAgICAgIGlmIEBvdGhlcndpc2UgYW5kIEBvdGhlcndpc2UuZXhwcmVzc2lvbnMubGVuZ3RoXG4gICAgICAgICAgICBmcmFnbWVudHMucHVzaCBAbWFrZUNvZGUoaWR0MSArIFwiZGVmYXVsdDpcXG5cIiksIChAb3RoZXJ3aXNlLmNvbXBpbGVUb0ZyYWdtZW50cyBvLCBMRVZFTF9UT1ApLi4uLCBAbWFrZUNvZGUoXCJcXG5cIilcbiAgICAgICAgZnJhZ21lbnRzLnB1c2ggQG1ha2VDb2RlIEB0YWIgKyAnfSdcbiAgICAgICAgZnJhZ21lbnRzXG5cbiMgMDAwICAwMDAwMDAwMCAgXG4jIDAwMCAgMDAwICAgICAgIFxuIyAwMDAgIDAwMDAwMCAgICBcbiMgMDAwICAwMDAgICAgICAgXG4jIDAwMCAgMDAwICAgICAgIFxuXG4jIElmL2Vsc2Ugc3RhdGVtZW50cy4gQWN0cyBhcyBhbiBleHByZXNzaW9uIGJ5IHB1c2hpbmcgZG93biByZXF1ZXN0ZWQgcmV0dXJucyB0byB0aGUgbGFzdCBsaW5lIG9mIGVhY2ggY2xhdXNlLlxuI1xuIyBTaW5nbGUtZXhwcmVzc2lvbiAqKklmcyoqIGFyZSBjb21waWxlZCBpbnRvIGNvbmRpdGlvbmFsIG9wZXJhdG9ycyBpZiBwb3NzaWJsZSxcbiMgYmVjYXVzZSB0ZXJuYXJpZXMgYXJlIGFscmVhZHkgcHJvcGVyIGV4cHJlc3Npb25zLCBhbmQgZG9uJ3QgbmVlZCBjb252ZXJzaW9uLlxuXG5leHBvcnRzLklmID0gY2xhc3MgSWYgZXh0ZW5kcyBCYXNlXG4gICAgXG4gICAgQDogKGNvbmRpdGlvbiwgQGJvZHksIG9wdGlvbnMgPSB7fSkgLT5cbiAgICAgICAgQGNvbmRpdGlvbiA9IGlmIG9wdGlvbnMudHlwZSBpcyAndW5sZXNzJyB0aGVuIGNvbmRpdGlvbi5pbnZlcnQoKSBlbHNlIGNvbmRpdGlvblxuICAgICAgICBAZWxzZUJvZHkgID0gbnVsbFxuICAgICAgICBAaXNDaGFpbiAgID0gZmFsc2VcbiAgICAgICAge0Bzb2FrfSAgICA9IG9wdGlvbnNcblxuICAgIGNoaWxkcmVuOiBbJ2NvbmRpdGlvbicsICdib2R5JywgJ2Vsc2VCb2R5J11cblxuICAgIGJvZHlOb2RlOiAgICAgLT4gQGJvZHk/LnVud3JhcCgpXG4gICAgZWxzZUJvZHlOb2RlOiAtPiBAZWxzZUJvZHk/LnVud3JhcCgpXG5cbiAgICAjIFJld3JpdGUgYSBjaGFpbiBvZiAqKklmcyoqIHRvIGFkZCBhIGRlZmF1bHQgY2FzZSBhcyB0aGUgZmluYWwgKmVsc2UqLlxuICAgIFxuICAgIGFkZEVsc2U6IChlbHNlQm9keSkgLT5cbiAgICAgICAgaWYgQGlzQ2hhaW5cbiAgICAgICAgICAgIEBlbHNlQm9keU5vZGUoKS5hZGRFbHNlIGVsc2VCb2R5XG4gICAgICAgIGVsc2VcbiAgICAgICAgICAgIEBpc0NoYWluICA9IGVsc2VCb2R5IGluc3RhbmNlb2YgSWZcbiAgICAgICAgICAgIEBlbHNlQm9keSA9IEBlbnN1cmVCbG9jayBlbHNlQm9keVxuICAgICAgICAgICAgQGVsc2VCb2R5LnVwZGF0ZUxvY2F0aW9uRGF0YUlmTWlzc2luZyBlbHNlQm9keS5sb2NhdGlvbkRhdGFcbiAgICAgICAgdGhpc1xuXG4gICAgIyBUaGUgKipJZioqIG9ubHkgY29tcGlsZXMgaW50byBhIHN0YXRlbWVudCBpZiBlaXRoZXIgb2YgaXRzIGJvZGllcyBuZWVkc1xuICAgICMgdG8gYmUgYSBzdGF0ZW1lbnQuIE90aGVyd2lzZSBhIGNvbmRpdGlvbmFsIG9wZXJhdG9yIGlzIHNhZmUuXG4gICAgXG4gICAgaXNTdGF0ZW1lbnQ6IChvKSAtPlxuICAgICAgICBvPy5sZXZlbCBpcyBMRVZFTF9UT1Agb3JcbiAgICAgICAgICAgIEBib2R5Tm9kZSgpLmlzU3RhdGVtZW50KG8pIG9yIEBlbHNlQm9keU5vZGUoKT8uaXNTdGF0ZW1lbnQobylcblxuICAgIGp1bXBzOiAobykgLT4gQGJvZHkuanVtcHMobykgb3IgQGVsc2VCb2R5Py5qdW1wcyhvKVxuXG4gICAgY29tcGlsZU5vZGU6IChvKSAtPlxuICAgICAgICBpZiBAaXNTdGF0ZW1lbnQgbyB0aGVuIEBjb21waWxlU3RhdGVtZW50IG8gZWxzZSBAY29tcGlsZUV4cHJlc3Npb24gb1xuXG4gICAgbWFrZVJldHVybjogKHJlcykgLT5cbiAgICAgICAgQGVsc2VCb2R5ICBvcj0gbmV3IEJsb2NrIFtuZXcgTGl0ZXJhbCAndm9pZCAwJ10gaWYgcmVzXG4gICAgICAgIEBib2R5ICAgICBhbmQ9IG5ldyBCbG9jayBbQGJvZHkubWFrZVJldHVybiByZXNdXG4gICAgICAgIEBlbHNlQm9keSBhbmQ9IG5ldyBCbG9jayBbQGVsc2VCb2R5Lm1ha2VSZXR1cm4gcmVzXVxuICAgICAgICB0aGlzXG5cbiAgICBlbnN1cmVCbG9jazogKG5vZGUpIC0+XG4gICAgICAgIGlmIG5vZGUgaW5zdGFuY2VvZiBCbG9jayB0aGVuIG5vZGUgZWxzZSBuZXcgQmxvY2sgW25vZGVdXG5cbiAgICAjIENvbXBpbGUgdGhlIGBJZmAgYXMgYSByZWd1bGFyICppZi1lbHNlKiBzdGF0ZW1lbnQuIEZsYXR0ZW5lZCBjaGFpbnMgZm9yY2UgaW5uZXIgKmVsc2UqIGJvZGllcyBpbnRvIHN0YXRlbWVudCBmb3JtLlxuICAgIGNvbXBpbGVTdGF0ZW1lbnQ6IChvKSAtPlxuICAgICAgICBjaGlsZCA9IGRlbCBvLCAnY2hhaW5DaGlsZCdcbiAgICAgICAgXG4gICAgICAgICMgY29tbWVudGluZyB0aGlzIG91dCBkb2Vzbid0IGJyZWFrIGFueSB0ZXN0czogd2hhdCB3YXMgdGhpcyBzdXBwb3NlZCB0byBhY2hpZXZlPyAuLi5cbiAgICAgICAgIyBleGVxICA9IGRlbCBvLCAnaXNFeGlzdGVudGlhbEVxdWFscydcbiAgICAgICAgIyBpZiBleGVxXG4gICAgICAgICMgICAgIHJldHVybiBuZXcgSWYoQGNvbmRpdGlvbi5pbnZlcnQoKSwgQGVsc2VCb2R5Tm9kZSgpLCB0eXBlOiAnaWYnKS5jb21waWxlVG9GcmFnbWVudHMgb1xuXG4gICAgICAgIGluZGVudCA9IG8uaW5kZW50ICsgVEFCXG4gICAgICAgIGNvbmQgICA9IEBjb25kaXRpb24uY29tcGlsZVRvRnJhZ21lbnRzIG8sIExFVkVMX1BBUkVOXG4gICAgICAgIGJvZHkgICA9IEBlbnN1cmVCbG9jayhAYm9keSkuY29tcGlsZVRvRnJhZ21lbnRzIG1lcmdlIG8sIHtpbmRlbnR9XG4gICAgICAgIGlmUGFydCA9IFtdLmNvbmNhdCBAbWFrZUNvZGUoXCJpZiAoXCIpLCBjb25kLCBAbWFrZUNvZGUoXCIpIHtcXG5cIiksIGJvZHksIEBtYWtlQ29kZShcIlxcbiN7QHRhYn19XCIpXG4gICAgICAgIGlmUGFydC51bnNoaWZ0IEBtYWtlQ29kZSBAdGFiIHVubGVzcyBjaGlsZFxuICAgICAgICByZXR1cm4gaWZQYXJ0IHVubGVzcyBAZWxzZUJvZHlcbiAgICAgICAgYW5zd2VyID0gaWZQYXJ0LmNvbmNhdCBAbWFrZUNvZGUoJyBlbHNlICcpXG4gICAgICAgIGlmIEBpc0NoYWluXG4gICAgICAgICAgICBvLmNoYWluQ2hpbGQgPSB5ZXNcbiAgICAgICAgICAgIGFuc3dlciA9IGFuc3dlci5jb25jYXQgQGVsc2VCb2R5LnVud3JhcCgpLmNvbXBpbGVUb0ZyYWdtZW50cyBvLCBMRVZFTF9UT1BcbiAgICAgICAgZWxzZVxuICAgICAgICAgICAgYW5zd2VyID0gYW5zd2VyLmNvbmNhdCBAbWFrZUNvZGUoXCJ7XFxuXCIpLCBAZWxzZUJvZHkuY29tcGlsZVRvRnJhZ21lbnRzKG1lcmdlKG8sIHtpbmRlbnR9KSwgTEVWRUxfVE9QKSwgQG1ha2VDb2RlKFwiXFxuI3tAdGFifX1cIilcbiAgICAgICAgYW5zd2VyXG5cbiAgICAjIENvbXBpbGUgdGhlIGBJZmAgYXMgYSBjb25kaXRpb25hbCBvcGVyYXRvci5cbiAgICBjb21waWxlRXhwcmVzc2lvbjogKG8pIC0+XG4gICAgICAgIGNvbmQgPSBAY29uZGl0aW9uLmNvbXBpbGVUb0ZyYWdtZW50cyBvLCBMRVZFTF9DT05EXG4gICAgICAgIGJvZHkgPSBAYm9keU5vZGUoKS5jb21waWxlVG9GcmFnbWVudHMgbywgTEVWRUxfTElTVFxuICAgICAgICBhbHQgID0gaWYgQGVsc2VCb2R5Tm9kZSgpIHRoZW4gQGVsc2VCb2R5Tm9kZSgpLmNvbXBpbGVUb0ZyYWdtZW50cyhvLCBMRVZFTF9MSVNUKSBlbHNlIFtAbWFrZUNvZGUoJ3ZvaWQgMCcpXVxuICAgICAgICBmcmFnbWVudHMgPSBjb25kLmNvbmNhdCBAbWFrZUNvZGUoXCIgPyBcIiksIGJvZHksIEBtYWtlQ29kZShcIiA6IFwiKSwgYWx0XG4gICAgICAgIGlmIG8ubGV2ZWwgPj0gTEVWRUxfQ09ORCB0aGVuIEB3cmFwSW5CcmFjZXMgZnJhZ21lbnRzIGVsc2UgZnJhZ21lbnRzXG5cbiAgICB1bmZvbGRTb2FrOiAtPlxuICAgICAgICBAc29hayBhbmQgdGhpc1xuXG4jIDAwICAgICAwMCAgMDAwMDAwMDAgIDAwMDAwMDAwMCAgIDAwMDAwMDAgICBcbiMgMDAwICAgMDAwICAwMDAgICAgICAgICAgMDAwICAgICAwMDAgICAwMDAgIFxuIyAwMDAwMDAwMDAgIDAwMDAwMDAgICAgICAwMDAgICAgIDAwMDAwMDAwMCAgXG4jIDAwMCAwIDAwMCAgMDAwICAgICAgICAgIDAwMCAgICAgMDAwICAgMDAwICBcbiMgMDAwICAgMDAwICAwMDAwMDAwMCAgICAgMDAwICAgICAwMDAgICAwMDAgIFxuXG5leHBvcnRzLk1ldGFJZiA9IGNsYXNzIE1ldGFJZiBleHRlbmRzIEJhc2VcbiAgICBcbiAgICBAOiAoQGNvbmRpdGlvbiwgQGJvZHksIG9wdGlvbnMgPSB7fSkgLT5cbiAgICAgICAgXG4gICAgICAgIEBlbHNlQm9keSA9IG51bGxcbiAgICAgICAgQGlzQ2hhaW4gID0gZmFsc2VcbiAgICAgICAgeyBAc29hayB9ID0gb3B0aW9uc1xuXG4gICAgY2hpbGRyZW46IFsnY29uZGl0aW9uJywgJ2JvZHknLCAnZWxzZUJvZHknXVxuXG4gICAgIyBSZXdyaXRlIGEgY2hhaW4gb2YgSWZzIHRvIGFkZCBhIGRlZmF1bHQgY2FzZSBhcyB0aGUgZmluYWwgZWxzZS5cbiAgICBcbiAgICBhZGRFbHNlOiAoZWxzZUJvZHkpIC0+XG4gICAgICAgIFxuICAgICAgICBpZiBAaXNDaGFpblxuICAgICAgICAgICAgQGVsc2VCb2R5Py51bndyYXAoKS5hZGRFbHNlIGVsc2VCb2R5XG4gICAgICAgIGVsc2VcbiAgICAgICAgICAgIEBpc0NoYWluICA9IGVsc2VCb2R5IGluc3RhbmNlb2YgTWV0YUlmXG4gICAgICAgICAgICBAZWxzZUJvZHkgPSBAZW5zdXJlQmxvY2sgZWxzZUJvZHlcbiAgICAgICAgICAgIEBlbHNlQm9keS51cGRhdGVMb2NhdGlvbkRhdGFJZk1pc3NpbmcgZWxzZUJvZHkubG9jYXRpb25EYXRhXG4gICAgICAgIHRoaXNcblxuICAgIG1ha2VSZXR1cm46IChyZXMpIC0+XG4gICAgICAgIFxuICAgICAgICBAZWxzZUJvZHkgIG9yPSBuZXcgQmxvY2sgW25ldyBMaXRlcmFsICd2b2lkIDAnXSBpZiByZXNcbiAgICAgICAgIyBAYm9keSAgICAgYW5kPSBuZXcgQmxvY2sgW0Bib2R5Lm1ha2VSZXR1cm4gcmVzXVxuICAgICAgICBAZWxzZUJvZHkgYW5kPSBuZXcgQmxvY2sgW0BlbHNlQm9keS5tYWtlUmV0dXJuIHJlc11cbiAgICAgICAgdGhpc1xuICAgIFxuICAgICMgVGhlIElmIG9ubHkgY29tcGlsZXMgaW50byBhIHN0YXRlbWVudCBpZiBlaXRoZXIgb2YgaXRzIGJvZGllcyBuZWVkc1xuICAgICMgdG8gYmUgYSBzdGF0ZW1lbnQuIE90aGVyd2lzZSBhIGNvbmRpdGlvbmFsIG9wZXJhdG9yIGlzIHNhZmUuXG4gICAgXG4gICAgY29tcGlsZU5vZGU6IChvKSAtPlxuICAgICAgICAgICAgICBcbiAgICAgICAgIyBsb2cgJ01ldGFJZiBjb21waWxlU3RhdGVtZW50IEBjb25kaXRpb25cXG4nLCBzdHJpbmdpZnkgQGNvbmRpdGlvblxuICAgICAgICBcbiAgICAgICAgaW5mbyA9IHJlZHVjZTp0cnVlXG4gICAgICAgIFxuICAgICAgICBpZiBAY29uZGl0aW9uLmJhc2U/LnZhbHVlID09ICd0aGlzJ1xuICAgICAgICAgICAgXG4gICAgICAgICAgICBtZXRhS2V5ID0gQGNvbmRpdGlvbi5wcm9wZXJ0aWVzP1swXT8ubmFtZT8udmFsdWVcbiAgICAgICAgICAgIGlmIHR5cGVvZiBvLm1ldGFbbWV0YUtleV0gPT0gJ2Z1bmN0aW9uJ1xuICAgICAgICAgICAgICAgIGluZm8gPSBvLm1ldGFbbWV0YUtleV0gb3B0aW9uczpvLCBub2RlOkAsIGFyZ3M6W11cbiAgICAgICAgICAgICAgICBcbiAgICAgICAgZWxzZSBpZiBAY29uZGl0aW9uLnZhcmlhYmxlPy5iYXNlPy52YWx1ZSA9PSAndGhpcydcbiAgICAgICAgICAgIFxuICAgICAgICAgICAgbWV0YUtleSA9IEBjb25kaXRpb24udmFyaWFibGUucHJvcGVydGllcz9bMF0/Lm5hbWU/LnZhbHVlXG4gICAgICAgICAgICBpZiB0eXBlb2Ygby5tZXRhW21ldGFLZXldID09ICdmdW5jdGlvbidcbiAgICAgICAgICAgICAgICBhcmdzID0gQGNvbmRpdGlvbi5hcmdzLm1hcCAoYSkgLT4gXG4gICAgICAgICAgICAgICAgICAgIGEuYmFzZT8udmFsdWVcbiAgICAgICAgICAgICAgICBpbmZvID0gby5tZXRhW21ldGFLZXldIG9wdGlvbnM6bywgbm9kZTpALCBhcmdzOmFyZ3NcbiAgICAgICAgICAgIFxuICAgICAgICBpZiBub3QgaW5mby5jb2RlPyBhbmQgbm90IGluZm8uYm9keT9cbiAgICAgICAgICAgIGZyYWdtZW50cyA9IEBjb25kaXRpb24uY29tcGlsZVRvRnJhZ21lbnRzIG8sIExFVkVMX1BBUkVOXG4gICAgICAgICAgICBpbmZvLmNvZGUgPSBmcmFnbWVudHNUb1RleHQgZnJhZ21lbnRzXG4gICAgICAgICAgICB0cnlcbiAgICAgICAgICAgICAgICBpbmZvLmJvZHkgPSBldmFsIGluZm8uY29kZVxuICAgICAgICAgICAgY2F0Y2ggZXJyXG4gICAgICAgICAgICAgICAgZXJyb3IgZXJyXG4gICAgICAgICAgICBcbiAgICAgICAgaWYgaW5mby5yZWR1Y2VcbiAgICAgICAgICAgIGZyYWdtZW50cyA9IFtdXG4gICAgICAgICAgICBpZiBpbmZvLmJlZm9yZVxuICAgICAgICAgICAgICAgIGZyYWdtZW50cy5wdXNoIEBtYWtlQ29kZSBpbmZvLmJlZm9yZVxuICAgICAgICAgICAgaWYgaW5mby5ib2R5XG4gICAgICAgICAgICAgICAgYm9keSA9IEBlbnN1cmVCbG9jayhAYm9keSlcbiAgICAgICAgICAgICAgICBib2R5RnJhZ21lbnRzID0gYm9keS5jb21waWxlVG9GcmFnbWVudHMgb1xuICAgICAgICAgICAgICAgIGZyYWdtZW50cyA9IGZyYWdtZW50cy5jb25jYXQgYm9keUZyYWdtZW50c1xuICAgICAgICAgICAgZWxzZSBpZiBAZWxzZUJvZHlcbiAgICAgICAgICAgICAgICBpZiBAaXNDaGFpblxuICAgICAgICAgICAgICAgICAgICBmcmFnbWVudHMgPSBmcmFnbWVudHMuY29uY2F0IEBlbHNlQm9keS51bndyYXAoKS5jb21waWxlVG9GcmFnbWVudHMgb1xuICAgICAgICAgICAgICAgIGVsc2VcbiAgICAgICAgICAgICAgICAgICAgZnJhZ21lbnRzID0gZnJhZ21lbnRzLmNvbmNhdCBAZWxzZUJvZHkuY29tcGlsZVRvRnJhZ21lbnRzIG9cbiAgICAgICAgICAgIGlmIGluZm8uYWZ0ZXJcbiAgICAgICAgICAgICAgICBmcmFnbWVudHMucHVzaCBAbWFrZUNvZGUgaW5mby5hZnRlclxuICAgICAgICAgICAgICAgIFxuICAgICAgICAgICAgZnJhZ21lbnRzLnB1c2ggQG1ha2VDb2RlICcnIGlmIG5vdCBmcmFnbWVudHMubGVuZ3RoXG4gICAgICAgICAgICByZXR1cm4gZnJhZ21lbnRzXG4gICAgICAgIGVsc2VcbiAgICAgICAgICAgIGluZGVudCA9IG8uaW5kZW50ICsgVEFCXG4gICAgICAgICAgICBib2R5ICAgPSBAZW5zdXJlQmxvY2soQGJvZHkpLmNvbXBpbGVUb0ZyYWdtZW50cyBtZXJnZSBvLCB7aW5kZW50fVxuICAgICAgICAgICAgaWYgaW5mby5hZnRlclxuICAgICAgICAgICAgICAgIGJvZHkucHVzaCBAbWFrZUNvZGUgJ1xcbicgKyBpbmRlbnQgKyBpbmZvLmFmdGVyXG4gICAgICAgICAgICBpZlBhcnQgPSBbXS5jb25jYXQgQG1ha2VDb2RlKFwiaWYgKFwiKSwgQG1ha2VDb2RlKGluZm8uY29kZSksIEBtYWtlQ29kZShcIikge1xcblwiKSwgYm9keSwgQG1ha2VDb2RlKFwiXFxuI3tAdGFifX1cIilcbiAgICAgICAgICAgIHJldHVybiBpZlBhcnQgaWYgbm90IEBlbHNlQm9keVxuICAgICAgICAgICAgYW5zd2VyID0gaWZQYXJ0LmNvbmNhdCBAbWFrZUNvZGUoJyBlbHNlICcpXG4gICAgICAgICAgICBpZiBAaXNDaGFpblxuICAgICAgICAgICAgICAgIG8uY2hhaW5DaGlsZCA9IHllc1xuICAgICAgICAgICAgICAgIGFuc3dlciA9IGFuc3dlci5jb25jYXQgQGVsc2VCb2R5LnVud3JhcCgpLmNvbXBpbGVUb0ZyYWdtZW50cyBvLCBMRVZFTF9UT1BcbiAgICAgICAgICAgIGVsc2VcbiAgICAgICAgICAgICAgICBhbnN3ZXIgPSBhbnN3ZXIuY29uY2F0IEBtYWtlQ29kZShcIntcXG5cIiksIEBlbHNlQm9keS5jb21waWxlVG9GcmFnbWVudHMobWVyZ2Uobywge2luZGVudH0pLCBMRVZFTF9UT1ApLCBAbWFrZUNvZGUoXCJcXG4je0B0YWJ9fVwiKSAgICAgICAgICAgIFxuICAgICAgICAgICAgcmV0dXJuIGFuc3dlclxuXG4gICAgZW5zdXJlQmxvY2s6IChub2RlKSAtPiBpZiBub2RlIGluc3RhbmNlb2YgQmxvY2sgdGhlbiBub2RlIGVsc2UgbmV3IEJsb2NrIFtub2RlXVxuICAgIHVuZm9sZFNvYWs6IC0+IEBzb2FrIGFuZCB0aGlzXG4gICAganVtcHM6IChvKSAtPiBAYm9keS5qdW1wcyhvKSBvciBAZWxzZUJvZHk/Lmp1bXBzKG8pXG4gICAgICAgIFxuIyAgMDAwMDAwMCAgIDAwMDAwMDAgICAwMDAgICAwMDAgICAwMDAwMDAwICAwMDAwMDAwMDAgICAwMDAwMDAwICAgMDAwICAgMDAwICAwMDAwMDAwMDAgICAwMDAwMDAwICBcbiMgMDAwICAgICAgIDAwMCAgIDAwMCAgMDAwMCAgMDAwICAwMDAgICAgICAgICAgMDAwICAgICAwMDAgICAwMDAgIDAwMDAgIDAwMCAgICAgMDAwICAgICAwMDAgICAgICAgXG4jIDAwMCAgICAgICAwMDAgICAwMDAgIDAwMCAwIDAwMCAgMDAwMDAwMCAgICAgIDAwMCAgICAgMDAwMDAwMDAwICAwMDAgMCAwMDAgICAgIDAwMCAgICAgMDAwMDAwMCAgIFxuIyAwMDAgICAgICAgMDAwICAgMDAwICAwMDAgIDAwMDAgICAgICAgMDAwICAgICAwMDAgICAgIDAwMCAgIDAwMCAgMDAwICAwMDAwICAgICAwMDAgICAgICAgICAgMDAwICBcbiMgIDAwMDAwMDAgICAwMDAwMDAwICAgMDAwICAgMDAwICAwMDAwMDAwICAgICAgMDAwICAgICAwMDAgICAwMDAgIDAwMCAgIDAwMCAgICAgMDAwICAgICAwMDAwMDAwICAgXG5cblVUSUxJVElFUyA9XG5cbiAgICAjIENvcnJlY3RseSBzZXQgdXAgYSBwcm90b3R5cGUgY2hhaW4gZm9yIGluaGVyaXRhbmNlLCBpbmNsdWRpbmcgYSByZWZlcmVuY2VcbiAgICAjIHRvIHRoZSBzdXBlcmNsYXNzIGZvciBgc3VwZXIoKWAgY2FsbHMsIGFuZCBjb3BpZXMgb2YgYW55IHN0YXRpYyBwcm9wZXJ0aWVzLlxuICAgICAgICBcbiAgICBleHRlbmQ6IChvKSAtPiBcIlxuICAgICAgICBmdW5jdGlvbihjaGlsZCwgcGFyZW50KSB7XG4gICAgICAgICAgICBmb3IgKHZhciBrZXkgaW4gcGFyZW50KSB7XG4gICAgICAgICAgICAgICAgaWYgKCN7dXRpbGl0eSAnaGFzUHJvcCcsIG99LmNhbGwocGFyZW50LCBrZXkpKSBjaGlsZFtrZXldID0gcGFyZW50W2tleV07XG4gICAgICAgICAgICB9XG4gICAgICAgICAgICBmdW5jdGlvbiBjdG9yKCkge1xuICAgICAgICAgICAgICAgIHRoaXMuY29uc3RydWN0b3IgPSBjaGlsZDtcbiAgICAgICAgICAgIH1cbiAgICAgICAgICAgIGN0b3IucHJvdG90eXBlID0gcGFyZW50LnByb3RvdHlwZTtcbiAgICAgICAgICAgIGNoaWxkLnByb3RvdHlwZSA9IG5ldyBjdG9yKCk7XG4gICAgICAgICAgICBjaGlsZC5fX3N1cGVyX18gPSBwYXJlbnQucHJvdG90eXBlO1xuICAgICAgICAgICAgcmV0dXJuIGNoaWxkO1xuICAgICAgICB9XG4gICAgXCJcblxuICAgICMgQ3JlYXRlIGEgZnVuY3Rpb24gYm91bmQgdG8gdGhlIGN1cnJlbnQgdmFsdWUgb2YgXCJ0aGlzXCIuXG4gICAgYmluZDogLT4gJ1xuICAgICAgICBmdW5jdGlvbihmbiwgbWUpe1xuICAgICAgICAgICAgcmV0dXJuIGZ1bmN0aW9uKCl7XG4gICAgICAgICAgICAgICAgcmV0dXJuIGZuLmFwcGx5KG1lLCBhcmd1bWVudHMpO1xuICAgICAgICAgICAgfTtcbiAgICAgICAgfVxuICAgICdcblxuICAgICMgRGlzY292ZXIgaWYgYW4gaXRlbSBpcyBpbiBhbiBhcnJheS5cbiAgICBpbmRleE9mOiAtPiBcIlxuICAgICAgICBbXS5pbmRleE9mIHx8IGZ1bmN0aW9uKGl0ZW0pIHtcbiAgICAgICAgICAgIGZvciAodmFyIGkgPSAwLCBsID0gdGhpcy5sZW5ndGg7IGkgPCBsOyBpKyspIHtcbiAgICAgICAgICAgICAgICBpZiAoaSBpbiB0aGlzICYmIHRoaXNbaV0gPT09IGl0ZW0pIHJldHVybiBpO1xuICAgICAgICAgICAgfVxuICAgICAgICAgICAgcmV0dXJuIC0xO1xuICAgICAgICB9XG4gICAgXCJcblxuICAgIG1vZHVsbzogLT4gXCJcIlwiXG4gICAgICAgIGZ1bmN0aW9uKGEsIGIpIHsgcmV0dXJuICgrYSAlIChiID0gK2IpICsgYikgJSBiOyB9XG4gICAgXCJcIlwiXG5cbiAgICAjIFNob3J0Y3V0cyB0byBzcGVlZCB1cCB0aGUgbG9va3VwIHRpbWUgZm9yIG5hdGl2ZSBmdW5jdGlvbnMuXG4gICAgaGFzUHJvcDogLT4gJ3t9Lmhhc093blByb3BlcnR5J1xuICAgIHNsaWNlOiAtPiAnW10uc2xpY2UnXG5cbiMgTGV2ZWxzIGluZGljYXRlIGEgbm9kZSdzIHBvc2l0aW9uIGluIHRoZSBBU1QuIFVzZWZ1bCBmb3Iga25vd2luZyBpZlxuIyBwYXJlbnMgYXJlIG5lY2Vzc2FyeSBvciBzdXBlcmZsdW91cy5cbkxFVkVMX1RPUCAgICA9IDEgICAgIyAuLi47XG5MRVZFTF9QQVJFTiAgPSAyICAgICMgKC4uLilcbkxFVkVMX0xJU1QgICA9IDMgICAgIyBbLi4uXVxuTEVWRUxfQ09ORCAgID0gNCAgICAjIC4uLiA/IHggOiB5XG5MRVZFTF9PUCAgICAgPSA1ICAgICMgIS4uLlxuTEVWRUxfQUNDRVNTID0gNiAgICAjIC4uLlswXVxuXG5UQUIgPSAnICAgICcgIyBUYWJzIGFyZSA0IHNwYWNlcyBmb3IgcHJldHR5IHByaW50aW5nLlxuXG5TSU1QTEVOVU0gPSAvXlsrLV0/XFxkKyQvXG5cbiMgMDAwICAgMDAwICAwMDAwMDAwMCAgMDAwICAgICAgMDAwMDAwMDAgICAwMDAwMDAwMCAgMDAwMDAwMDAgICBcbiMgMDAwICAgMDAwICAwMDAgICAgICAgMDAwICAgICAgMDAwICAgMDAwICAwMDAgICAgICAgMDAwICAgMDAwICBcbiMgMDAwMDAwMDAwICAwMDAwMDAwICAgMDAwICAgICAgMDAwMDAwMDAgICAwMDAwMDAwICAgMDAwMDAwMCAgICBcbiMgMDAwICAgMDAwICAwMDAgICAgICAgMDAwICAgICAgMDAwICAgICAgICAwMDAgICAgICAgMDAwICAgMDAwICBcbiMgMDAwICAgMDAwICAwMDAwMDAwMCAgMDAwMDAwMCAgMDAwICAgICAgICAwMDAwMDAwMCAgMDAwICAgMDAwICBcblxuIyBIZWxwZXIgZm9yIGVuc3VyaW5nIHRoYXQgdXRpbGl0eSBmdW5jdGlvbnMgYXJlIGFzc2lnbmVkIGF0IHRoZSB0b3AgbGV2ZWwuXG4gICAgXG51dGlsaXR5ID0gKG5hbWUsIG8pIC0+XG4gICAge3Jvb3R9ID0gby5zY29wZVxuICAgIGlmIG5hbWUgb2Ygcm9vdC51dGlsaXRpZXNcbiAgICAgICAgcm9vdC51dGlsaXRpZXNbbmFtZV1cbiAgICBlbHNlXG4gICAgICAgIHJlZiA9IHJvb3QuZnJlZVZhcmlhYmxlIG5hbWVcbiAgICAgICAgcm9vdC5hc3NpZ24gcmVmLCBVVElMSVRJRVNbbmFtZV0gb1xuICAgICAgICByb290LnV0aWxpdGllc1tuYW1lXSA9IHJlZlxuXG5tdWx0aWRlbnQgPSAoY29kZSwgdGFiKSAtPlxuICAgIGNvZGUgPSBjb2RlLnJlcGxhY2UgL1xcbi9nLCAnJCYnICsgdGFiXG4gICAgY29kZS5yZXBsYWNlIC9cXHMrJC8sICcnXG5cbmlzTGl0ZXJhbEFyZ3VtZW50cyA9IChub2RlKSAtPlxuICAgIG5vZGUgaW5zdGFuY2VvZiBJZGVudGlmaWVyTGl0ZXJhbCBhbmQgbm9kZS52YWx1ZSBpcyAnYXJndW1lbnRzJ1xuXG5pc0xpdGVyYWxUaGlzID0gKG5vZGUpIC0+XG4gICAgbm9kZSBpbnN0YW5jZW9mIFRoaXNMaXRlcmFsIG9yXG4gICAgICAgIChub2RlIGluc3RhbmNlb2YgQ29kZSBhbmQgbm9kZS5ib3VuZCkgb3JcbiAgICAgICAgbm9kZSBpbnN0YW5jZW9mIFN1cGVyQ2FsbFxuXG5pc0NvbXBsZXhPckFzc2lnbmFibGUgPSAobm9kZSkgLT4gbm9kZS5pc0NvbXBsZXgoKSBvciBub2RlLmlzQXNzaWduYWJsZT8oKVxuXG4jIFVuZm9sZCBhIG5vZGUncyBjaGlsZCBpZiBzb2FrLCB0aGVuIHR1Y2sgdGhlIG5vZGUgdW5kZXIgY3JlYXRlZCBgSWZgXG5cbnVuZm9sZFNvYWsgPSAobywgcGFyZW50LCBuYW1lKSAtPlxuICAgIHJldHVybiB1bmxlc3MgaWZuID0gcGFyZW50W25hbWVdLnVuZm9sZFNvYWsgb1xuICAgIHBhcmVudFtuYW1lXSA9IGlmbi5ib2R5XG4gICAgaWZuLmJvZHkgPSBuZXcgVmFsdWUgcGFyZW50XG4gICAgaWZuXG4iXX0=
+//# sourceURL=../coffee/nodes.coffee

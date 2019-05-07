@@ -7,97 +7,111 @@
 000 0 000  000          000     000   000  
 000   000  00000000     000     000   000
  */
-var META, injectMeta, logMetas;
 
-META = [
-    {
-        key: 'profile',
-        desc: '@profile [id] ...',
-        meta: function(arg) {
-            var args, id, name, node, ref, ref1, ref2;
-            args = (ref = arg.args) != null ? ref : null, node = (ref1 = arg.node) != null ? ref1 : null;
-            id = (node.condition.locationData.first_line + 1) + "_" + node.condition.locationData.first_column;
-            name = (ref2 = args[0]) != null ? ref2 : id;
-            return {
-                after: "console.log('" + name + "', require('pretty-time')(process.hrtime(koffee_" + id + ")));",
-                code: "koffee_" + id + " = process.hrtime()",
-                reduce: false
-            };
+(function() {
+    var META, injectMeta, logMetas;
+
+    META = [
+        {
+            key: 'profile',
+            desc: '@profile [id] ...',
+            info: {
+                args: 1
+            },
+            meta: function(arg) {
+                var args, id, name, node, ref, ref1, ref2;
+                args = (ref = arg.args) != null ? ref : null, node = (ref1 = arg.node) != null ? ref1 : null;
+                id = (node.condition.locationData.first_line + 1) + "_" + node.condition.locationData.first_column;
+                name = (ref2 = args[0]) != null ? ref2 : id;
+                return {
+                    after: "console.log('" + name + "', require('pretty-time')(process.hrtime(koffee_" + id + ")));",
+                    code: "koffee_" + id + " = process.hrtime()",
+                    reduce: false
+                };
+            }
+        }, {
+            key: 'start',
+            desc: '@start id ...',
+            info: {
+                then: true,
+                args: 1
+            },
+            meta: function(arg) {
+                var args, id, ref, ref1;
+                args = (ref = arg.args) != null ? ref : null;
+                id = (ref1 = args[0]) != null ? ref1 : 'start_end';
+                return {
+                    before: "koffee_" + id + " = process.hrtime()",
+                    reduce: true,
+                    body: false
+                };
+            }
+        }, {
+            key: 'end',
+            desc: '@end id ...',
+            info: {
+                then: true,
+                args: 1
+            },
+            meta: function(arg) {
+                var args, id, ref, ref1;
+                args = (ref = arg.args) != null ? ref : null;
+                id = (ref1 = args[0]) != null ? ref1 : 'start_end';
+                return {
+                    before: "console.log('" + id + "', require('pretty-time')(process.hrtime(koffee_" + id + ")))",
+                    reduce: true,
+                    body: false
+                };
+            }
+        }, {
+            key: 'rand',
+            meta: function(arg) {
+                var args, ref, ref1;
+                args = (ref = arg.args) != null ? ref : null;
+                return {
+                    code: "Math.random() < " + ((ref1 = args != null ? args[0] : void 0) != null ? ref1 : 0.5),
+                    reduce: false
+                };
+            }
         }
-    }, {
-        key: 'start',
-        desc: '@start id ...',
-        meta: function(arg) {
-            var args, id, ref, ref1;
-            args = (ref = arg.args) != null ? ref : null;
-            id = (ref1 = args[0]) != null ? ref1 : 'start_end';
-            return {
-                before: "koffee_" + id + " = process.hrtime()",
-                reduce: true,
-                body: false
-            };
+    ];
+
+    injectMeta = function(options) {
+        var defaultMeta, extend, meta, ref;
+        if (options != null) {
+            options;
+        } else {
+            options = {};
         }
-    }, {
-        key: 'end',
-        desc: '@end id ...',
-        meta: function(arg) {
-            var args, id, ref, ref1;
-            args = (ref = arg.args) != null ? ref : null;
-            id = (ref1 = args[0]) != null ? ref1 : 'start_end';
-            return {
-                before: "console.log('" + id + "', require('pretty-time')(process.hrtime(koffee_" + id + ")))",
-                reduce: true,
-                body: false
-            };
-        }
-    }, {
-        key: 'rand',
-        meta: function(arg) {
-            var args, ref, ref1;
-            args = (ref = arg.args) != null ? ref : null;
-            return {
-                code: "Math.random() < " + ((ref1 = args != null ? args[0] : void 0) != null ? ref1 : 0.5),
-                reduce: false
-            };
-        }
-    }
-];
+        extend = require('./helpers').extend;
+        defaultMeta = {};
+        META.map(function(m) {
+            defaultMeta[m.key] = m.meta;
+            m.meta.key = m.key;
+            return m.meta.info = m.info;
+        });
+        meta = extend(defaultMeta, (ref = options.meta) != null ? ref : {});
+        options = extend({
+            meta: meta
+        }, options);
+        return options;
+    };
 
-injectMeta = function(options) {
-    var defaultMeta, extend, meta, ref;
-    if (options != null) {
-        options;
-    } else {
-        options = {};
-    }
-    extend = require('./helpers').extend;
-    defaultMeta = {};
-    META.map(function(m) {
-        return defaultMeta[m.key] = m.meta;
-    });
-    meta = extend(defaultMeta, (ref = options.meta) != null ? ref : {});
-    options = extend({
-        meta: meta
-    }, options);
-    return options;
-};
+    logMetas = function() {
+        var gray, pad;
+        pad = require('./helpers').pad;
+        gray = require('colorette').gray;
+        console.log((gray('Metas:')) + "\n\n" + (META.map(function(f) {
+            var ref;
+            return "    " + (pad(f.key)) + (gray((ref = f.desc) != null ? ref : "@" + f.key + " ..."));
+        }).join('\n')));
+        return console.log("    if else                 " + (gray('@if cond ... [[@elif cond ...] @else ...]')) + "\n");
+    };
 
-logMetas = function() {
-    var gray, pad;
-    pad = require('./helpers').pad;
-    gray = require('colorette').gray;
-    console.log((gray('Metas:')) + "\n\n" + (META.map(function(f) {
-        var ref;
-        return "    " + (pad(f.key)) + (gray((ref = f.desc) != null ? ref : "@" + f.key + " ..."));
-    }).join('\n')));
-    return console.log("    if else                 " + (gray('@if cond ... [[@elif cond ...] @else ...]')) + "\n");
-};
+    module.exports = {
+        META: META,
+        injectMeta: injectMeta,
+        logMetas: logMetas
+    };
 
-module.exports = {
-    META: META,
-    injectMeta: injectMeta,
-    logMetas: logMetas
-};
-
-//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoibWV0YS5qcyIsInNvdXJjZVJvb3QiOiIuIiwic291cmNlcyI6WyIiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6Ijs7QUFBQTs7Ozs7OztBQUFBLElBQUE7O0FBUUEsSUFBQSxHQUFPO0lBRUg7UUFBQSxHQUFBLEVBQUssU0FBTDtRQUNBLElBQUEsRUFBTSxtQkFETjtRQUVBLElBQUEsRUFBTSxTQUFDLEdBQUQ7QUFDRixnQkFBQTtZQURHLHdDQUFHLE1BQUcsMENBQUc7WUFDWixFQUFBLEdBQU8sQ0FBQyxJQUFJLENBQUMsU0FBUyxDQUFDLFlBQVksQ0FBQyxVQUE1QixHQUF1QyxDQUF4QyxDQUFBLEdBQTBDLEdBQTFDLEdBQTZDLElBQUksQ0FBQyxTQUFTLENBQUMsWUFBWSxDQUFDO1lBQ2hGLElBQUEscUNBQWlCO21CQUNqQjtnQkFBQSxLQUFBLEVBQVEsZUFBQSxHQUFnQixJQUFoQixHQUFxQixrREFBckIsR0FBdUUsRUFBdkUsR0FBMEUsTUFBbEY7Z0JBQ0EsSUFBQSxFQUFRLFNBQUEsR0FBVSxFQUFWLEdBQWEscUJBRHJCO2dCQUVBLE1BQUEsRUFBUSxLQUZSOztRQUhFLENBRk47S0FGRyxFQVdIO1FBQUEsR0FBQSxFQUFLLE9BQUw7UUFDQSxJQUFBLEVBQU0sZUFETjtRQUVBLElBQUEsRUFBTSxTQUFDLEdBQUQ7QUFDRixnQkFBQTtZQURHLHdDQUFHO1lBQ04sRUFBQSxxQ0FBZTttQkFDZjtnQkFBQSxNQUFBLEVBQVEsU0FBQSxHQUFVLEVBQVYsR0FBYSxxQkFBckI7Z0JBQ0EsTUFBQSxFQUFRLElBRFI7Z0JBRUEsSUFBQSxFQUFRLEtBRlI7O1FBRkUsQ0FGTjtLQVhHLEVBbUJIO1FBQUEsR0FBQSxFQUFLLEtBQUw7UUFDQSxJQUFBLEVBQU0sYUFETjtRQUVBLElBQUEsRUFBTSxTQUFDLEdBQUQ7QUFDRixnQkFBQTtZQURHLHdDQUFHO1lBQ04sRUFBQSxxQ0FBZTttQkFDZjtnQkFBQSxNQUFBLEVBQVEsZUFBQSxHQUFnQixFQUFoQixHQUFtQixrREFBbkIsR0FBcUUsRUFBckUsR0FBd0UsS0FBaEY7Z0JBQ0EsTUFBQSxFQUFRLElBRFI7Z0JBRUEsSUFBQSxFQUFRLEtBRlI7O1FBRkUsQ0FGTjtLQW5CRyxFQTJCSDtRQUFBLEdBQUEsRUFBSyxNQUFMO1FBQ0EsSUFBQSxFQUFNLFNBQUMsR0FBRDtBQUFXLGdCQUFBO1lBQVYsd0NBQUc7bUJBQU87Z0JBQUEsSUFBQSxFQUFLLGtCQUFBLEdBQWtCLDJEQUFZLEdBQVosQ0FBdkI7Z0JBQXlDLE1BQUEsRUFBTyxLQUFoRDs7UUFBWCxDQUROO0tBM0JHOzs7QUFpQ1AsVUFBQSxHQUFhLFNBQUMsT0FBRDtBQUVULFFBQUE7O1FBQUE7O1FBQUEsVUFBVzs7SUFFVCxTQUFXLE9BQUEsQ0FBUSxXQUFSO0lBRWIsV0FBQSxHQUFjO0lBQ2QsSUFBSSxDQUFDLEdBQUwsQ0FBUyxTQUFDLENBQUQ7ZUFBTyxXQUFZLENBQUEsQ0FBQyxDQUFDLEdBQUYsQ0FBWixHQUFxQixDQUFDLENBQUM7SUFBOUIsQ0FBVDtJQUVBLElBQUEsR0FBVSxNQUFBLENBQU8sV0FBUCx1Q0FBbUMsRUFBbkM7SUFDVixPQUFBLEdBQVUsTUFBQSxDQUFPO1FBQUUsSUFBQSxFQUFNLElBQVI7S0FBUCxFQUF1QixPQUF2QjtXQUNWO0FBWFM7O0FBYWIsUUFBQSxHQUFXLFNBQUE7QUFFUCxRQUFBO0lBQUUsTUFBUSxPQUFBLENBQVEsV0FBUjtJQUNSLE9BQVMsT0FBQSxDQUFRLFdBQVI7SUFBbUIsT0FBQSxDQUM5QixHQUQ4QixDQUN4QixDQUFDLElBQUEsQ0FBSyxRQUFMLENBQUQsQ0FBQSxHQUFlLE1BQWYsR0FBb0IsQ0FBRSxJQUFJLENBQUMsR0FBTCxDQUFTLFNBQUMsQ0FBRDtBQUFPLFlBQUE7ZUFBQSxNQUFBLEdBQU0sQ0FBQyxHQUFBLENBQUksQ0FBQyxDQUFDLEdBQU4sQ0FBRCxDQUFOLEdBQWtCLENBQUMsSUFBQSxnQ0FBYyxHQUFBLEdBQUksQ0FBQyxDQUFDLEdBQU4sR0FBVSxNQUF4QixDQUFEO0lBQXpCLENBQVQsQ0FBbUUsQ0FBQyxJQUFwRSxDQUF5RSxJQUF6RSxDQUFGLENBREk7V0FDK0UsT0FBQSxDQUM3RyxHQUQ2RyxDQUN6Ryw4QkFBQSxHQUE4QixDQUFDLElBQUEsQ0FBSywyQ0FBTCxDQUFELENBQTlCLEdBQWdGLElBRHlCO0FBSnRHOztBQU9YLE1BQU0sQ0FBQyxPQUFQLEdBQWlCO0lBQUUsTUFBQSxJQUFGO0lBQVEsWUFBQSxVQUFSO0lBQW9CLFVBQUEsUUFBcEIiLCJzb3VyY2VzQ29udGVudCI6WyIjIyNcbjAwICAgICAwMCAgMDAwMDAwMDAgIDAwMDAwMDAwMCAgIDAwMDAwMDAgICBcbjAwMCAgIDAwMCAgMDAwICAgICAgICAgIDAwMCAgICAgMDAwICAgMDAwICBcbjAwMDAwMDAwMCAgMDAwMDAwMCAgICAgIDAwMCAgICAgMDAwMDAwMDAwICBcbjAwMCAwIDAwMCAgMDAwICAgICAgICAgIDAwMCAgICAgMDAwICAgMDAwICBcbjAwMCAgIDAwMCAgMDAwMDAwMDAgICAgIDAwMCAgICAgMDAwICAgMDAwICBcbiMjI1xuXG5NRVRBID0gW1xuICAgIFxuICAgIGtleTogJ3Byb2ZpbGUnICAgXG4gICAgZGVzYzogJ0Bwcm9maWxlIFtpZF0gLi4uJ1xuICAgIG1ldGE6IChhcmdzOixub2RlOikgLT4gXG4gICAgICAgIGlkID0gXCIje25vZGUuY29uZGl0aW9uLmxvY2F0aW9uRGF0YS5maXJzdF9saW5lKzF9XyN7bm9kZS5jb25kaXRpb24ubG9jYXRpb25EYXRhLmZpcnN0X2NvbHVtbn1cIlxuICAgICAgICBuYW1lID0gYXJnc1swXSA/IGlkXG4gICAgICAgIGFmdGVyOiAgXCJjb25zb2xlLmxvZygnI3tuYW1lfScsIHJlcXVpcmUoJ3ByZXR0eS10aW1lJykocHJvY2Vzcy5ocnRpbWUoa29mZmVlXyN7aWR9KSkpO1wiXG4gICAgICAgIGNvZGU6ICAgXCJrb2ZmZWVfI3tpZH0gPSBwcm9jZXNzLmhydGltZSgpXCJcbiAgICAgICAgcmVkdWNlOiBmYWxzZVxuLFxuICAgIGtleTogJ3N0YXJ0JyAgIFxuICAgIGRlc2M6ICdAc3RhcnQgaWQgLi4uJ1xuICAgIG1ldGE6IChhcmdzOikgLT4gXG4gICAgICAgIGlkID0gYXJnc1swXSA/ICdzdGFydF9lbmQnXG4gICAgICAgIGJlZm9yZTogXCJrb2ZmZWVfI3tpZH0gPSBwcm9jZXNzLmhydGltZSgpXCJcbiAgICAgICAgcmVkdWNlOiB0cnVlXG4gICAgICAgIGJvZHk6ICAgZmFsc2VcbixcbiAgICBrZXk6ICdlbmQnICAgICBcbiAgICBkZXNjOiAnQGVuZCBpZCAuLi4nXG4gICAgbWV0YTogKGFyZ3M6KSAtPiBcbiAgICAgICAgaWQgPSBhcmdzWzBdID8gJ3N0YXJ0X2VuZCdcbiAgICAgICAgYmVmb3JlOiBcImNvbnNvbGUubG9nKCcje2lkfScsIHJlcXVpcmUoJ3ByZXR0eS10aW1lJykocHJvY2Vzcy5ocnRpbWUoa29mZmVlXyN7aWR9KSkpXCJcbiAgICAgICAgcmVkdWNlOiB0cnVlXG4gICAgICAgIGJvZHk6ICAgZmFsc2VcbiwgICAgICAgIFxuICAgIGtleTogJ3JhbmQnICAgIFxuICAgIG1ldGE6IChhcmdzOikgLT4gY29kZTpcIk1hdGgucmFuZG9tKCkgPCAje2FyZ3M/WzBdID8gMC41fVwiIHJlZHVjZTpmYWxzZSAgIFxuICAgIFxuICAgICMga2V5OiAndG9rZW4nICdwYXJzZScgJ2NvZGUnICd0ZXN0JyAnYXNzZXJ0JyAnZGJnJyBcbl1cblxuaW5qZWN0TWV0YSA9IChvcHRpb25zKSAtPiAjIG1ha2Ugc3VyZSB0aGF0IG9wdGlvbnMgaGFzIGEgbWV0YSBzZXRcbiAgICBcbiAgICBvcHRpb25zID89IHt9XG4gICAgXG4gICAgeyBleHRlbmQgfSA9IHJlcXVpcmUgJy4vaGVscGVycydcbiAgICBcbiAgICBkZWZhdWx0TWV0YSA9IHt9XG4gICAgTUVUQS5tYXAgKG0pIC0+IGRlZmF1bHRNZXRhW20ua2V5XSA9IG0ubWV0YVxuICAgIFxuICAgIG1ldGEgICAgPSBleHRlbmQgZGVmYXVsdE1ldGEsIG9wdGlvbnMubWV0YSA/IHt9XG4gICAgb3B0aW9ucyA9IGV4dGVuZCB7IG1ldGE6IG1ldGEgfSwgb3B0aW9uc1xuICAgIG9wdGlvbnNcblxubG9nTWV0YXMgPSAtPlxuICAgIFxuICAgIHsgcGFkIH0gPSByZXF1aXJlICcuL2hlbHBlcnMnXG4gICAgeyBncmF5IH0gPSByZXF1aXJlICdjb2xvcmV0dGUnXG4gICAgbG9nIFwiI3tncmF5ICdNZXRhczonfVxcblxcbiN7IE1FVEEubWFwKChmKSAtPiBcIiAgICAje3BhZCBmLmtleX0je2dyYXkgZi5kZXNjID8gXCJAI3tmLmtleX0gLi4uXCJ9XCIpLmpvaW4oJ1xcbicpIH1cIlxuICAgIGxvZyBcIiAgICBpZiBlbHNlICAgICAgICAgICAgICAgICAje2dyYXkgJ0BpZiBjb25kIC4uLiBbW0BlbGlmIGNvbmQgLi4uXSBAZWxzZSAuLi5dJ31cXG5cIlxuICAgIFxubW9kdWxlLmV4cG9ydHMgPSB7IE1FVEEsIGluamVjdE1ldGEsIGxvZ01ldGFzIH1cbiJdfQ==
-//# sourceURL=../coffee/meta.coffee
+}).call(this);

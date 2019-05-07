@@ -2953,12 +2953,15 @@ exports.MetaIf = class MetaIf extends Base
             if typeof o.meta[metaKey] == 'function'
                 args = @condition.args.map (a) -> 
                     a.base?.value
+                args = args.map (a) -> if a[0] in ['"', "'"] then a[1..-2] else a
                 info = o.meta[metaKey] options:o, node:@, args:args
             
         if not info.code? and not info.body?
             fragments = @condition.compileToFragments o, LEVEL_PAREN
             info.code = fragmentsToText fragments
             try
+                os = require 'os'
+                fs = require 'fs'
                 info.body = eval info.code
             catch err
                 error err

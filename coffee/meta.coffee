@@ -10,6 +10,8 @@ META = [
     
     key: 'profile'   
     desc: '@profile [id] ...'
+    info:
+        args: 1
     meta: (args:,node:) -> 
         id = "#{node.condition.locationData.first_line+1}_#{node.condition.locationData.first_column}"
         name = args[0] ? id
@@ -17,16 +19,22 @@ META = [
         code:   "koffee_#{id} = process.hrtime()"
         reduce: false
 ,
-    key: 'start'   
+    key:  'start'   
     desc: '@start id ...'
+    info:
+        then: true
+        args: 1
     meta: (args:) -> 
         id = args[0] ? 'start_end'
         before: "koffee_#{id} = process.hrtime()"
         reduce: true
         body:   false
 ,
-    key: 'end'     
+    key:  'end'     
     desc: '@end id ...'
+    info:
+        then: true
+        args: 1
     meta: (args:) -> 
         id = args[0] ? 'start_end'
         before: "console.log('#{id}', require('pretty-time')(process.hrtime(koffee_#{id})))"
@@ -46,7 +54,7 @@ injectMeta = (options) -> # make sure that options has a meta set
     { extend } = require './helpers'
     
     defaultMeta = {}
-    META.map (m) -> defaultMeta[m.key] = m.meta
+    META.map (m) -> defaultMeta[m.key] = m.meta; m.meta.key = m.key; m.meta.info = m.info
     
     meta    = extend defaultMeta, options.meta ? {}
     options = extend { meta: meta }, options

@@ -14,6 +14,7 @@ FEATURES = [
     { flag: 'negative-index'        key: 'negative_index'        desc: 'replace a[-1] with a[-1..-1]'      enabled: true  }
     { flag: 'optional-commata'      key: 'optional_commata'      desc: 'insert commata when possible'      enabled: true  }
     { flag: 'rewrite'               key: 'rewrite'               desc: 'rewrite tokens'                    enabled: true  }
+    { flag: 'meta'                  key: 'meta'                  desc: 'meta'                              enabled: true  }
 ]
 
 hasFeature = (options, feature) -> options?.feature?[feature] != false

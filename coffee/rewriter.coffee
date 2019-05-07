@@ -168,6 +168,32 @@ class Rewriter
                         if match.index == 0 or @tag(match.index-1) not in ['IDENTIFIER' 'CALL_END'] 
                             tokens.splice i+1, 0, @generate ',', ','
                             return 2
+                            
+            if hasFeature @opts, 'meta'
+                if @check i-1, '@', i, 'PROPERTY'
+                    if @tag(i-2) not in ['META_IF']
+                        if token[1] in Object.keys @opts.meta
+                            meta = @opts.meta[token[1]]
+                            tokens.splice i-1, 0, @generate 'META_IF', 'if'
+                            adv = 2
+                            if @tag(i+adv) == 'CALL_START'
+                                while @tag(i+adv++) not in ['CALL_END', ')', 'TERMINATOR']
+                                    true
+                            else
+                                arg = 0
+                                for a in [0...(meta.info.args ? 0)]
+                                    if @tag(i+adv) in ['IDENTIFIER', 'NUMBER', 'STRING']
+                                        arg++ # argument found
+                                        adv++
+                                    else
+                                        break
+                                if arg == 0
+                                    tokens.splice i+adv, 0, @generate('CALL_START', '('), @generate('CALL_END', ')')
+                                    adv += 2
+                            if meta.info.then or @tag(i+adv) not in ['TERMINATOR', 'INDENT', 'CALL_START']
+                                tokens.splice i+adv++, 0, @generate 'THEN', 'then'
+                            return adv
+                
             1
     
     negativeIndex: ->
@@ -644,7 +670,8 @@ class Rewriter
             tag is 'TERMINATOR' or (tag is 'INDENT' and prevTag not in SINGLE_LINERS)
 
         action = (token, i) ->
-            if token[0] != 'INDENT' or (token.generated and not token.fromThen)
+            if token[0] not in ['INDENT', 'TERMINATOR'] or (token.generated and not token.fromThen)
+                log 'instertPOST_', original, token, i
                 original[0] = 'POST_' + original[0]
 
         @scanTokens (token, i) ->

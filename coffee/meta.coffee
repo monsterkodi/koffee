@@ -8,7 +8,7 @@
 
 path = require 'path'
 
-{ red, green, blue, blueBright, yellow, yellowBright, white, whiteBright, gray, bold, dim } = require 'colorette'
+{ red, green, blue, blueBright, yellow, yellowBright, white, whiteBright, gray, bold, dim, options } = require 'colorette'
 
 META = [
     
@@ -19,7 +19,6 @@ META = [
     # 000        000   000   0000000   000       000  0000000  00000000  
     key:  'profile'   
     desc: '@profile [id] ...'
-    info: args: 1
     meta: (args:,node:) -> 
         
         id = "#{node.condition.locationData.first_line+1}_#{node.condition.locationData.first_column}"
@@ -67,7 +66,6 @@ META = [
         then: true
         args: 1
     meta: (opts:,args:,node:) ->
-        # code:   "opts.Debug"
         code:   "true"
         eval:   true
         before: logSource opts:opts, args:args, node:node
@@ -83,11 +81,10 @@ META = [
     key: 'test'
     desc: '@test id ...'
     meta: (opts:,args:,node:) ->
-        log opts
-        code:   false
         before: opts.test and logSource opts:opts, args:args, node:node, close:true
+        skip:   not opts.test
         reduce: true
-        body:   opts.test
+        body:   true
 ,        
     # 00000000    0000000   000   000  0000000    
     # 000   000  000   000  0000  000  000   000  
@@ -95,7 +92,6 @@ META = [
     # 000   000  000   000  000  0000  000   000  
     # 000   000  000   000  000   000  0000000    
     key: 'rand'    
-    info: args: 1
     meta: (args:) -> 
         code:"Math.random() < #{args?[0] ? 0.5}" 
         reduce:false 
@@ -116,7 +112,7 @@ compileMetaIf = (node:,opts:) ->
 
     { Block, Assign, Value, Literal } = require './nodes'
     
-    info = reduce:true
+    info = reduce:true, eval:true
     
     if node.condition.base?.value == 'this'
         
@@ -133,7 +129,9 @@ compileMetaIf = (node:,opts:) ->
             args = args.map (a) -> if a[0] in ['"', "'"] then a[1..-2] else a
             info = opts.meta[metaKey] opts:opts, node:node, args:args
         
-    if info.eval or not info.code?
+    if info.skip then return []
+    
+    if info.eval
         
         cond = info.code ? node.fragmentsToText node.condition.compileToFragments opts, 2 #LEVEL_PAREN
         try
@@ -179,12 +177,10 @@ compileMetaIf = (node:,opts:) ->
     if node.elseBody and (info.reduce == false or info.body == false)
         frag.push node.makeCode ' else ' if not info.reduce
         if node.isChain
-            frag = frag.concat node.elseBody.unwrap().compileToFragments bodyOpt# , 1 # LEVEL_TOP???
+            frag = frag.concat node.elseBody.unwrap().compileToFragments bodyOpt
         else
             frag = frag.concat node.elseBody.compileToFragments bodyOpt
         
-    # frag.push node.makeCode '' if not frag.length
-    # log frag
     return frag
     
 # utility = (name, o) ->
@@ -196,8 +192,15 @@ compileMetaIf = (node:,opts:) ->
         # root.assign ref, UTILITIES[name] o # <- adds utility to top level scope
         # root.utilities[name] = ref
 
+#  0000000   0000000   000   000  00000000    0000000  00000000  
+# 000       000   000  000   000  000   000  000       000       
+# 0000000   000   000  000   000  0000000    000       0000000   
+#      000  000   000  000   000  000   000  000       000       
+# 0000000    0000000    0000000   000   000   0000000  00000000  
+
 logSource = (opts:,args:,node:,close:) ->
     
+    options.enabled = opts.feature.color
     source = opts.source ? opts.filename ? ''
     ext = ''
     if source

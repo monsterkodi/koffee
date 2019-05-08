@@ -111,6 +111,7 @@ TAB = '    '
 compileMetaIf = (node:,opts:) ->
 
     { Block, Assign, Value, Literal } = require './nodes'
+    { merge } = require './helpers'
     
     info = reduce:true, eval:true
     

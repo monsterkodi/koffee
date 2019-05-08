@@ -239,12 +239,10 @@ egal = (a, b) ->
   else
     a != a and b != b
     
-# A recursive functional equivalence helper; uses egal for testing equivalence.
-    
 arrayEgal = (a, b) ->
   if egal a, b then yes
   else if a instanceof Array and b instanceof Array
-    return no unless a.length is b.length
+    return no if a.length != b.length
     return no for el, idx in a when not arrayEgal el, b[idx]
     yes
 

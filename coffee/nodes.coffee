@@ -19,6 +19,8 @@ Error.stackTraceLimit = Infinity
 { compact, flatten, extend, merge, del, starts, ends, some, injectFeature, hasFeature, injectMeta,
   addLocationDataFn, locationDataToString, throwSyntaxError, stringify } = require './helpers'
 
+{ compileMetaIf } = require './meta'
+  
 exports.extend = extend
 exports.addLocationDataFn = addLocationDataFn
 
@@ -50,10 +52,6 @@ exports.CodeFragment = class CodeFragment
         
         "#{@code}#{if @locationData then ": " + locationDataToString(@locationData) else ''}"
 
-fragmentsToText = (fragments) -> # Convert an array of CodeFragments into a string.
-    
-    (fragment.code for fragment in fragments).join('')
-
 # 0000000     0000000    0000000  00000000  
 # 000   000  000   000  000       000       
 # 0000000    000000000  0000000   0000000   
@@ -72,7 +70,11 @@ fragmentsToText = (fragments) -> # Convert an array of CodeFragments into a stri
 
 exports.Base = class Base
 
-    compile: (o, lvl) -> fragmentsToText @compileToFragments o, lvl
+    fragmentsToText: (fragments) -> # Convert an array of CodeFragments into a string.
+    
+        (fragment.code for fragment in fragments).join('')
+    
+    compile: (o, lvl) -> @fragmentsToText @compileToFragments o, lvl
 
     # Common logic for determining whether to wrap this node in a closure before compiling it, or to compile directly. 
     # We need to wrap if this node is a statement, and it's not a pureStatement, and we're not at the top level of a block (which would be unnecessary), 
@@ -136,7 +138,7 @@ exports.Base = class Base
 
     cacheToCodeFragments: (cacheValues) ->
         
-        [fragmentsToText(cacheValues[0]), fragmentsToText(cacheValues[1])]
+        [@fragmentsToText(cacheValues[0]), @fragmentsToText(cacheValues[1])]
 
     # Construct a node that returns the current node's result.
     # This is overridden for smarter behavior for many statement nodes (e.g. If, For)...
@@ -645,7 +647,7 @@ exports.Value = class Value extends Base
         @base.front = @front
         props = @properties
         fragments = @base.compileToFragments o, (if props.length then LEVEL_ACCESS else null)
-        if props.length and SIMPLENUM.test fragmentsToText fragments
+        if props.length and SIMPLENUM.test @fragmentsToText fragments
             fragments.push @makeCode '.'
         for prop in props
             fragments.push (prop.compileToFragments o)...
@@ -826,9 +828,9 @@ exports.Call = class Call extends Base
                 name.compileToFragments(o)
         else
             fun = base.compileToFragments o, LEVEL_ACCESS
-            fun = @wrapInBraces fun if SIMPLENUM.test fragmentsToText fun
+            fun = @wrapInBraces fun if SIMPLENUM.test @fragmentsToText fun
             if name
-                ref = fragmentsToText fun
+                ref = @fragmentsToText fun
                 fun.push (name.compileToFragments o)...
             else
                 ref = 'null'
@@ -1092,7 +1094,7 @@ exports.Range = class Range extends Base
         pre    = "\n#{idt}#{result} = [];"
         if known
             o.index = i
-            body = fragmentsToText @compileNode o
+            body = @fragmentsToText @compileNode o
         else
             vars = "#{i} = #{@fromC}" + if @toC != @toVar then ", #{@toC}" else ''
             cond = "#{@fromVar} <= #{@toVar}"
@@ -1129,7 +1131,7 @@ exports.Slice = class Slice extends Base
         # TODO: jwalton - move this into the 'if'?
         if to
             compiled         = to.compileToFragments o, LEVEL_PAREN
-            compiledText = fragmentsToText compiled
+            compiledText = @fragmentsToText compiled
             if not (not @range.exclusive and +compiledText is -1)
                 toStr = ', ' + if @range.exclusive
                     compiledText
@@ -1137,8 +1139,8 @@ exports.Slice = class Slice extends Base
                     "#{+compiledText + 1}"
                 else
                     compiled = to.compileToFragments o, LEVEL_ACCESS
-                    "+#{fragmentsToText compiled} + 1 || 9e9"
-        [@makeCode ".slice(#{ fragmentsToText fromCompiled }#{ toStr or '' })"]
+                    "+#{@fragmentsToText compiled} + 1 || 9e9"
+        [@makeCode ".slice(#{ @fragmentsToText fromCompiled }#{ toStr or '' })"]
 
 #  0000000   0000000          000  00000000   0000000  000000000  
 # 000   000  000   000        000  000       000          000     
@@ -1236,7 +1238,7 @@ exports.Arr = class Arr extends Base
             if index
                 answer.push @makeCode ", "
             answer.push fragments...
-        if fragmentsToText(answer).indexOf('\n') >= 0
+        if @fragmentsToText(answer).indexOf('\n') >= 0
             answer.unshift @makeCode "[\n#{o.indent}"
             answer.push @makeCode "\n#{@tab}]"
         else
@@ -1675,7 +1677,7 @@ exports.Assign = class Assign extends Base
         compiledName = @variable.compileToFragments o, LEVEL_LIST
 
         if @context is 'object'
-            if fragmentsToText(compiledName) in JS_FORBIDDEN
+            if @fragmentsToText(compiledName) in JS_FORBIDDEN
                 compiledName.unshift @makeCode '"'
                 compiledName.push @makeCode '"'
             return compiledName.concat @makeCode(": "), val
@@ -1740,7 +1742,7 @@ exports.Assign = class Assign extends Base
             return new Assign(obj, value, null, param: @param).compileToFragments o, LEVEL_TOP
             
         vvar     = value.compileToFragments o, LEVEL_LIST
-        vvarText = fragmentsToText vvar
+        vvarText = @fragmentsToText vvar
         assigns  = []
         expandedIdx = false
         # Make vvar into a simple variable if it isn't already.
@@ -1936,7 +1938,7 @@ exports.Code = class Code extends Base
         @body.expressions.unshift exprs... if exprs.length
         for p, i in params
             params[i] = p.compileToFragments o
-            o.scope.parameter fragmentsToText params[i]
+            o.scope.parameter @fragmentsToText params[i]
         uniqs = []
         
         @eachParamName (name, node) ->
@@ -2431,7 +2433,7 @@ exports.In = class In extends Base
         [sub, ref] = @object.cache o, LEVEL_LIST
         fragments = [].concat @makeCode(utility('indexOf', o) + ".call("), @array.compileToFragments(o, LEVEL_LIST),
             @makeCode(", "), ref, @makeCode(") " + if @negated then '< 0' else '>= 0')
-        return fragments if fragmentsToText(sub) is fragmentsToText(ref)
+        return fragments if @fragmentsToText(sub) is @fragmentsToText(ref)
         fragments = sub.concat @makeCode(', '), fragments
         if o.level < LEVEL_LIST then fragments else @wrapInBraces fragments
 
@@ -2939,86 +2941,8 @@ exports.MetaIf = class MetaIf extends Base
               
         # log 'MetaIf compileStatement @condition\n', stringify @condition
         
-        info = reduce:true
+        compileMetaIf node:@, opts:o
         
-        if @condition.base?.value == 'this'
-            
-            metaKey = @condition.properties?[0]?.name?.value
-            if typeof o.meta[metaKey] == 'function'
-                info = o.meta[metaKey] opts:o, node:@, args:[]
-                
-        else if @condition.variable?.base?.value == 'this'
-            
-            metaKey = @condition.variable.properties?[0]?.name?.value
-            if typeof o.meta[metaKey] == 'function'
-                args = @condition.args.map (a) -> 
-                    a.base?.value
-                args = args.map (a) -> if a[0] in ['"', "'"] then a[1..-2] else a
-                info = o.meta[metaKey] opts:o, node:@, args:args
-            
-        if info.eval or not info.code?
-            cond = info.code ? fragmentsToText @condition.compileToFragments o, LEVEL_PAREN
-            try
-                os = require 'os'
-                fs = require 'fs'
-                info.body =!! eval cond
-                if info.eval and info.reduce and not info.body and not @elseBody
-                    return []
-                # @dbg conditionResult:info.body for:cond
-            catch err
-                error err
-            
-        frag = []
-        
-        @dbg info
-                    
-        if info.reduce == false
-            frag = frag.concat @makeCode("if ("), @makeCode(info.code), @makeCode(") {\n")
-            
-            indent = o.indent + TAB
-            bodyOpt = merge o, {indent}
-        else
-            indent = o.indent
-            bodyOpt = o
-
-        if info.before
-            if info.block == false
-                frag.push @makeCode info.before
-            else
-                frag.push @makeCode indent + info.before
-            
-        if info.body
-            if info.block != false
-                body = @ensureBlock @body
-            else
-                # log 'NOBLOCK', @body instanceof Block
-                if @body instanceof Block
-                    # log 'deblock', @body
-                    body = @body.expressions[0]
-                else
-                    body = @body
-            frag = frag.concat body.compileToFragments bodyOpt
-            
-        if info.after
-            if info.block == false
-                frag.push @makeCode info.after
-            else
-                frag.push @makeCode '\n' + indent + info.after
-
-        if not info.reduce
-            frag.push @makeCode("\n#{@tab}}")
-                        
-        if @elseBody and (info.reduce == false or info.body == false)
-            frag.push @makeCode ' else ' if not info.reduce
-            if @isChain
-                frag = frag.concat @elseBody.unwrap().compileToFragments bodyOpt #, LEVEL_TOP  ???
-            else
-                frag = frag.concat @elseBody.compileToFragments bodyOpt
-            
-        # frag.push @makeCode '' if not frag.length
-        # log frag
-        return frag
-
     ensureBlock: (node) -> if node instanceof Block then node else new Block [node]
     unfoldSoak: -> @soak and this
     jumps: (o) -> @body.jumps(o) or @elseBody?.jumps(o)

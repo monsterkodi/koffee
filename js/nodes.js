@@ -3971,6 +3971,7 @@
                 }
             }
             frag = [];
+            ;
             if (info.reduce === false) {
                 frag = frag.concat(this.makeCode("if ("), this.makeCode(info.code), this.makeCode(") {\n"));
                 indent = o.indent + TAB;
@@ -3982,15 +3983,17 @@
                 bodyOpt = o;
             }
             if (info.before) {
-                frag.push(this.makeCode(indent + info.before));
+                if (info.block === false) {
+                    frag.push(this.makeCode(info.before));
+                } else {
+                    frag.push(this.makeCode(indent + info.before));
+                }
             }
             if (info.body) {
                 if (info.block !== false) {
                     body = this.ensureBlock(this.body);
                 } else {
-                    console.log('NOBLOCK', this.body instanceof Block);
                     if (this.body instanceof Block) {
-                        console.log('deblock', this.body);
                         body = this.body.expressions[0];
                     } else {
                         body = this.body;
@@ -3999,7 +4002,11 @@
                 frag = frag.concat(body.compileToFragments(bodyOpt));
             }
             if (info.after) {
-                frag.push(this.makeCode('\n' + indent + info.after));
+                if (info.block === false) {
+                    frag.push(this.makeCode(info.after));
+                } else {
+                    frag.push(this.makeCode('\n' + indent + info.after));
+                }
             }
             if (!info.reduce) {
                 frag.push(this.makeCode("\n" + this.tab + "}"));

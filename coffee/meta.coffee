@@ -47,17 +47,25 @@ META = [
     info:
         then: true
         args: 1
-    meta: (opts:,args:) ->
+    meta: (opts:,args:,node:) ->
         # log opts, args
+        
+        before  = "console.log('#{require('path').basename(opts.source)}:#{node.condition.locationData.first_line+1}'"
+        before += ", '#{args[0]}'" if args[0] 
+        before += ", "
+        
         code:   "o.Debug"
         eval:   true
-        before: "console.log('#{require('path').basename(opts.source)}: '+'#{args[0] ? ''}', "
-        after:  ");"
+        before: before
+        after:  ")"
         reduce: true
         block:  false
 ,        
     key: 'rand'    
-    meta: (args:) -> code:"Math.random() < #{args?[0] ? 0.5}" reduce:false   
+    meta: (args:) -> 
+        code:"Math.random() < #{args?[0] ? 0.5}" 
+        reduce:false 
+        body:true   
     
     # key: 'token' 'parse' 'code' 'test' 'assert' 'dbg' 
 ]

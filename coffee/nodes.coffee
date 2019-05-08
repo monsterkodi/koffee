@@ -2970,10 +2970,10 @@ exports.MetaIf = class MetaIf extends Base
             
         frag = []
         
-        # @dbg info
+        @dbg info
                     
         if info.reduce == false
-            frag = frag.concat @makeCode("if ("), @makeCode(info.code), @makeCode(") {\n")#, body, @makeCode("\n#{@tab}}")
+            frag = frag.concat @makeCode("if ("), @makeCode(info.code), @makeCode(") {\n")
             
             indent = o.indent + TAB
             bodyOpt = merge o, {indent}
@@ -2982,22 +2982,28 @@ exports.MetaIf = class MetaIf extends Base
             bodyOpt = o
 
         if info.before
-            frag.push @makeCode indent + info.before
+            if info.block == false
+                frag.push @makeCode info.before
+            else
+                frag.push @makeCode indent + info.before
             
         if info.body
             if info.block != false
                 body = @ensureBlock @body
             else
-                log 'NOBLOCK', @body instanceof Block
+                # log 'NOBLOCK', @body instanceof Block
                 if @body instanceof Block
-                    log 'deblock', @body
+                    # log 'deblock', @body
                     body = @body.expressions[0]
                 else
                     body = @body
             frag = frag.concat body.compileToFragments bodyOpt
             
         if info.after
-            frag.push @makeCode '\n' + indent + info.after
+            if info.block == false
+                frag.push @makeCode info.after
+            else
+                frag.push @makeCode '\n' + indent + info.after
 
         if not info.reduce
             frag.push @makeCode("\n#{@tab}}")

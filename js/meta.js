@@ -72,13 +72,18 @@
                 args: 1
             },
             meta: function(arg) {
-                var args, opts, ref, ref1, ref2;
-                opts = (ref = arg.opts) != null ? ref : null, args = (ref1 = arg.args) != null ? ref1 : null;
+                var args, before, node, opts, ref, ref1, ref2;
+                opts = (ref = arg.opts) != null ? ref : null, args = (ref1 = arg.args) != null ? ref1 : null, node = (ref2 = arg.node) != null ? ref2 : null;
+                before = "console.log('" + (require('path').basename(opts.source)) + ":" + (node.condition.locationData.first_line + 1) + "'";
+                if (args[0]) {
+                    before += ", '" + args[0] + "'";
+                }
+                before += ", ";
                 return {
                     code: "o.Debug",
                     "eval": true,
-                    before: "console.log('" + (require('path').basename(opts.source)) + ": '+'" + ((ref2 = args[0]) != null ? ref2 : '') + "', ",
-                    after: ");",
+                    before: before,
+                    after: ")",
                     reduce: true,
                     block: false
                 };
@@ -90,7 +95,8 @@
                 args = (ref = arg.args) != null ? ref : null;
                 return {
                     code: "Math.random() < " + ((ref1 = args != null ? args[0] : void 0) != null ? ref1 : 0.5),
-                    reduce: false
+                    reduce: false,
+                    body: true
                 };
             }
         }

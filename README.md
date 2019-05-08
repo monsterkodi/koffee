@@ -119,10 +119,10 @@ on macOS, on other platforms it will produce
 process.exit(0);
 ```
 
-If the condition part of `@if` starts with a `@`, a lookup will made into the compile options meta map.
+If the condition part of `@if` starts with a `@`, a lookup will be made into the compile options meta map.
 If a matching entry is found, the provided coffeescript blocks can be modified arbitrarily before they are written to JavaScript.
 
-The default map includes some simple but useful examples. 
+The default map includes some simple but useful examples that use this feature. 
 
 ```coffeescript
                                  # log file position and object

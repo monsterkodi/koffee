@@ -14,16 +14,16 @@
 exports.Scope = class Scope
 
     # Initialize a scope with its parent, for lookups up the chain,
-    # as well as a reference to the **Block** node it belongs to, 
+    # as well as a reference to the Block node it belongs to, 
     # which is where it should declare its variables, a reference to the function that it belongs to, 
     # and a list of variables referenced in the source code and therefore should be avoided when generating variables.
     
     @: (@parent, @expressions, @method, @referencedVars) ->
         @variables = [{name: 'arguments', type: 'arguments'}]
         @positions = {}
-        @utilities = {} unless @parent
+        @utilities = {} if not @parent
 
-        # The `@root` is the top-level **Scope** object for a given file.
+        # The `@root` is the top-level Scope object for a given file.
 
         @root = @parent?.root ? this
 
@@ -96,8 +96,7 @@ exports.Scope = class Scope
         @add temp, 'var', yes if options.reserve ? true
         temp
 
-    # Ensure that an assignment is made at the top of this scope
-    # (or at the top-level scope, if requested).
+    # Ensure that an assignment is made at the top of this scope (or at the top-level scope, if requested).
 
     assign: (name, value) ->
         @add name, {value, assigned: yes}, yes
@@ -105,16 +104,13 @@ exports.Scope = class Scope
 
     # Does this scope have any declared variables?
 
-    hasDeclarations: ->
-        !!@declaredVariables().length
+    hasDeclarations: -> !!@declaredVariables().length
 
     # Return the list of variables first declared in this scope.
 
-    declaredVariables: ->
-        (v.name for v in @variables when v.type is 'var').sort()
+    declaredVariables: -> (v.name for v in @variables when v.type is 'var').sort()
 
-    # Return the list of assignments that are supposed to be made at the top
-    # of this scope.
+    # Return the list of assignments that are supposed to be made at the top of this scope.
 
-    assignedVariables: ->
-        "#{v.name} = #{v.type.value}" for v in @variables when v.type.assigned
+    assignedVariables: -> "#{v.name} = #{v.type.value}" for v in @variables when v.type.assigned
+        

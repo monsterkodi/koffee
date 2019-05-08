@@ -6,13 +6,22 @@
 000   000  00000000     000     000   000  
 ###
 
+path = require 'path'
+
+{ red, green, blue, blueBright, yellow, yellowBright, white, whiteBright, gray, bold, dim } = require 'colorette'
+
 META = [
     
+    # 00000000   00000000    0000000   00000000  000  000      00000000  
+    # 000   000  000   000  000   000  000       000  000      000       
+    # 00000000   0000000    000   000  000000    000  000      0000000   
+    # 000        000   000  000   000  000       000  000      000       
+    # 000        000   000   0000000   000       000  0000000  00000000  
     key:  'profile'   
     desc: '@profile [id] ...'
-    info:
-        args: 1
+    info: args: 1
     meta: (args:,node:) -> 
+        
         id = "#{node.condition.locationData.first_line+1}_#{node.condition.locationData.first_column}"
         name = args[0] ? id
         after:  "console.log('#{name}', require('pretty-time')(process.hrtime(koffee_#{id})));"
@@ -20,6 +29,11 @@ META = [
         reduce: false
         body:   true
 ,
+    #  0000000  000000000   0000000   00000000   000000000  
+    # 000          000     000   000  000   000     000     
+    # 0000000      000     000000000  0000000       000     
+    #      000     000     000   000  000   000     000     
+    # 0000000      000     000   000  000   000     000     
     key:  'start'   
     desc: '@start id ...'
     info:
@@ -42,32 +56,52 @@ META = [
         reduce: true
         body:   false
 ,        
+    # 0000000    0000000     0000000   
+    # 000   000  000   000  000        
+    # 000   000  0000000    000  0000  
+    # 000   000  000   000  000   000  
+    # 0000000    0000000     0000000   
     key: 'dbg'    
     desc: '@dbg msg ...'
     info:
         then: true
         args: 1
     meta: (opts:,args:,node:) ->
-        # log opts, args
-        
-        before  = "console.log('#{require('path').basename(opts.source)}:#{node.condition.locationData.first_line+1}'"
-        before += ", '#{args[0]}'" if args[0] 
-        before += ", "
-        
-        code:   "o.Debug"
+        # code:   "opts.Debug"
+        code:   "true"
         eval:   true
-        before: before
+        before: logSource opts:opts, args:args, node:node
         after:  ")"
         reduce: true
         block:  false
+,    
+    # 000000000  00000000   0000000  000000000  
+    #    000     000       000          000     
+    #    000     0000000   0000000      000     
+    #    000     000            000     000     
+    #    000     00000000  0000000      000     
+    key: 'test'
+    desc: '@test id ...'
+    meta: (opts:,args:,node:) ->
+        log opts
+        code:   false
+        before: opts.test and logSource opts:opts, args:args, node:node, close:true
+        reduce: true
+        body:   opts.test
 ,        
+    # 00000000    0000000   000   000  0000000    
+    # 000   000  000   000  0000  000  000   000  
+    # 0000000    000000000  000 0 000  000   000  
+    # 000   000  000   000  000  0000  000   000  
+    # 000   000  000   000  000   000  0000000    
     key: 'rand'    
+    info: args: 1
     meta: (args:) -> 
         code:"Math.random() < #{args?[0] ? 0.5}" 
         reduce:false 
         body:true   
     
-    # key: 'token' 'parse' 'code' 'test' 'assert' 'dbg' 
+    # key: 'token' 'parse' 'code' 'test' 'assert'
 ]
 
 #  0000000   0000000   00     00  00000000   000  000      00000000  
@@ -80,6 +114,8 @@ TAB = '    '
 
 compileMetaIf = (node:,opts:) ->
 
+    { Block, Assign, Value, Literal } = require './nodes'
+    
     info = reduce:true
     
     if node.condition.base?.value == 'this'
@@ -106,7 +142,6 @@ compileMetaIf = (node:,opts:) ->
             info.body =!! eval cond
             if info.eval and info.reduce and not info.body and not node.elseBody
                 return []
-            # log conditionResult:info.body for:cond
         catch err
             error err
         
@@ -122,28 +157,21 @@ compileMetaIf = (node:,opts:) ->
         bodyOpt = opts
 
     if info.before
-        if info.block == false
-            frag.push node.makeCode info.before
-        else
-            frag.push node.makeCode indent + info.before
+        frag.push node.makeCode (info.block != false and indent or '') + info.before
         
     if info.body
         if info.block != false
             body = node.ensureBlock node.body
         else
-            # log 'NOBLOCK', node.body instanceof Block
             if node.body instanceof Block
-                # log 'deblock', node.body
                 body = node.body.expressions[0]
             else
                 body = node.body
-        frag = frag.concat body.compileToFragments bodyOpt
+        if body
+            frag = frag.concat body.compileToFragments bodyOpt
         
     if info.after
-        if info.block == false
-            frag.push node.makeCode info.after
-        else
-            frag.push node.makeCode '\n' + indent + info.after
+        frag.push node.makeCode ((info.block != false) and ('\n' + indent) or '') + info.after
 
     if not info.reduce
         frag.push node.makeCode("\n#{node.tab}}")
@@ -151,7 +179,7 @@ compileMetaIf = (node:,opts:) ->
     if node.elseBody and (info.reduce == false or info.body == false)
         frag.push node.makeCode ' else ' if not info.reduce
         if node.isChain
-            frag = frag.concat node.elseBody.unwrap().compileToFragments bodyOpt, 1 # LEVEL_TOP  ???
+            frag = frag.concat node.elseBody.unwrap().compileToFragments bodyOpt# , 1 # LEVEL_TOP???
         else
             frag = frag.concat node.elseBody.compileToFragments bodyOpt
         
@@ -159,6 +187,30 @@ compileMetaIf = (node:,opts:) ->
     # log frag
     return frag
     
+# utility = (name, o) ->
+    # {root} = o.scope
+    # if name of root.utilities
+        # root.utilities[name]
+    # else
+        # ref = root.freeVariable name
+        # root.assign ref, UTILITIES[name] o # <- adds utility to top level scope
+        # root.utilities[name] = ref
+
+logSource = (opts:,args:,node:,close:) ->
+    
+    source = opts.source ? opts.filename ? ''
+    ext = ''
+    if source
+        [source, ext...] = path.basename(source).split '.'
+        source  = yellow [yellowBright(source), dim ext.join'.'].join dim '.'
+    before  = "console.log('#{source}#{dim blue ':'}#{blueBright "#{node.condition.locationData.first_line+1}"}'"
+    before += ", '#{bold whiteBright args[0]}'" if args[0] 
+    if (close)
+        before += ');'
+    else
+        before += ", "
+    before
+        
 # 000  000   000        000  00000000   0000000  000000000  
 # 000  0000  000        000  000       000          000     
 # 000  000 0 000        000  0000000   000          000     

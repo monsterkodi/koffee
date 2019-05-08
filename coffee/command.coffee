@@ -54,7 +54,8 @@ SWITCHES = [
     ['-P' '--parse'             'print out the parse tree that the parser produces'     Boolean        ]
     ['-r' '--require MODULE'    'require the given module before eval or REPL'         [String, Array] ]
     ['-s' '--stdio'             'listen for and compile scripts over stdio'             Boolean        ]
-    ['-t' '--tokens'            'print out the tokens that the lexer/rewriter produce'  Boolean        ]
+    ['-t' '--test'              'compile and run the @test code'                        Boolean        ]
+    ['-T' '--tokens'            'print out the tokens that the lexer/rewriter produce'  Boolean        ]
     ['-v' '--version'           'display the version number'                            Boolean        ]
     ['-w' '--watch'             'watch scripts for changes and rerun commands'          Boolean        ]
 ]
@@ -271,6 +272,7 @@ compileOptions = (source) -> # The compile-time options to pass to the compiler.
         inlineMap: opts['inline-map']
         feature:   opts.feature
         bare:      opts.bare
+        test:      opts.test
         Debug:     opts.Debug
 
     if source
@@ -284,11 +286,6 @@ compileOptions = (source) -> # The compile-time options to pass to the compiler.
             sourceFiles: [path.relative cwd, source]
             generatedFile: baseFileName(jsPath, no, useWinPathSep)
         }
-        # else
-            # copts = helpers.merge copts,
-                # sourceRoot: ""
-                # sourceFiles: [helpers.baseFileName source, no, useWinPathSep]
-                # generatedFile: helpers.baseFileName(source, yes, useWinPathSep) + ".js"
     copts
             
 # Attach the appropriate listeners to compile scripts incoming over **stdin**, and write them back to **stdout**.

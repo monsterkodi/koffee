@@ -238,7 +238,7 @@ egal = (a, b) ->
     a != 0 or 1/a is 1/b
   else
     a != a and b != b
-
+    
 # A recursive functional equivalence helper; uses egal for testing equivalence.
     
 arrayEgal = (a, b) ->

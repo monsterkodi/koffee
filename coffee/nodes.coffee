@@ -2983,14 +2983,15 @@ UTILITIES =
     '
 
     # Discover if an item is in an array.
-    indexOf: -> "
-        [].indexOf || function(item) {
-            for (var i = 0, l = this.length; i < l; i++) {
-                if (i in this && this[i] === item) return i;
-            }
-            return -1;
-        }
-    "
+    indexOf: -> "[].indexOf"
+    # indexOf: -> "
+        # [].indexOf || function(item) {
+            # for (var i = 0, l = this.length; i < l; i++) {
+                # if (i in this && this[i] === item) return i;
+            # }
+            # return -1;
+        # }
+    # "
 
     modulo: -> """
         function(a, b) { return (+a % (b = +b) + b) % b; }
@@ -2998,7 +2999,7 @@ UTILITIES =
 
     # Shortcuts to speed up the lookup time for native functions.
     hasProp: -> '{}.hasOwnProperty'
-    slice: -> '[].slice'
+    slice: -> '[].slice' # e.g. [[a]...]
 
 # Levels indicate a node's position in the AST. Useful for knowing if
 # parens are necessary or superfluous.
@@ -3027,7 +3028,7 @@ utility = (name, o) ->
         root.utilities[name]
     else
         ref = root.freeVariable name
-        root.assign ref, UTILITIES[name] o
+        root.assign ref, UTILITIES[name] o # <- adds utility to top level scope
         root.utilities[name] = ref
 
 multident = (code, tab) ->

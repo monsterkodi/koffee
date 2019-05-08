@@ -181,7 +181,7 @@ class Rewriter
                                     true
                             else
                                 arg = 0
-                                for a in [0...(meta.info.args ? 0)]
+                                for a in [0...(meta.info?.args ? 1)]
                                     if @tag(i+adv) in ['NUMBER', 'STRING']
                                         arg++ # argument found
                                         adv++
@@ -190,7 +190,7 @@ class Rewriter
                                 if arg == 0
                                     tokens.splice i+adv, 0, @generate('CALL_START', '('), @generate('CALL_END', ')')
                                     adv += 2
-                            if meta.info.then or @tag(i+adv) not in ['TERMINATOR', 'INDENT', 'CALL_START']
+                            if meta.info?.then or @tag(i+adv) not in ['TERMINATOR', 'INDENT', 'CALL_START']
                                 tokens.splice i+adv++, 0, @generate 'THEN', 'then'
                             return adv
                 

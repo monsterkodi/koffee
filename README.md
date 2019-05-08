@@ -83,6 +83,42 @@ log 'a:' a , 'd:' 3
 
 We are probably reaching the limits of minimalism here :)
 
+## Meta Macros
+
+**koffee** allows you to control which blocks of code get compiled into JavaScript:
+
+```coffeescript
+@if false               # note the @ before the if!
+    code to             # 
+    exclude from        # this block won't be compiled to .js
+    compilation         # 
+
+@elif true              # this branch is switched on, so
+    log 'hello'         # + these two lines 
+    log 'world'         # + will be compiled
+    
+@else                   # 
+    null                # another ignored block
+```
+
+You can provide code in the condition, which will be evaluated at compile time
+
+
+```coffeescript
+@if os.platform()=='darwin' @then log 'mac' @else process.exit 0
+```
+
+will compile to 
+
+```javascript
+console.log("mac");
+```
+on macOS, on other platforms it will produce
+
+```javascript
+process.exit(0);
+```
+
 ## Config arguments
 
 Still here? Nice!

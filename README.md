@@ -119,6 +119,28 @@ on macOS, on other platforms it will produce
 process.exit(0);
 ```
 
+If the condition part of `@if` starts with a `@`, a lookup will made into the compile options meta map.
+If a matching entry is found, the provided coffeescript blocks can be modified arbitrarily before they are written to JavaScript.
+
+The default map includes some simple but useful examples. 
+
+```coffeescript
+                                 # log file position and object
+@dbg 'my object' a:1, b:2        # -> file:1 my object { a: 1, b: 2 }
+
+                                 # log execution times  
+@profile 'sum'                   # -> 6_4 1ms          line_col prefix
+    @profile s1()                # -> 7_4 2ms          if not named
+    @profile s2()                # -> sum 3ms
+    
+@start 'a'                       # like @profile, but lets you control
+f = -> @end 'a'                  # when to start and stop timing
+f()
+    
+@test 'info'                     # will only be compiled if --test flag is set
+    myTest()                     # includes logs for each test block
+```
+
 ## Config arguments
 
 Still here? Nice!

@@ -40,7 +40,7 @@ class Lexer
     #    000      0000000   000   000  00000000  000   000  000  0000000  00000000  
             
     tokenize: (code, opts) ->
-        # @start tokenize
+
         opts = injectFeature opts
         opts = injectMeta    opts  # will be needed to shortcut metas, e.g. @token -> @if @token ...
         
@@ -93,7 +93,7 @@ class Lexer
             (new Rewriter).rewrite @tokens, opts
         else
             warn 'skipping rewrite!'# , opts
-        # @end tokenize
+
         @tokens
 
     # Preprocess the code to remove leading and trailing whitespace, carriage returns, etc. 

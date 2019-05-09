@@ -175,6 +175,7 @@ class Rewriter
                         if token[1] in Object.keys @opts.meta
                             meta = @opts.meta[token[1]]
                             tokens.splice i-1, 0, @generate 'META_IF', 'if'
+                            tokens[i-1].spaced = true
                             adv = 2
                             if @tag(i+adv) == 'CALL_START'
                                 while @tag(i+adv++) not in ['CALL_END', ')', 'TERMINATOR']

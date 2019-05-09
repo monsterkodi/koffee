@@ -6,7 +6,6 @@ is a clone of [Coffeescript](http://coffeescript.org) (Version 1) with a few enh
 
 ```coffeescript
 class C
-
     @: ->           
 ```
 
@@ -14,7 +13,6 @@ class C
 
 ```coffeescript
 class C          
-    
     constructor: -> 
 ```
 
@@ -88,17 +86,17 @@ We are probably reaching the limits of minimalism here :)
 **koffee** allows you to control which blocks of code get compiled into JavaScript:
 
 ```coffeescript
-@if false               # note the @ before the if!
+@@if false              # this block won't be compiled to .js
     code to             # 
-    exclude from        # this block won't be compiled to .js
+    exclude from        # 
     compilation         # 
 
-@elif true              # this branch is switched on, so
+@@elif true             # this branch is switched on, so
     log 'hello'         # + these two lines 
     log 'world'         # + will be compiled
     
-@else                   # 
-    null                # another ignored block
+@@else                  # another ignored block
+    null                # 
 ```
 
 You can provide code in the condition, which will be evaluated at compile time
@@ -126,18 +124,18 @@ The default map includes some simple but useful examples that use this feature.
 
 ```coffeescript
                                  # log file position and object
-@dbg 'my object' a:1, b:2        # -> file:1 my object { a: 1, b: 2 }
+@@dbg 'my object' a:1, b:2       # -> file:1 my object { a: 1, b: 2 }
 
                                  # log execution times  
-@profile 'sum'                   # -> 6_4 1ms          line_col prefix
-    @profile s1()                # -> 7_4 2ms          if not named
-    @profile s2()                # -> sum 3ms
+@@profile 'sum'                  # -> 6_4 1ms          line_col prefix
+    @@profile s1()               # -> 7_4 2ms          if not named
+    @@profile s2()               # -> sum 3ms
     
-@start 'a'                       # like @profile, but lets you control
-f = -> @end 'a'                  # when to start and stop timing
+@@start 'a'                      # like @@profile, but lets you control
+f = -> @@end 'a'                 # when to start and stop timing
 f()
     
-@test 'info'                     # will only be compiled if --test flag is set
+@@test 'info'                    # will only be compiled if --test flag is set
     myTest()                     # includes logs for each test block
 ```
 

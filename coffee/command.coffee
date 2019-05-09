@@ -30,8 +30,17 @@ helpers.extend Koffee, new EventEmitter # Allow emitting Node events
 { FEATURES, logFeatures } = require './features'
 
 { baseFileName, isCoffee, stringify, merge, pad } = helpers
-
-{ gray, dim, bold, yellow, green, whiteBright, white, blueBright, blue } = require 'colorette'
+{ 
+    dim,    bold, 
+    red,    redBright,
+    gray,   grayBright, 
+    yellow, yellowBright,
+    green,  greenBright,
+    white,  whiteBright, 
+    blue,   blueBright, 
+    cyan,   cyanBright,
+    magenta, magentaBright,
+} = require 'colorette'
 
 error     = console.error
 print     = (line) -> process.stdout.write line
@@ -489,20 +498,58 @@ printTokens = (tokens) ->
             print "#{index}#{ctag}=#{cvalue} "
         
 printRewriter = (tokens) ->
-    
+
+    indent = 0
     for index in [0...tokens.length]
         token = tokens[index]
         tag   = token[0]
         value = token[1]
+        
+        grayDim = (s) -> dim gray s
+        blueDim = (s) -> dim blue s
+        yellowDim = (s) -> dim yellow s
+        spaced = (color, v)->
+            print color "#{v ? value}"
+            print ' ' if token.spaced and tokens[index+1][0] not in ['CALL_START']
+
         # log token
         switch tag 
-            when 'TERMINATOR' then print '\n'
-            when 'INDENT'     then print '\n    '
-            when 'OUTDENT'    then print '\n'
-            else 
-                print "#{value}"
-                if token.spaced and tokens[index+1][0] not in ['CALL_START', 'CALL_END']
-                    print ' '
+            when 'TERMINATOR'                        then print "\n#{pad '', indent}"
+            when 'INDENT'                            then indent += 4; print "\n#{pad '', indent}"
+            when 'OUTDENT'                           then indent -= 4; print "\n#{pad '', indent}"
+            when 'HERECOMMENT'                       then spaced grayDim
+            when 'CALL_START' 'CALL_END'             then spaced grayDim
+            when 'UNARY'                             then spaced blueBright, 'not'
+            when '&&'                                then spaced blueBright, 'and'
+            when '||'                                then spaced blueBright, 'or'
+            when 'STRING'                            then spaced green
+            when 'STRING_START' 'STRING_END'         then spaced redBright
+            when 'PROPERTY'                          then spaced yellow
+            when ':'                                 then spaced yellowDim
+            when '@' 
+                if tokens[index+1][0] not in ['META_IF' 'META_ELSE' 'POST_META_IF'] then spaced(yellowDim) else spaced blueDim
+            when 'META_IF' 'META_ELSE' 'POST_META_IF' then spaced blue
+            when 'NUMBER'                            then spaced blue
+            when '{''}'                              then if not token.generated then spaced gray
+            when '=' '+' '-' '++' '--' '...' '::' \
+                 '[' ']' '{' '}' '.' 'MATH' 'UNARY_MATH' \
+                 'INDEX_START' 'INDEX_END' \
+                 'COMPARE' 'COMPOUND_ASSIGN'         then spaced gray
+            when ',' '(' ')'                         then spaced grayDim
+            when 'PARAM_START' 'PARAM_END' '->' '=>' then spaced (s) -> bold blue s
+            when 'NULL' 'UNDEFINED' 'FUNC_EXIST' '?' '?.' 'BIN?' then spaced red
+            when 'REGEX'                             then spaced magenta
+            when 'FOR' 'FORIN' 'TRY' 'CATCH' 'THROW' 'RELATION' 'EXTENDS' 'STATEMENT' 'OWN' 'FOROF' 'LOOP' \
+                 'IF' 'POST_IF' 'WHEN' 'THEN' 'ELSE' 'THIS' 'SUPER' 'SWITCH' 'LEADING_WHEN' \
+                 'BOOL' 'CLASS' 'RETURN'             then spaced blueBright
+            when 'IDENTIFIER' 
+                switch value
+                    when 'require' then spaced gray
+                    else spaced whiteBright
+            else
+                print ">#{tag}<"
+                # spaced (s) -> bold blueBright s
+                spaced cyan
             
 version = -> printLine "#{Koffee.VERSION}"
 usage   = -> 

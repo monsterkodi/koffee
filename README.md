@@ -117,8 +117,9 @@ on macOS, on other platforms it will produce
 process.exit(0);
 ```
 
-If the condition part of `@if` starts with a `@`, a lookup will be made into the compile options meta map.
+If the condition part of `▸if` starts with a `▸`, a lookup will be made into the compile options meta map.
 If a matching entry is found, the provided coffeescript blocks can be modified arbitrarily before they are written to JavaScript.
+When the macro is only operating on one block of code, you can omit the leading `▸if`.
 
 The default map includes some simple but useful examples that use this feature. 
 
@@ -133,7 +134,7 @@ The default map includes some simple but useful examples that use this feature.
     
 ▸start 'a'                      # like ▸profile, but lets you control
 f = -> ▸end 'a'                 # when to start and stop timing
-f()
+f()                             # -> a 824μs
     
 ▸test 'info'                    # will only be compiled if --test flag is set
     myTest()                    # includes logs for each test block
@@ -143,7 +144,7 @@ f()
 
 Still here? Nice!
 
-This feature might be easier to understand with a little bit of motivation up front: 
+The last feature might be easier to understand with a little bit of motivation up front: 
 
 Let's assume we need a function `f`, whose behavior should be configurable via it's arguments.
 Let's also assume that the configuration will probably grow or change a lot over time.

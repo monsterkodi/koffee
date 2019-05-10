@@ -183,9 +183,9 @@ exports.throwSyntaxError = (message, location) ->
 exports.updateSyntaxError = (error, code, filename) ->
     # Avoid screwing up the `stack` property of other errors (i.e. possible bugs).
     if error.toString is syntaxErrorToString
-        error.code or= code
+        error.code     or= code
         error.filename or= filename
-        error.stack = error.toString()
+        error.stack      = error.toString()
     error
 
 syntaxErrorToString = ->

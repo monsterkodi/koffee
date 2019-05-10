@@ -42,12 +42,12 @@ base64encode = (src) ->
 
 withPrettyErrors = (fn) ->
     
-    (code, options = {}) ->
+    (code, options = {}) -> 
         try
             fn.call @, code, options
         catch err
             if typeof code != 'string' # Support `Koffee.nodes(tokens)`.
-                throw new Error(err.toString())
+                throw new Error err.toString()
             else
                 throw updateSyntaxError err, code, options.filename
 
@@ -198,6 +198,9 @@ exports.nodes = withPrettyErrors (source, options) ->
 
 exports.run = (code, options = {}) ->
     
+    options = injectFeature options
+    options = injectMeta    options
+    
     mainModule = require.main
 
     # Set the filename
@@ -236,6 +239,7 @@ exports.run = (code, options = {}) ->
 exports.eval = (code, options = {}) ->
     
     return unless code = code.trim()
+    
     createContext = vm.Script.createContext ? vm.createContext
 
     isContext = vm.isContext ? (ctx) ->
@@ -256,7 +260,7 @@ exports.eval = (code, options = {}) ->
         # define module/require only if they chose not to specify their own
         unless sandbox != global or sandbox.module or sandbox.require
             Module = require 'module'
-            sandbox.module  = _module    = new Module(options.modulename || 'eval')
+            sandbox.module  = _module  = new Module(options.modulename || 'eval')
             sandbox.require = _require = (path) ->  Module._load path, _module, true
             _module.filename = sandbox.__filename
             for r in Object.getOwnPropertyNames require when r not in ['paths' 'arguments' 'caller']

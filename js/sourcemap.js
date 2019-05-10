@@ -1,4 +1,4 @@
-// koffee 0.27.0
+// koffee 0.28.0
 (function() {
     var LineMap, SourceMap;
 
@@ -139,9 +139,9 @@
 
         SourceMap.prototype.encodeVlq = function(value) {
             var answer, nextChunk, signBit, valueToEncode;
-            answer = '';
             signBit = value < 0 ? 1 : 0;
             valueToEncode = (Math.abs(value) << 1) + signBit;
+            answer = '';
             while (valueToEncode || !answer) {
                 nextChunk = valueToEncode & VLQ_VALUE_MASK;
                 valueToEncode = valueToEncode >> VLQ_SHIFT;

@@ -903,7 +903,7 @@ exports.SuperCall = class SuperCall extends Call
                 n = obj.variable.properties?[0].name.value
                 "#{n}:this.#{n}"
             else
-                t = obj.value.variable.this and 'this.' or ''
+                t = obj.value.variable?.this and 'this.' or ''
                 "#{n}:#{t+n}"
             
         "arguments[0] = _.defaults({#{a.join ','}}, arguments[0]); "
@@ -1366,7 +1366,7 @@ exports.Class = class Class extends Base
             if expr instanceof Code
                 continue if not expr.params[0]?.name
                 param0 = expr.params[0].name
-                if not param0.generated then return #log 'CONSTRUCTOR PARAM0 NOT GENERATED?'
+                if not param0.generated then return # this ensure that this feature is only active when using the shortcut
                 if not param0 instanceof Obj then return log 'CONSTRUCTOR PARAM0 NOT AN OBJ?'
                 if not expr.body instanceof Block then return log 'CONSTRUCTOR BODY NOT AN BLOCK?'
                 for bodyExpr in expr.body.expressions

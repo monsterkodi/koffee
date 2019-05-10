@@ -1,13 +1,6 @@
-# Source maps allow JavaScript runtimes to match running JavaScript back to
-# the original source code that corresponds to it. This can be minified
-# JavaScript, but in our case, we're concerned with mapping pretty-printed
-# JavaScript back to Koffee.
-
-# In order to produce maps, we must keep track of positions (line number, column number)
-# that originated every node in the syntax tree, and be able to generate a
+# In order to produce source maps, we must keep track of original positions (line number, column number)
+# for every node in the syntax tree.
 # [map file](https://docs.google.com/document/d/1U1RGAehQwRypUTovF1KRlpiOFze0b-_2gc6fAH0KY0k/edit)
-# — which is a compact, VLQ-encoded representation of the JSON serialization
-# of this information — to write out alongside the generated JavaScript.
 
 # 000      000  000   000  00000000  00     00   0000000   00000000   
 # 000      000  0000  000  000       000   000  000   000  000   000  
@@ -15,9 +8,9 @@
 # 000      000  000  0000  000       000 0 000  000   000  000        
 # 0000000  000  000   000  00000000  000   000  000   000  000        
 
-# A **LineMap** object keeps track of information about original line and column
+# A LineMap object keeps track of information about original line and column
 # positions for a single line of output JavaScript code.
-# **SourceMaps** are implemented in terms of **LineMaps**.
+# SourceMaps are implemented in terms of LineMaps.
 
 class LineMap
     
@@ -134,54 +127,44 @@ class SourceMap
             mappings:   buffer
 
         v3.sourcesContent = [code] if options.inlineMap
-
         v3
 
-# 00000000  000   000   0000000   0000000   0000000    00000000  
-# 000       0000  000  000       000   000  000   000  000       
-# 0000000   000 0 000  000       000   000  000   000  0000000   
-# 000       000  0000  000       000   000  000   000  000       
-# 00000000  000   000   0000000   0000000   0000000    00000000  
-
-# Note that SourceMap VLQ encoding is "backwards".  MIDI-style VLQ encoding puts
-# the most-significant-bit (MSB) from the original value into the MSB of the VLQ
-# encoded value (see [Wikipedia](https://en.wikipedia.org/wiki/File:Uintvar_coding.svg)).
-# SourceMap VLQ does things the other way around, with the least significat four
-# bits of the original value encoded into the first byte of the VLQ encoded value.
-
-    VLQ_SHIFT                        = 5
-    VLQ_CONTINUATION_BIT = 1 << VLQ_SHIFT                           # 0010 0000
-    VLQ_VALUE_MASK           = VLQ_CONTINUATION_BIT - 1     # 0001 1111
+    # 00000000  000   000   0000000   0000000   0000000    00000000  
+    # 000       0000  000  000       000   000  000   000  000       
+    # 0000000   000 0 000  000       000   000  000   000  0000000   
+    # 000       000  0000  000       000   000  000   000  000       
+    # 00000000  000   000   0000000   0000000   0000000    00000000  
+    
+    # Note that SourceMap VLQ encoding is "backwards".  MIDI-style VLQ encoding puts
+    # the most-significant-bit (MSB) from the original value into the MSB of the VLQ
+    # encoded value (see [Wikipedia](https://en.wikipedia.org/wiki/File:Uintvar_coding.svg)).
+    # SourceMap VLQ does things the other way around, with the least significat four
+    # bits of the original value encoded into the first byte of the VLQ encoded value.
+    
+    VLQ_SHIFT            = 5
+    VLQ_CONTINUATION_BIT = 1 << VLQ_SHIFT            # 0010 0000
+    VLQ_VALUE_MASK       = VLQ_CONTINUATION_BIT - 1  # 0001 1111
 
     encodeVlq: (value) ->
-        answer = ''
+        
+        signBit = if value < 0 then 1 else 0 # Least significant bit represents the sign.
 
-        # Least significant bit represents the sign.
-        signBit = if value < 0 then 1 else 0
-
-        # The next bits are the actual value.
-        valueToEncode = (Math.abs(value) << 1) + signBit
+        valueToEncode = (Math.abs(value) << 1) + signBit # The next bits are the actual value.
 
         # Make sure we encode at least one character, even if valueToEncode is 0.
+        answer = ''
         while valueToEncode or not answer
             nextChunk = valueToEncode & VLQ_VALUE_MASK
             valueToEncode = valueToEncode >> VLQ_SHIFT
             nextChunk |= VLQ_CONTINUATION_BIT if valueToEncode
             answer += @encodeBase64 nextChunk
-
         answer
 
-
-# Regular Base64 Encoding
-# -----------------------
+    # Regular Base64 Encoding
 
     BASE64_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
 
-    encodeBase64: (value) ->
-        BASE64_CHARS[value] or throw new Error "Cannot Base64 encode value: #{value}"
-
-
-# Our API for source maps is just the `SourceMap` class.
+    encodeBase64: (value) -> BASE64_CHARS[value] or throw new Error "Cannot Base64 encode value: #{value}"
 
 module.exports = SourceMap
 

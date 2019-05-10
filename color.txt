@@ -1,0 +1,6 @@
+[2m[34m:[39m[22m[94m1[39m [1m[97mdebug[39m[22m 2
+// koffee 0.28.0
+(function() {
+    console.log('[2m[34m:[39m[22m[94m1[39m', '[1m[97mdebug[39m[22m', 1 + 1);
+
+}).call(this);

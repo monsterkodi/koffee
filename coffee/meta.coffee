@@ -213,6 +213,7 @@ logSource = (opts:,args:,node:,close:) ->
         before += ');'
     else
         before += ", "
+    options.enabled = true
     before
         
 # 000  000   000        000  00000000   0000000  000000000  
@@ -238,7 +239,7 @@ logMetas = ->
     
     { pad } = require './helpers'
     { gray } = require 'colorette'
-    log "#{gray 'Metas:'}\n\n#{ META.map((f) -> "    #{pad f.key}#{gray f.desc ? "@#{f.key} ..."}").join('\n') }"
-    log "    if else                 #{gray '@if cond ... [[@elif cond ...] @else ...]'}\n"
+    log "#{gray 'Metas:'}\n\n#{ META.map((f) -> "    #{pad f.key}#{gray f.desc ? "#{f.key} ..."}").join('\n') }"
+    log "    ▸if                     #{gray '▸if cond ... [[▸elif cond ...] ▸else ...]'}\n"
     
 module.exports = { META, injectMeta, logMetas, compileMetaIf }

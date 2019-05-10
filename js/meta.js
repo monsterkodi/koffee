@@ -1,4 +1,4 @@
-// koffee 0.27.0
+// koffee 0.28.0
 
 /*
 00     00  00000000  000000000   0000000   
@@ -247,6 +247,7 @@
         } else {
             before += ", ";
         }
+        options.enabled = true;
         return before;
     };
 
@@ -277,9 +278,9 @@
         gray = require('colorette').gray;
         console.log((gray('Metas:')) + "\n\n" + (META.map(function(f) {
             var ref1;
-            return "    " + (pad(f.key)) + (gray((ref1 = f.desc) != null ? ref1 : "@" + f.key + " ..."));
+            return "    " + (pad(f.key)) + (gray((ref1 = f.desc) != null ? ref1 : f.key + " ..."));
         }).join('\n')));
-        return console.log("    if else                 " + (gray('@if cond ... [[@elif cond ...] @else ...]')) + "\n");
+        return console.log("    ▸if                     " + (gray('▸if cond ... [[▸elif cond ...] ▸else ...]')) + "\n");
     };
 
     module.exports = {

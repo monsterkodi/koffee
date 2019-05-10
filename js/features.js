@@ -1,4 +1,4 @@
-// koffee 0.27.0
+// koffee 0.28.0
 
 /*
 00000000  00000000   0000000   000000000  000   000  00000000   00000000   0000000  
@@ -66,21 +66,18 @@
     };
 
     injectFeature = function(options) {
-        var defaultFeatures, extend, feature, ref;
+        var extend, features, ref;
+        extend = require('./helpers').extend;
         if (options != null) {
             options;
         } else {
             options = {};
         }
-        defaultFeatures = {};
+        features = {};
         FEATURES.map(function(f) {
-            return defaultFeatures[f.key] = f.enabled;
+            return features[f.key] = f.enabled;
         });
-        extend = require('./helpers').extend;
-        feature = extend(defaultFeatures, (ref = options.feature) != null ? ref : {});
-        options = extend({
-            feature: feature
-        }, options);
+        options.feature = extend(features, (ref = options.feature) != null ? ref : {});
         return options;
     };
 

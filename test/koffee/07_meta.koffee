@@ -1,6 +1,6 @@
 require('../../js/helpers').initTest() if not global.test
 
-compile = (s) -> Koffee.compile s, bare:true
+compile = (s) -> Koffee.compile s, bare:true, feature:color:false
 
 check = (c,p) -> 
     js = compile(c)
@@ -157,5 +157,28 @@ test "meta profile shortcut", ->
         if (koffee_1_0 = process.hrtime()) {
             sin(3);
             console.log('hello3'"""
-                
+     
+test "start end", ->
+
+    check """
+        ▸start 'a'      
+        f = -> ▸end 'a' 
+        f()
+    """, """
+    koffee_a = process.hrtime();
+    
+    f = function() {
+            console.log('a', require('pretty-time')(process.hrtime(koffee_a)));
+    };
+    """
+    
+test "dbg", ->
+    
+    check """
+    ▸dbg 'my object' a:1, b:2
+    """, """
+    console.log(':1', 'my object', {
+        a: 1,
+        b: 2
+    });"""
     

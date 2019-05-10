@@ -196,7 +196,7 @@ exports.nodes = withPrettyErrors (source, options) ->
 
 # Compile and execute a string of koffee, correctly setting `__filename`, `__dirname`, and relative `require()`.
 
-exports.run = (code, options = {}) ->
+exports.run = (code, options={}) ->
     
     options = injectFeature options
     options = injectMeta    options

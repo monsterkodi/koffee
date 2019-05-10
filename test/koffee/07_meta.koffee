@@ -10,7 +10,7 @@ check = (c,p) ->
 equal = (c,p) -> 
     js = compile(c)
     eq js, p
-        
+     
 test "meta if", ->
             
     eq os?.platform, undefined
@@ -181,4 +181,28 @@ test "dbg", ->
         a: 1,
         b: 2
     });"""
+    
+test "assert", ->
+    
+    out = ''
+    run = (c,p) -> 
+        r = Koffee.eval c, 
+            feature:color:false
+            source:'file.koffee'
+            sandbox:console:log:->out+=[].slice.apply(arguments).join(' ')+'\n' # wow!-)
+        eq r,p
+    
+    run """
+    ▸if ▸assert '1' then 1==2/2
+    ▸assert '2' 3/3==4/4
+    ▸assert '3!' 1==2/2.001
+    ▸assert '4!' 1!=2/2
+    f = ->
+        ▸assert '5!' false
+        ▸assert '6' true
+    f()"""
+    eq out, """
+    file.koffee:3 3!
+    file.koffee:4 4!
+    file.koffee:6 5!\n"""
     

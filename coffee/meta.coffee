@@ -86,6 +86,7 @@ META = [
     desc: '▸assert msg ...'
     meta: (opts:,args:,node:) ->
         
+        { Block } = require './nodes' 
         if node.body instanceof Block
             body = node.body.expressions[0]
         else
@@ -93,14 +94,14 @@ META = [
             
         frag = body.compileToFragments opts
         text = node.fragmentsToText frag
-        code = "not (#{text})"
+        code = "!(#{text})"
         
-        before: logSource opts:opts, args:args, node:node
-        eval:   true
-        after:  ")"
-        reduce: true
-        block:  false
-        code:   condition            
+        before: logSource opts:opts, args:args, node:node, close:true
+        then:   true # should not be used with a block
+        eval:   false
+        reduce: false
+        # block:  false
+        code:   code            
 ,    
     # 000000000  00000000   0000000  000000000  
     #    000     000       000          000     
@@ -199,6 +200,8 @@ compileMetaIf = (node:,opts:) ->
                 body = node.body
         if body
             frag = frag.concat body.compileToFragments bodyOpt
+        else
+            frag.push node.makeCode "''" # if info.block == false ???
         
     if info.after
         frag.push node.makeCode ((info.block != false) and ('\n' + indent) or '') + info.after
@@ -224,11 +227,11 @@ compileMetaIf = (node:,opts:) ->
         # root.assign ref, UTILITIES[name] o # <- adds utility to top level scope
         # root.utilities[name] = ref
 
-#  0000000   0000000   000   000  00000000    0000000  00000000  
-# 000       000   000  000   000  000   000  000       000       
-# 0000000   000   000  000   000  0000000    000       0000000   
-#      000  000   000  000   000  000   000  000       000       
-# 0000000    0000000    0000000   000   000   0000000  00000000  
+# 000       0000000    0000000          0000000   0000000   000   000  00000000    0000000  00000000  
+# 000      000   000  000              000       000   000  000   000  000   000  000       000       
+# 000      000   000  000  0000        0000000   000   000  000   000  0000000    000       0000000   
+# 000      000   000  000   000             000  000   000  000   000  000   000  000       000       
+# 0000000   0000000    0000000         0000000    0000000    0000000   000   000   0000000  00000000  
 
 logSource = (opts:,args:,node:,close:) ->
     

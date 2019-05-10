@@ -7,314 +7,316 @@
 000 0 000  000          000     000   000  
 000   000  00000000     000     000   000
  */
+var META, TAB, blue, blueBright, bold, compileMetaIf, dim, gray, green, injectMeta, logMetas, logSource, options, path, red, ref, white, whiteBright, yellow, yellowBright,
+    slice = [].slice;
 
-(function() {
-    var META, TAB, blue, blueBright, bold, compileMetaIf, dim, gray, green, injectMeta, logMetas, logSource, options, path, red, ref, white, whiteBright, yellow, yellowBright,
-        slice = [].slice;
+path = require('path');
 
-    path = require('path');
+ref = require('colorette'), red = ref.red, green = ref.green, blue = ref.blue, blueBright = ref.blueBright, yellow = ref.yellow, yellowBright = ref.yellowBright, white = ref.white, whiteBright = ref.whiteBright, gray = ref.gray, bold = ref.bold, dim = ref.dim, options = ref.options;
 
-    ref = require('colorette'), red = ref.red, green = ref.green, blue = ref.blue, blueBright = ref.blueBright, yellow = ref.yellow, yellowBright = ref.yellowBright, white = ref.white, whiteBright = ref.whiteBright, gray = ref.gray, bold = ref.bold, dim = ref.dim, options = ref.options;
-
-    META = [
-        {
-            key: '▸profile',
-            desc: '▸profile [id] ...',
-            meta: function(arg) {
-                var args, id, name, node, ref1, ref2, ref3;
-                args = (ref1 = arg.args) != null ? ref1 : null, node = (ref2 = arg.node) != null ? ref2 : null;
-                id = (node.condition.locationData.first_line + 1) + "_" + node.condition.locationData.first_column;
-                name = (ref3 = args[0]) != null ? ref3 : id;
-                return {
-                    after: "console.log('" + name + "', require('pretty-time')(process.hrtime(koffee_" + id + ")));",
-                    code: "koffee_" + id + " = process.hrtime()",
-                    reduce: false,
-                    body: true
-                };
-            }
-        }, {
-            key: '▸start',
-            desc: '▸start id ...',
-            info: {
-                then: true,
-                args: 1
-            },
-            meta: function(arg) {
-                var args, id, ref1, ref2;
-                args = (ref1 = arg.args) != null ? ref1 : null;
-                id = (ref2 = args[0]) != null ? ref2 : 'start_end';
-                return {
-                    before: "koffee_" + id + " = process.hrtime()",
-                    reduce: true,
-                    body: false
-                };
-            }
-        }, {
-            key: '▸end',
-            desc: '▸end id ...',
-            info: {
-                then: true,
-                args: 1
-            },
-            meta: function(arg) {
-                var args, id, ref1, ref2;
-                args = (ref1 = arg.args) != null ? ref1 : null;
-                id = (ref2 = args[0]) != null ? ref2 : 'start_end';
-                return {
-                    before: "console.log('" + id + "', require('pretty-time')(process.hrtime(koffee_" + id + ")))",
-                    reduce: true,
-                    body: false
-                };
-            }
-        }, {
-            key: '▸dbg',
-            desc: '▸dbg msg ...',
-            info: {
-                then: true,
-                args: 1
-            },
-            meta: function(arg) {
-                var args, node, opts, ref1, ref2, ref3;
-                opts = (ref1 = arg.opts) != null ? ref1 : null, args = (ref2 = arg.args) != null ? ref2 : null, node = (ref3 = arg.node) != null ? ref3 : null;
-                return {
-                    code: "true",
-                    "eval": true,
-                    before: logSource({
-                        opts: opts,
-                        args: args,
-                        node: node
-                    }),
-                    after: ")",
-                    reduce: true,
-                    block: false
-                };
-            }
-        }, {
-            key: '▸assert',
-            desc: '▸assert msg ...',
-            meta: function(arg) {
-                var args, body, code, frag, node, opts, ref1, ref2, ref3, text;
-                opts = (ref1 = arg.opts) != null ? ref1 : null, args = (ref2 = arg.args) != null ? ref2 : null, node = (ref3 = arg.node) != null ? ref3 : null;
-                if (node.body instanceof Block) {
-                    body = node.body.expressions[0];
-                } else {
-                    body = node.body;
-                }
-                frag = body.compileToFragments(opts);
-                text = node.fragmentsToText(frag);
-                code = "not (" + text + ")";
-                return {
-                    before: logSource({
-                        opts: opts,
-                        args: args,
-                        node: node
-                    }),
-                    "eval": true,
-                    after: ")",
-                    reduce: true,
-                    block: false,
-                    code: condition
-                };
-            }
-        }, {
-            key: '▸test',
-            desc: '▸test id ...',
-            meta: function(arg) {
-                var args, node, opts, ref1, ref2, ref3;
-                opts = (ref1 = arg.opts) != null ? ref1 : null, args = (ref2 = arg.args) != null ? ref2 : null, node = (ref3 = arg.node) != null ? ref3 : null;
-                return {
-                    before: opts.test && logSource({
-                        opts: opts,
-                        args: args,
-                        node: node,
-                        close: true
-                    }),
-                    skip: !opts.test,
-                    reduce: true,
-                    body: true
-                };
-            }
-        }, {
-            key: '▸rand',
-            meta: function(arg) {
-                var args, ref1, ref2;
-                args = (ref1 = arg.args) != null ? ref1 : null;
-                return {
-                    code: "Math.random() < " + ((ref2 = args != null ? args[0] : void 0) != null ? ref2 : 0.5),
-                    reduce: false,
-                    body: true
-                };
-            }
+META = [
+    {
+        key: '▸profile',
+        desc: '▸profile [id] ...',
+        meta: function(arg) {
+            var args, id, name, node, ref1, ref2, ref3;
+            args = (ref1 = arg.args) != null ? ref1 : null, node = (ref2 = arg.node) != null ? ref2 : null;
+            id = (node.condition.locationData.first_line + 1) + "_" + node.condition.locationData.first_column;
+            name = (ref3 = args[0]) != null ? ref3 : id;
+            return {
+                after: "console.log('" + name + "', require('pretty-time')(process.hrtime(koffee_" + id + ")));",
+                code: "koffee_" + id + " = process.hrtime()",
+                reduce: false,
+                body: true
+            };
         }
-    ];
-
-    TAB = '    ';
-
-    compileMetaIf = function(arg) {
-        var Assign, Block, Literal, Value, args, body, bodyOpt, cond, err, frag, fs, indent, info, merge, metaKey, node, opts, os, ref1, ref2, ref3, ref4, ref5, ref6, ref7, ref8, ref9;
-        node = (ref1 = arg.node) != null ? ref1 : null, opts = (ref2 = arg.opts) != null ? ref2 : null;
-        ref3 = require('./nodes'), Block = ref3.Block, Assign = ref3.Assign, Value = ref3.Value, Literal = ref3.Literal;
-        merge = require('./helpers').merge;
-        info = {
-            reduce: true,
-            "eval": true
-        };
-        if ((ref4 = node.condition.base) != null ? (ref5 = ref4.value) != null ? ref5.startsWith('▸') : void 0 : void 0) {
-            metaKey = node.condition.base.value;
-            if (typeof opts.meta[metaKey] === 'function') {
-                info = opts.meta[metaKey]({
+    }, {
+        key: '▸start',
+        desc: '▸start id ...',
+        info: {
+            then: true,
+            args: 1
+        },
+        meta: function(arg) {
+            var args, id, ref1, ref2;
+            args = (ref1 = arg.args) != null ? ref1 : null;
+            id = (ref2 = args[0]) != null ? ref2 : 'start_end';
+            return {
+                before: "koffee_" + id + " = process.hrtime()",
+                reduce: true,
+                body: false
+            };
+        }
+    }, {
+        key: '▸end',
+        desc: '▸end id ...',
+        info: {
+            then: true,
+            args: 1
+        },
+        meta: function(arg) {
+            var args, id, ref1, ref2;
+            args = (ref1 = arg.args) != null ? ref1 : null;
+            id = (ref2 = args[0]) != null ? ref2 : 'start_end';
+            return {
+                before: "console.log('" + id + "', require('pretty-time')(process.hrtime(koffee_" + id + ")))",
+                reduce: true,
+                body: false
+            };
+        }
+    }, {
+        key: '▸dbg',
+        desc: '▸dbg msg ...',
+        info: {
+            then: true,
+            args: 1
+        },
+        meta: function(arg) {
+            var args, node, opts, ref1, ref2, ref3;
+            opts = (ref1 = arg.opts) != null ? ref1 : null, args = (ref2 = arg.args) != null ? ref2 : null, node = (ref3 = arg.node) != null ? ref3 : null;
+            return {
+                code: "true",
+                "eval": true,
+                before: logSource({
                     opts: opts,
-                    node: node,
-                    args: []
-                });
-            }
+                    args: args,
+                    node: node
+                }),
+                after: ")",
+                reduce: true,
+                block: false
+            };
         }
-        if ((ref6 = node.condition.variable) != null ? (ref7 = ref6.base) != null ? (ref8 = ref7.value) != null ? ref8.startsWith('▸') : void 0 : void 0 : void 0) {
-            metaKey = node.condition.variable.base.value;
-            if (typeof opts.meta[metaKey] === 'function') {
-                args = node.condition.args.map(function(a) {
-                    var ref9;
-                    return (ref9 = a.base) != null ? ref9.value : void 0;
-                });
-                args = args.map(function(a) {
-                    var ref9;
-                    if ((ref9 = a[0]) === '"' || ref9 === "'") {
-                        return a.slice(1, -1);
-                    } else {
-                        return a;
-                    }
-                });
-                info = opts.meta[metaKey]({
+    }, {
+        key: '▸assert',
+        desc: '▸assert msg ...',
+        meta: function(arg) {
+            var Block, args, body, code, frag, node, opts, ref1, ref2, ref3, text;
+            opts = (ref1 = arg.opts) != null ? ref1 : null, args = (ref2 = arg.args) != null ? ref2 : null, node = (ref3 = arg.node) != null ? ref3 : null;
+            Block = require('./nodes').Block;
+            if (node.body instanceof Block) {
+                body = node.body.expressions[0];
+            } else {
+                body = node.body;
+            }
+            frag = body.compileToFragments(opts);
+            text = node.fragmentsToText(frag);
+            code = "!(" + text + ")";
+            return {
+                before: logSource({
                     opts: opts,
+                    args: args,
                     node: node,
-                    args: args
-                });
-            }
+                    close: true
+                }),
+                then: true,
+                "eval": false,
+                reduce: false,
+                code: code
+            };
         }
-        if (info.skip) {
-            return [];
+    }, {
+        key: '▸test',
+        desc: '▸test id ...',
+        meta: function(arg) {
+            var args, node, opts, ref1, ref2, ref3;
+            opts = (ref1 = arg.opts) != null ? ref1 : null, args = (ref2 = arg.args) != null ? ref2 : null, node = (ref3 = arg.node) != null ? ref3 : null;
+            return {
+                before: opts.test && logSource({
+                    opts: opts,
+                    args: args,
+                    node: node,
+                    close: true
+                }),
+                skip: !opts.test,
+                reduce: true,
+                body: true
+            };
         }
-        if (info["eval"]) {
-            cond = (ref9 = info.code) != null ? ref9 : node.fragmentsToText(node.condition.compileToFragments(opts, 2));
-            try {
-                os = require('os');
-                fs = require('fs');
-                info.body = !!eval(cond);
-                if (info["eval"] && info.reduce && !info.body && !node.elseBody) {
-                    return [];
-                }
-            } catch (error) {
-                err = error;
-                console.error(err);
-            }
+    }, {
+        key: '▸rand',
+        meta: function(arg) {
+            var args, ref1, ref2;
+            args = (ref1 = arg.args) != null ? ref1 : null;
+            return {
+                code: "Math.random() < " + ((ref2 = args != null ? args[0] : void 0) != null ? ref2 : 0.5),
+                reduce: false,
+                body: true
+            };
         }
-        frag = [];
-        if (info.reduce === false) {
-            frag = frag.concat(node.makeCode("if ("), node.makeCode(info.code), node.makeCode(") {\n"));
-            indent = opts.indent + TAB;
-            bodyOpt = merge(opts, {
-                indent: indent
+    }
+];
+
+TAB = '    ';
+
+compileMetaIf = function(arg) {
+    var Assign, Block, Literal, Value, args, body, bodyOpt, cond, err, frag, fs, indent, info, merge, metaKey, node, opts, os, ref1, ref2, ref3, ref4, ref5, ref6, ref7, ref8, ref9;
+    node = (ref1 = arg.node) != null ? ref1 : null, opts = (ref2 = arg.opts) != null ? ref2 : null;
+    ref3 = require('./nodes'), Block = ref3.Block, Assign = ref3.Assign, Value = ref3.Value, Literal = ref3.Literal;
+    merge = require('./helpers').merge;
+    info = {
+        reduce: true,
+        "eval": true
+    };
+    if ((ref4 = node.condition.base) != null ? (ref5 = ref4.value) != null ? ref5.startsWith('▸') : void 0 : void 0) {
+        metaKey = node.condition.base.value;
+        if (typeof opts.meta[metaKey] === 'function') {
+            info = opts.meta[metaKey]({
+                opts: opts,
+                node: node,
+                args: []
             });
-        } else {
-            indent = opts.indent;
-            bodyOpt = opts;
         }
-        if (info.before) {
-            frag.push(node.makeCode((info.block !== false && indent || '') + info.before));
-        }
-        if (info.body) {
-            if (info.block !== false) {
-                body = node.ensureBlock(node.body);
-            } else {
-                if (node.body instanceof Block) {
-                    body = node.body.expressions[0];
+    }
+    if ((ref6 = node.condition.variable) != null ? (ref7 = ref6.base) != null ? (ref8 = ref7.value) != null ? ref8.startsWith('▸') : void 0 : void 0 : void 0) {
+        metaKey = node.condition.variable.base.value;
+        if (typeof opts.meta[metaKey] === 'function') {
+            args = node.condition.args.map(function(a) {
+                var ref9;
+                return (ref9 = a.base) != null ? ref9.value : void 0;
+            });
+            args = args.map(function(a) {
+                var ref9;
+                if ((ref9 = a[0]) === '"' || ref9 === "'") {
+                    return a.slice(1, -1);
                 } else {
-                    body = node.body;
+                    return a;
                 }
+            });
+            info = opts.meta[metaKey]({
+                opts: opts,
+                node: node,
+                args: args
+            });
+        }
+    }
+    if (info.skip) {
+        return [];
+    }
+    if (info["eval"]) {
+        cond = (ref9 = info.code) != null ? ref9 : node.fragmentsToText(node.condition.compileToFragments(opts, 2));
+        try {
+            os = require('os');
+            fs = require('fs');
+            info.body = !!eval(cond);
+            if (info["eval"] && info.reduce && !info.body && !node.elseBody) {
+                return [];
             }
-            if (body) {
-                frag = frag.concat(body.compileToFragments(bodyOpt));
-            }
+        } catch (error) {
+            err = error;
+            console.error(err);
         }
-        if (info.after) {
-            frag.push(node.makeCode(((info.block !== false) && ('\n' + indent) || '') + info.after));
-        }
-        if (!info.reduce) {
-            frag.push(node.makeCode("\n" + node.tab + "}"));
-        }
-        if (node.elseBody && (info.reduce === false || info.body === false)) {
-            if (!info.reduce) {
-                frag.push(node.makeCode(' else '));
-            }
-            if (node.isChain) {
-                frag = frag.concat(node.elseBody.unwrap().compileToFragments(bodyOpt));
-            } else {
-                frag = frag.concat(node.elseBody.compileToFragments(bodyOpt));
-            }
-        }
-        return frag;
-    };
-
-    logSource = function(arg) {
-        var args, before, close, ext, node, opts, ref1, ref2, ref3, ref4, ref5, ref6, ref7, source;
-        opts = (ref1 = arg.opts) != null ? ref1 : null, args = (ref2 = arg.args) != null ? ref2 : null, node = (ref3 = arg.node) != null ? ref3 : null, close = (ref4 = arg.close) != null ? ref4 : null;
-        options.enabled = opts.feature.color;
-        source = (ref5 = (ref6 = opts.source) != null ? ref6 : opts.filename) != null ? ref5 : '';
-        ext = '';
-        if (source) {
-            ref7 = path.basename(source).split('.'), source = ref7[0], ext = 2 <= ref7.length ? slice.call(ref7, 1) : [];
-            source = yellow([yellowBright(source), dim(ext.join`.`)].join(dim('.')));
-        }
-        before = "console.log('" + source + (dim(blue(':'))) + (blueBright("" + (node.condition.locationData.first_line + 1))) + "'";
-        if (args[0]) {
-            before += ", '" + (bold(whiteBright(args[0]))) + "'";
-        }
-        if (close) {
-            before += ');';
-        } else {
-            before += ", ";
-        }
-        options.enabled = true;
-        return before;
-    };
-
-    injectMeta = function(options) {
-        var defaultMeta, extend, meta, ref1;
-        if (options != null) {
-            options;
-        } else {
-            options = {};
-        }
-        extend = require('./helpers').extend;
-        defaultMeta = {};
-        META.map(function(m) {
-            defaultMeta[m.key] = m.meta;
-            m.meta.key = m.key;
-            return m.meta.info = m.info;
+    }
+    frag = [];
+    if (info.reduce === false) {
+        frag = frag.concat(node.makeCode("if ("), node.makeCode(info.code), node.makeCode(") {\n"));
+        indent = opts.indent + TAB;
+        bodyOpt = merge(opts, {
+            indent: indent
         });
-        meta = extend(defaultMeta, (ref1 = options.meta) != null ? ref1 : {});
-        options = extend({
-            meta: meta
-        }, options);
-        return options;
-    };
+    } else {
+        indent = opts.indent;
+        bodyOpt = opts;
+    }
+    if (info.before) {
+        frag.push(node.makeCode((info.block !== false && indent || '') + info.before));
+    }
+    if (info.body) {
+        if (info.block !== false) {
+            body = node.ensureBlock(node.body);
+        } else {
+            if (node.body instanceof Block) {
+                body = node.body.expressions[0];
+            } else {
+                body = node.body;
+            }
+        }
+        if (body) {
+            frag = frag.concat(body.compileToFragments(bodyOpt));
+        } else {
+            frag.push(node.makeCode("''"));
+        }
+    }
+    if (info.after) {
+        frag.push(node.makeCode(((info.block !== false) && ('\n' + indent) || '') + info.after));
+    }
+    if (!info.reduce) {
+        frag.push(node.makeCode("\n" + node.tab + "}"));
+    }
+    if (node.elseBody && (info.reduce === false || info.body === false)) {
+        if (!info.reduce) {
+            frag.push(node.makeCode(' else '));
+        }
+        if (node.isChain) {
+            frag = frag.concat(node.elseBody.unwrap().compileToFragments(bodyOpt));
+        } else {
+            frag = frag.concat(node.elseBody.compileToFragments(bodyOpt));
+        }
+    }
+    return frag;
+};
 
-    logMetas = function() {
-        var pad;
-        pad = require('./helpers').pad;
-        gray = require('colorette').gray;
-        console.log((gray('Metas:')) + "\n\n" + (META.map(function(f) {
-            var ref1;
-            return "    " + (pad(f.key)) + (gray((ref1 = f.desc) != null ? ref1 : f.key + " ..."));
-        }).join('\n')));
-        return console.log("    ▸if                     " + (gray('▸if cond ... [[▸elif cond ...] ▸else ...]')) + "\n");
-    };
+logSource = function(arg) {
+    var args, before, close, ext, node, opts, ref1, ref2, ref3, ref4, ref5, ref6, ref7, source;
+    opts = (ref1 = arg.opts) != null ? ref1 : null, args = (ref2 = arg.args) != null ? ref2 : null, node = (ref3 = arg.node) != null ? ref3 : null, close = (ref4 = arg.close) != null ? ref4 : null;
+    options.enabled = opts.feature.color;
+    source = (ref5 = (ref6 = opts.source) != null ? ref6 : opts.filename) != null ? ref5 : '';
+    ext = '';
+    if (source) {
+        ref7 = path.basename(source).split('.'), source = ref7[0], ext = 2 <= ref7.length ? slice.call(ref7, 1) : [];
+        source = yellow([yellowBright(source), dim(ext.join`.`)].join(dim('.')));
+    }
+    before = "console.log('" + source + (dim(blue(':'))) + (blueBright("" + (node.condition.locationData.first_line + 1))) + "'";
+    if (args[0]) {
+        before += ", '" + (bold(whiteBright(args[0]))) + "'";
+    }
+    if (close) {
+        before += ');';
+    } else {
+        before += ", ";
+    }
+    options.enabled = true;
+    return before;
+};
 
-    module.exports = {
-        META: META,
-        injectMeta: injectMeta,
-        logMetas: logMetas,
-        compileMetaIf: compileMetaIf
-    };
+injectMeta = function(options) {
+    var defaultMeta, extend, meta, ref1;
+    if (options != null) {
+        options;
+    } else {
+        options = {};
+    }
+    extend = require('./helpers').extend;
+    defaultMeta = {};
+    META.map(function(m) {
+        defaultMeta[m.key] = m.meta;
+        m.meta.key = m.key;
+        return m.meta.info = m.info;
+    });
+    meta = extend(defaultMeta, (ref1 = options.meta) != null ? ref1 : {});
+    options = extend({
+        meta: meta
+    }, options);
+    return options;
+};
 
-}).call(this);
+logMetas = function() {
+    var pad;
+    pad = require('./helpers').pad;
+    gray = require('colorette').gray;
+    console.log((gray('Metas:')) + "\n\n" + (META.map(function(f) {
+        var ref1;
+        return "    " + (pad(f.key)) + (gray((ref1 = f.desc) != null ? ref1 : f.key + " ..."));
+    }).join('\n')));
+    return console.log("    ▸if                     " + (gray('▸if cond ... [[▸elif cond ...] ▸else ...]')) + "\n");
+};
+
+module.exports = {
+    META: META,
+    injectMeta: injectMeta,
+    logMetas: logMetas,
+    compileMetaIf: compileMetaIf
+};
+
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoibWV0YS5qcyIsInNvdXJjZVJvb3QiOiIuIiwic291cmNlcyI6WyIiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6Ijs7QUFBQTs7Ozs7OztBQUFBLElBQUEsc0tBQUE7SUFBQTs7QUFRQSxJQUFBLEdBQU8sT0FBQSxDQUFRLE1BQVI7O0FBRVAsTUFBdUcsT0FBQSxDQUFRLFdBQVIsQ0FBdkcsRUFBRSxhQUFGLEVBQU8saUJBQVAsRUFBYyxlQUFkLEVBQW9CLDJCQUFwQixFQUFnQyxtQkFBaEMsRUFBd0MsK0JBQXhDLEVBQXNELGlCQUF0RCxFQUE2RCw2QkFBN0QsRUFBMEUsZUFBMUUsRUFBZ0YsZUFBaEYsRUFBc0YsYUFBdEYsRUFBMkY7O0FBRTNGLElBQUEsR0FBTztJQVFIO1FBQUEsR0FBQSxFQUFNLFVBQU47UUFDQSxJQUFBLEVBQU0sbUJBRE47UUFFQSxJQUFBLEVBQU0sU0FBQyxHQUFEO0FBRUYsZ0JBQUE7WUFGRywwQ0FBRyxNQUFHLDBDQUFHO1lBRVosRUFBQSxHQUFPLENBQUMsSUFBSSxDQUFDLFNBQVMsQ0FBQyxZQUFZLENBQUMsVUFBNUIsR0FBdUMsQ0FBeEMsQ0FBQSxHQUEwQyxHQUExQyxHQUE2QyxJQUFJLENBQUMsU0FBUyxDQUFDLFlBQVksQ0FBQztZQUNoRixJQUFBLHFDQUFpQjttQkFDakI7Z0JBQUEsS0FBQSxFQUFRLGVBQUEsR0FBZ0IsSUFBaEIsR0FBcUIsa0RBQXJCLEdBQXVFLEVBQXZFLEdBQTBFLE1BQWxGO2dCQUNBLElBQUEsRUFBUSxTQUFBLEdBQVUsRUFBVixHQUFhLHFCQURyQjtnQkFFQSxNQUFBLEVBQVEsS0FGUjtnQkFHQSxJQUFBLEVBQVEsSUFIUjs7UUFKRSxDQUZOO0tBUkcsRUF5Qkg7UUFBQSxHQUFBLEVBQU0sUUFBTjtRQUNBLElBQUEsRUFBTSxlQUROO1FBRUEsSUFBQSxFQUNJO1lBQUEsSUFBQSxFQUFNLElBQU47WUFDQSxJQUFBLEVBQU0sQ0FETjtTQUhKO1FBS0EsSUFBQSxFQUFNLFNBQUMsR0FBRDtBQUNGLGdCQUFB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R0FBRixDQUFaLEdBQXFCLENBQUMsQ0FBQztRQUFNLENBQUMsQ0FBQyxJQUFJLENBQUMsR0FBUCxHQUFhLENBQUMsQ0FBQztlQUFLLENBQUMsQ0FBQyxJQUFJLENBQUMsSUFBUCxHQUFjLENBQUMsQ0FBQztJQUF4RSxDQUFUO0lBRUEsSUFBQSxHQUFVLE1BQUEsQ0FBTyxXQUFQLHlDQUFtQyxFQUFuQztJQUNWLE9BQUEsR0FBVSxNQUFBLENBQU87UUFBRSxJQUFBLEVBQU0sSUFBUjtLQUFQLEVBQXVCLE9BQXZCO1dBQ1Y7QUFYUzs7QUFhYixRQUFBLEdBQVcsU0FBQTtBQUVQLFFBQUE7SUFBRSxNQUFRLE9BQUEsQ0FBUSxXQUFSO0lBQ1IsT0FBUyxPQUFBLENBQVEsV0FBUjtJQUFtQixPQUFBLENBQzlCLEdBRDhCLENBQ3hCLENBQUMsSUFBQSxDQUFLLFFBQUwsQ0FBRCxDQUFBLEdBQWUsTUFBZixHQUFvQixDQUFFLElBQUksQ0FBQyxHQUFMLENBQVMsU0FBQyxDQUFEO0FBQU8sWUFBQTtlQUFBLE1BQUEsR0FBTSxDQUFDLEdBQUEsQ0FBSSxDQUFDLENBQUMsR0FBTixDQUFELENBQU4sR0FBa0IsQ0FBQyxJQUFBLGtDQUFpQixDQUFDLENBQUMsR0FBSCxHQUFPLE1BQXZCLENBQUQ7SUFBekIsQ0FBVCxDQUFrRSxDQUFDLElBQW5FLENBQXdFLElBQXhFLENBQUYsQ0FESTtXQUM4RSxPQUFBLENBQzVHLEdBRDRHLENBQ3hHLDhCQUFBLEdBQThCLENBQUMsSUFBQSxDQUFLLDJDQUFMLENBQUQsQ0FBOUIsR0FBZ0YsSUFEd0I7QUFKckc7O0FBT1gsTUFBTSxDQUFDLE9BQVAsR0FBaUI7SUFBRSxNQUFBLElBQUY7SUFBUSxZQUFBLFVBQVI7SUFBb0IsVUFBQSxRQUFwQjtJQUE4QixlQUFBLGFBQTlCIiwic291cmNlc0NvbnRlbnQiOlsiIyMjXG4wMCAgICAgMDAgIDAwMDAwMDAwICAwMDAwMDAwMDAgICAwMDAwMDAwICAgXG4wMDAgICAwMDAgIDAwMCAgICAgICAgICAwMDAgICAgIDAwMCAgIDAwMCAgXG4wMDAwMDAwMDAgIDAwMDAwMDAgICAgICAwMDAgICAgIDAwMDAwMDAwMCAgXG4wMDAgMCAwMDAgIDAwMCAgICAgICAgICAwMDAgICAgIDAwMCAgIDAwMCAgXG4wMDAgICAwMDAgIDAwMDAwMDAwICAgICAwMDAgICAgIDAwMCAgIDAwMCAgXG4jIyNcblxucGF0aCA9IHJlcXVpcmUgJ3BhdGgnXG5cbnsgcmVkLCBncmVlbiwgYmx1ZSwgYmx1ZUJyaWdodCwgeWVsbG93LCB5ZWxsb3dCcmlnaHQsIHdoaXRlLCB3aGl0ZUJyaWdodCwgZ3JheSwgYm9sZCwgZGltLCBvcHRpb25zIH0gPSByZXF1aXJlICdjb2xvcmV0dGUnXG5cbk1FVEEgPSBbXG4gICAgXG4gICAgIyAwMDAwMDAwMCAgIDAwMDAwMDAwICAgIDAwMDAwMDAgICAwMDAwMDAwMCAgMDAwICAwMDAgICAgICAwMDAwMDAwMCAgXG4gICAgIyAwMDAgICAwMDAgIDAwMCAgIDAwMCAgMDAwICAgMDAwICAwMDAgICAgICAgMDAwICAwMDAgICAgICAwMDAgICAgICAgXG4gICAgIyAwMDAwMDAwMCAgIDAwMDAwMDAgICAgMDAwICAgMDAwICAwMDAwMDAgICAgMDAwICAwMDAgICAgICAwMDAwMDAwICAgXG4gICAgIyAwMDAgICAgICAgIDAwMCAgIDAwMCAgMDAwICAgMDAwICAwMDAgICAgICAgMDAwICAwMDAgICAgICAwMDAgICAgICAgXG4gICAgIyAwMDAgICAgICAgIDAwMCAgIDAwMCAgIDAwMDAwMDAgICAwMDAgICAgICAgMDAwICAwMDAwMDAwICAwMDAwMDAwMCAgXG4gICAgXG4gICAga2V5OiAgJ+KWuHByb2ZpbGUnICAgXG4gICAgZGVzYzogJ+KWuHByb2ZpbGUgW2lkXSAuLi4nXG4gICAgbWV0YTogKGFyZ3M6LG5vZGU6KSAtPiBcbiAgICAgICAgXG4gICAgICAgIGlkID0gXCIje25vZGUuY29uZGl0aW9uLmxvY2F0aW9uRGF0YS5maXJzdF9saW5lKzF9XyN7bm9kZS5jb25kaXRpb24ubG9jYXRpb25EYXRhLmZpcnN0X2NvbHVtbn1cIlxuICAgICAgICBuYW1lID0gYXJnc1swXSA/IGlkXG4gICAgICAgIGFmdGVyOiAgXCJjb25zb2xlLmxvZygnI3tuYW1lfScsIHJlcXVpcmUoJ3ByZXR0eS10aW1lJykocHJvY2Vzcy5ocnRpbWUoa29mZmVlXyN7aWR9KSkpO1wiXG4gICAgICAgIGNvZGU6ICAgXCJrb2ZmZWVfI3tpZH0gPSBwcm9jZXNzLmhydGltZSgpXCJcbiAgICAgICAgcmVkdWNlOiBmYWxzZVxuICAgICAgICBib2R5OiAgIHRydWVcbixcbiAgICAjICAwMDAwMDAwICAwMDAwMDAwMDAgICAwMDAwMDAwICAgMDAwMDAwMDAgICAwMDAwMDAwMDAgIFxuICAgICMgMDAwICAgICAgICAgIDAwMCAgICAgMDAwICAgMDAwICAwMDAgICAwMDAgICAgIDAwMCAgICAgXG4gICAgIyAwMDAwMDAwICAgICAgMDAwICAgICAwMDAwMDAwMDAgIDAwMDAwMDAgICAgICAgMDAwICAgICBcbiAgICAjICAgICAgMDAwICAgICAwMDAgICAgIDAwMCAgIDAwMCAgMDAwICAgMDAwICAgICAwMDAgICAgIFxuICAgICMgMDAwMDAwMCAgICAgIDAwMCAgICAgMDAwICAgMDAwICAwMDAgICAwMDAgICAgIDAwMCAgICAgXG4gICAgXG4gICAga2V5OiAgJ+KWuHN0YXJ0JyAgIFxuICAgIGRlc2M6ICfilrhzdGFydCBpZCAuLi4nXG4gICAgaW5mbzpcbiAgICAgICAgdGhlbjogdHJ1ZVxuICAgICAgICBhcmdzOiAxXG4gICAgbWV0YTogKGFyZ3M6KSAtPiBcbiAgICAgICAgaWQgPSBhcmdzWzBdID8gJ3N0YXJ0X2VuZCdcbiAgICAgICAgYmVmb3JlOiBcImtvZmZlZV8je2lkfSA9IHByb2Nlc3MuaHJ0aW1lKClcIlxuICAgICAgICByZWR1Y2U6IHRydWVcbiAgICAgICAgYm9keTogICBmYWxzZVxuLFxuICAgIGtleTogICfilrhlbmQnICAgICBcbiAgICBkZXNjOiAn4pa4ZW5kIGlkIC4uLidcbiAgICBpbmZvOlxuICAgICAgICB0aGVuOiB0cnVlXG4gICAgICAgIGFyZ3M6IDFcbiAgICBtZXRhOiAoYXJnczopIC0+IFxuICAgICAgICBpZCA9IGFyZ3NbMF0gPyAnc3RhcnRfZW5kJ1xuICAgICAgICBiZWZvcmU6IFwiY29uc29sZS5sb2coJyN7aWR9JywgcmVxdWlyZSgncHJldHR5LXRpbWUnKShwcm9jZXNzLmhydGltZShrb2ZmZWVfI3tpZH0pKSlcIlxuICAgICAgICByZWR1Y2U6IHRydWVcbiAgICAgICAgYm9keTogICBmYWxzZVxuLCAgICAgICAgXG4gICAgIyAwMDAwMDAwICAgIDAwMDAwMDAgICAgIDAwMDAwMDAgICBcbiAgICAjIDAwMCAgIDAwMCAgMDAwICAgMDAwICAwMDAgICAgICAgIFxuICAgICMgMDAwICAgMDAwICAwMDAwMDAwICAgIDAwMCAgMDAwMCAgXG4gICAgIyAwMDAgICAwMDAgIDAwMCAgIDAwMCAgMDAwICAgMDAwICBcbiAgICAjIDAwMDAwMDAgICAgMDAwMDAwMCAgICAgMDAwMDAwMCAgIFxuICAgIFxuICAgIGtleTogICfilrhkYmcnICAgIFxuICAgIGRlc2M6ICfilrhkYmcgbXNnIC4uLidcbiAgICBpbmZvOlxuICAgICAgICB0aGVuOiB0cnVlICMgc2hvdWxkIG5vdCBiZSB1c2VkIHdpdGggYSBibG9ja1xuICAgICAgICBhcmdzOiAxXG4gICAgbWV0YTogKG9wdHM6LGFyZ3M6LG5vZGU6KSAtPlxuICAgICAgICBjb2RlOiAgIFwidHJ1ZVwiXG4gICAgICAgIGV2YWw6ICAgdHJ1ZVxuICAgICAgICBiZWZvcmU6IGxvZ1NvdXJjZSBvcHRzOm9wdHMsIGFyZ3M6YXJncywgbm9kZTpub2RlXG4gICAgICAgIGFmdGVyOiAgXCIpXCJcbiAgICAgICAgcmVkdWNlOiB0cnVlXG4gICAgICAgIGJsb2NrOiAgZmFsc2VcbiwgICAgICAgIFxuICAgICMgIDAwMDAwMDAgICAgMDAwMDAwMCAgIDAwMDAwMDAgIDAwMDAwMDAwICAwMDAwMDAwMCAgIDAwMDAwMDAwMCAgXG4gICAgIyAwMDAgICAwMDAgIDAwMCAgICAgICAwMDAgICAgICAgMDAwICAgICAgIDAwMCAgIDAwMCAgICAgMDAwICAgICBcbiAgICAjIDAwMDAwMDAwMCAgMDAwMDAwMCAgIDAwMDAwMDAgICAwMDAwMDAwICAgMDAwMDAwMCAgICAgICAwMDAgICAgIFxuICAgICMgMDAwICAgMDAwICAgICAgIDAwMCAgICAgICAwMDAgIDAwMCAgICAgICAwMDAgICAwMDAgICAgIDAwMCAgICAgXG4gICAgIyAwMDAgICAwMDAgIDAwMDAwMDAgICAwMDAwMDAwICAgMDAwMDAwMDAgIDAwMCAgIDAwMCAgICAgMDAwICAgICBcbiAgICBcbiAgICBrZXk6ICAn4pa4YXNzZXJ0JyAgICBcbiAgICBkZXNjOiAn4pa4YXNzZXJ0IG1zZyAuLi4nXG4gICAgbWV0YTogKG9wdHM6LGFyZ3M6LG5vZGU6KSAtPlxuICAgICAgICBcbiAgICAgICAgeyBCbG9jayB9ID0gcmVxdWlyZSAnLi9ub2RlcycgXG4gICAgICAgIGlmIG5vZGUuYm9keSBpbnN0YW5jZW9mIEJsb2NrXG4gICAgICAgICAgICBib2R5ID0gbm9kZS5ib2R5LmV4cHJlc3Npb25zWzBdXG4gICAgICAgIGVsc2VcbiAgICAgICAgICAgIGJvZHkgPSBub2RlLmJvZHlcbiAgICAgICAgICAgIFxuICAgICAgICBmcmFnID0gYm9keS5jb21waWxlVG9GcmFnbWVudHMgb3B0c1xuICAgICAgICB0ZXh0ID0gbm9kZS5mcmFnbWVudHNUb1RleHQgZnJhZ1xuICAgICAgICBjb2RlID0gXCIhKCN7dGV4dH0pXCJcbiAgICAgICAgXG4gICAgICAgIGJlZm9yZTogbG9nU291cmNlIG9wdHM6b3B0cywgYXJnczphcmdzLCBub2RlOm5vZGUsIGNsb3NlOnRydWVcbiAgICAgICAgdGhlbjogICB0cnVlICMgc2hvdWxkIG5vdCBiZSB1c2VkIHdpdGggYSBibG9ja1xuICAgICAgICBldmFsOiAgIGZhbHNlXG4gICAgICAgIHJlZHVjZTogZmFsc2VcbiAgICAgICAgIyBibG9jazogIGZhbHNlXG4gICAgICAgIGNvZGU6ICAgY29kZSAgICAgICAgICAgIFxuLCAgICBcbiAgICAjIDAwMDAwMDAwMCAgMDAwMDAwMDAgICAwMDAwMDAwICAwMDAwMDAwMDAgIFxuICAgICMgICAgMDAwICAgICAwMDAgICAgICAgMDAwICAgICAgICAgIDAwMCAgICAgXG4gICAgIyAgICAwMDAgICAgIDAwMDAwMDAgICAwMDAwMDAwICAgICAgMDAwICAgICBcbiAgICAjICAgIDAwMCAgICAgMDAwICAgICAgICAgICAgMDAwICAgICAwMDAgICAgIFxuICAgICMgICAgMDAwICAgICAwMDAwMDAwMCAgMDAwMDAwMCAgICAgIDAwMCAgICAgXG4gICAgXG4gICAga2V5OiAgJ+KWuHRlc3QnXG4gICAgZGVzYzogJ+KWuHRlc3QgaWQgLi4uJ1xuICAgIG1ldGE6IChvcHRzOixhcmdzOixub2RlOikgLT5cbiAgICAgICAgYmVmb3JlOiBvcHRzLnRlc3QgYW5kIGxvZ1NvdXJjZSBvcHRzOm9wdHMsIGFyZ3M6YXJncywgbm9kZTpub2RlLCBjbG9zZTp0cnVlXG4gICAgICAgIHNraXA6ICAgbm90IG9wdHMudGVzdFxuICAgICAgICByZWR1Y2U6IHRydWVcbiAgICAgICAgYm9keTogICB0cnVlXG4sICAgICAgICBcbiAgICAjIDAwMDAwMDAwICAgIDAwMDAwMDAgICAwMDAgICAwMDAgIDAwMDAwMDAgICAgXG4gICAgIyAwMDAgICAwMDAgIDAwMCAgIDAwMCAgMDAwMCAgMDAwICAwMDAgICAwMDAgIFxuICAgICMgMDAwMDAwMCAgICAwMDAwMDAwMDAgIDAwMCAwIDAwMCAgMDAwICAgMDAwICBcbiAgICAjIDAwMCAgIDAwMCAgMDAwICAgMDAwICAwMDAgIDAwMDAgIDAwMCAgIDAwMCAgXG4gICAgIyAwMDAgICAwMDAgIDAwMCAgIDAwMCAgMDAwICAgMDAwICAwMDAwMDAwICAgIFxuICAgIFxuICAgIGtleTogJ+KWuHJhbmQnICAgIFxuICAgIG1ldGE6IChhcmdzOikgLT4gXG4gICAgICAgIGNvZGU6ICAgXCJNYXRoLnJhbmRvbSgpIDwgI3thcmdzP1swXSA/IDAuNX1cIiBcbiAgICAgICAgcmVkdWNlOiBmYWxzZSBcbiAgICAgICAgYm9keTogICB0cnVlICAgXG4gICAgXG4gICAgIyBrZXk6ICd0b2tlbicgJ3BhcnNlJyAnY29kZScgJ2Fzc2VydCdcbl1cblxuIyAgMDAwMDAwMCAgIDAwMDAwMDAgICAwMCAgICAgMDAgIDAwMDAwMDAwICAgMDAwICAwMDAgICAgICAwMDAwMDAwMCAgXG4jIDAwMCAgICAgICAwMDAgICAwMDAgIDAwMCAgIDAwMCAgMDAwICAgMDAwICAwMDAgIDAwMCAgICAgIDAwMCAgICAgICBcbiMgMDAwICAgICAgIDAwMCAgIDAwMCAgMDAwMDAwMDAwICAwMDAwMDAwMCAgIDAwMCAgMDAwICAgICAgMDAwMDAwMCAgIFxuIyAwMDAgICAgICAgMDAwICAgMDAwICAwMDAgMCAwMDAgIDAwMCAgICAgICAgMDAwICAwMDAgICAgICAwMDAgICAgICAgXG4jICAwMDAwMDAwICAgMDAwMDAwMCAgIDAwMCAgIDAwMCAgMDAwICAgICAgICAwMDAgIDAwMDAwMDAgIDAwMDAwMDAwICBcblxuVEFCID0gJyAgICAnXG5cbmNvbXBpbGVNZXRhSWYgPSAobm9kZTosb3B0czopIC0+XG5cbiAgICB7IEJsb2NrLCBBc3NpZ24sIFZhbHVlLCBMaXRlcmFsIH0gPSByZXF1aXJlICcuL25vZGVzJ1xuICAgIHsgbWVyZ2UgfSA9IHJlcXVpcmUgJy4vaGVscGVycydcbiAgICAgICAgXG4gICAgaW5mbyA9IHJlZHVjZTp0cnVlLCBldmFsOnRydWVcbiAgICBcbiAgICBpZiBub2RlLmNvbmRpdGlvbi5iYXNlPy52YWx1ZT8uc3RhcnRzV2l0aCAn4pa4J1xuICAgICAgICBcbiAgICAgICAgbWV0YUtleSA9IG5vZGUuY29uZGl0aW9uLmJhc2UudmFsdWVcbiAgICAgICAgaWYgdHlwZW9mIG9wdHMubWV0YVttZXRhS2V5XSA9PSAnZnVuY3Rpb24nXG4gICAgICAgICAgICBpbmZvID0gb3B0cy5tZXRhW21ldGFLZXldIG9wdHM6b3B0cywgbm9kZTpub2RlLCBhcmdzOltdXG4gICAgICAgICAgICBcbiAgICBpZiBub2RlLmNvbmRpdGlvbi52YXJpYWJsZT8uYmFzZT8udmFsdWU/LnN0YXJ0c1dpdGggJ+KWuCdcbiAgICAgICAgXG4gICAgICAgIG1ldGFLZXkgPSBub2RlLmNvbmRpdGlvbi52YXJpYWJsZS5iYXNlLnZhbHVlXG4gICAgICAgIGlmIHR5cGVvZiBvcHRzLm1ldGFbbWV0YUtleV0gPT0gJ2Z1bmN0aW9uJ1xuICAgICAgICAgICAgYXJncyA9IG5vZGUuY29uZGl0aW9uLmFyZ3MubWFwIChhKSAtPiBcbiAgICAgICAgICAgICAgICBhLmJhc2U/LnZhbHVlXG4gICAgICAgICAgICBhcmdzID0gYXJncy5tYXAgKGEpIC0+IGlmIGFbMF0gaW4gWydcIicsIFwiJ1wiXSB0aGVuIGFbMS4uLTJdIGVsc2UgYVxuICAgICAgICAgICAgaW5mbyA9IG9wdHMubWV0YVttZXRhS2V5XSBvcHRzOm9wdHMsIG5vZGU6bm9kZSwgYXJnczphcmdzXG4gICAgICAgIFxuICAgIGlmIGluZm8uc2tpcCB0aGVuIHJldHVybiBbXVxuICAgIFxuICAgIGlmIGluZm8uZXZhbFxuICAgICAgICBcbiAgICAgICAgY29uZCA9IGluZm8uY29kZSA/IG5vZGUuZnJhZ21lbnRzVG9UZXh0IG5vZGUuY29uZGl0aW9uLmNvbXBpbGVUb0ZyYWdtZW50cyBvcHRzLCAyICNMRVZFTF9QQVJFTlxuICAgICAgICB0cnlcbiAgICAgICAgICAgIG9zID0gcmVxdWlyZSAnb3MnXG4gICAgICAgICAgICBmcyA9IHJlcXVpcmUgJ2ZzJ1xuICAgICAgICAgICAgaW5mby5ib2R5ID0hISBldmFsIGNvbmRcbiAgICAgICAgICAgIGlmIGluZm8uZXZhbCBhbmQgaW5mby5yZWR1Y2UgYW5kIG5vdCBpbmZvLmJvZHkgYW5kIG5vdCBub2RlLmVsc2VCb2R5XG4gICAgICAgICAgICAgICAgcmV0dXJuIFtdXG4gICAgICAgIGNhdGNoIGVyclxuICAgICAgICAgICAgZXJyb3IgZXJyXG4gICAgICAgIFxuICAgIGZyYWcgPSBbXVxuICAgIFxuICAgIGlmIGluZm8ucmVkdWNlID09IGZhbHNlXG4gICAgICAgIGZyYWcgPSBmcmFnLmNvbmNhdCBub2RlLm1ha2VDb2RlKFwiaWYgKFwiKSwgbm9kZS5tYWtlQ29kZShpbmZvLmNvZGUpLCBub2RlLm1ha2VDb2RlKFwiKSB7XFxuXCIpXG4gICAgICAgIFxuICAgICAgICBpbmRlbnQgPSBvcHRzLmluZGVudCArIFRBQlxuICAgICAgICBib2R5T3B0ID0gbWVyZ2Ugb3B0cywge2luZGVudH1cbiAgICBlbHNlXG4gICAgICAgIGluZGVudCA9IG9wdHMuaW5kZW50XG4gICAgICAgIGJvZHlPcHQgPSBvcHRzXG5cbiAgICBpZiBpbmZvLmJlZm9yZVxuICAgICAgICBmcmFnLnB1c2ggbm9kZS5tYWtlQ29kZSAoaW5mby5ibG9jayAhPSBmYWxzZSBhbmQgaW5kZW50IG9yICcnKSArIGluZm8uYmVmb3JlXG4gICAgICAgIFxuICAgIGlmIGluZm8uYm9keVxuICAgICAgICBpZiBpbmZvLmJsb2NrICE9IGZhbHNlXG4gICAgICAgICAgICBib2R5ID0gbm9kZS5lbnN1cmVCbG9jayBub2RlLmJvZHlcbiAgICAgICAgZWxzZVxuICAgICAgICAgICAgaWYgbm9kZS5ib2R5IGluc3RhbmNlb2YgQmxvY2tcbiAgICAgICAgICAgICAgICBib2R5ID0gbm9kZS5ib2R5LmV4cHJlc3Npb25zWzBdXG4gICAgICAgICAgICBlbHNlXG4gICAgICAgICAgICAgICAgYm9keSA9IG5vZGUuYm9keVxuICAgICAgICBpZiBib2R5XG4gICAgICAgICAgICBmcmFnID0gZnJhZy5jb25jYXQgYm9keS5jb21waWxlVG9GcmFnbWVudHMgYm9keU9wdFxuICAgICAgICBlbHNlXG4gICAgICAgICAgICBmcmFnLnB1c2ggbm9kZS5tYWtlQ29kZSBcIicnXCIgIyBpZiBpbmZvLmJsb2NrID09IGZhbHNlID8/P1xuICAgICAgICBcbiAgICBpZiBpbmZvLmFmdGVyXG4gICAgICAgIGZyYWcucHVzaCBub2RlLm1ha2VDb2RlICgoaW5mby5ibG9jayAhPSBmYWxzZSkgYW5kICgnXFxuJyArIGluZGVudCkgb3IgJycpICsgaW5mby5hZnRlclxuXG4gICAgaWYgbm90IGluZm8ucmVkdWNlXG4gICAgICAgIGZyYWcucHVzaCBub2RlLm1ha2VDb2RlKFwiXFxuI3tub2RlLnRhYn19XCIpXG4gICAgICAgICAgICAgICAgICAgIFxuICAgIGlmIG5vZGUuZWxzZUJvZHkgYW5kIChpbmZvLnJlZHVjZSA9PSBmYWxzZSBvciBpbmZvLmJvZHkgPT0gZmFsc2UpXG4gICAgICAgIGZyYWcucHVzaCBub2RlLm1ha2VDb2RlICcgZWxzZSAnIGlmIG5vdCBpbmZvLnJlZHVjZVxuICAgICAgICBpZiBub2RlLmlzQ2hhaW5cbiAgICAgICAgICAgIGZyYWcgPSBmcmFnLmNvbmNhdCBub2RlLmVsc2VCb2R5LnVud3JhcCgpLmNvbXBpbGVUb0ZyYWdtZW50cyBib2R5T3B0XG4gICAgICAgIGVsc2VcbiAgICAgICAgICAgIGZyYWcgPSBmcmFnLmNvbmNhdCBub2RlLmVsc2VCb2R5LmNvbXBpbGVUb0ZyYWdtZW50cyBib2R5T3B0XG4gICAgICAgIFxuICAgIHJldHVybiBmcmFnXG4gICAgXG4jIHV0aWxpdHkgPSAobmFtZSwgbykgLT5cbiAgICAjIHtyb290fSA9IG8uc2NvcGVcbiAgICAjIGlmIG5hbWUgb2Ygcm9vdC51dGlsaXRpZXNcbiAgICAgICAgIyByb290LnV0aWxpdGllc1tuYW1lXVxuICAgICMgZWxzZVxuICAgICAgICAjIHJlZiA9IHJvb3QuZnJlZVZhcmlhYmxlIG5hbWVcbiAgICAgICAgIyByb290LmFzc2lnbiByZWYsIFVUSUxJVElFU1tuYW1lXSBvICMgPC0gYWRkcyB1dGlsaXR5IHRvIHRvcCBsZXZlbCBzY29wZVxuICAgICAgICAjIHJvb3QudXRpbGl0aWVzW25hbWVdID0gcmVmXG5cbiMgMDAwICAgICAgIDAwMDAwMDAgICAgMDAwMDAwMCAgICAgICAgICAwMDAwMDAwICAgMDAwMDAwMCAgIDAwMCAgIDAwMCAgMDAwMDAwMDAgICAgMDAwMDAwMCAgMDAwMDAwMDAgIFxuIyAwMDAgICAgICAwMDAgICAwMDAgIDAwMCAgICAgICAgICAgICAgMDAwICAgICAgIDAwMCAgIDAwMCAgMDAwICAgMDAwICAwMDAgICAwMDAgIDAwMCAgICAgICAwMDAgICAgICAgXG4jIDAwMCAgICAgIDAwMCAgIDAwMCAgMDAwICAwMDAwICAgICAgICAwMDAwMDAwICAgMDAwICAgMDAwICAwMDAgICAwMDAgIDAwMDAwMDAgICAgMDAwICAgICAgIDAwMDAwMDAgICBcbiMgMDAwICAgICAgMDAwICAgMDAwICAwMDAgICAwMDAgICAgICAgICAgICAgMDAwICAwMDAgICAwMDAgIDAwMCAgIDAwMCAgMDAwICAgMDAwICAwMDAgICAgICAgMDAwICAgICAgIFxuIyAwMDAwMDAwICAgMDAwMDAwMCAgICAwMDAwMDAwICAgICAgICAgMDAwMDAwMCAgICAwMDAwMDAwICAgIDAwMDAwMDAgICAwMDAgICAwMDAgICAwMDAwMDAwICAwMDAwMDAwMCAgXG5cbmxvZ1NvdXJjZSA9IChvcHRzOixhcmdzOixub2RlOixjbG9zZTopIC0+XG4gICAgXG4gICAgb3B0aW9ucy5lbmFibGVkID0gb3B0cy5mZWF0dXJlLmNvbG9yXG4gICAgc291cmNlID0gb3B0cy5zb3VyY2UgPyBvcHRzLmZpbGVuYW1lID8gJydcbiAgICBleHQgPSAnJ1xuICAgIGlmIHNvdXJjZVxuICAgICAgICBbc291cmNlLCBleHQuLi5dID0gcGF0aC5iYXNlbmFtZShzb3VyY2UpLnNwbGl0ICcuJ1xuICAgICAgICBzb3VyY2UgID0geWVsbG93IFt5ZWxsb3dCcmlnaHQoc291cmNlKSwgZGltIGV4dC5qb2luJy4nXS5qb2luIGRpbSAnLidcbiAgICBiZWZvcmUgID0gXCJjb25zb2xlLmxvZygnI3tzb3VyY2V9I3tkaW0gYmx1ZSAnOid9I3tibHVlQnJpZ2h0IFwiI3tub2RlLmNvbmRpdGlvbi5sb2NhdGlvbkRhdGEuZmlyc3RfbGluZSsxfVwifSdcIlxuICAgIGJlZm9yZSArPSBcIiwgJyN7Ym9sZCB3aGl0ZUJyaWdodCBhcmdzWzBdfSdcIiBpZiBhcmdzWzBdIFxuICAgIGlmIChjbG9zZSlcbiAgICAgICAgYmVmb3JlICs9ICcpOydcbiAgICBlbHNlXG4gICAgICAgIGJlZm9yZSArPSBcIiwgXCJcbiAgICBvcHRpb25zLmVuYWJsZWQgPSB0cnVlXG4gICAgYmVmb3JlXG4gICAgICAgIFxuIyAwMDAgIDAwMCAgIDAwMCAgICAgICAgMDAwICAwMDAwMDAwMCAgIDAwMDAwMDAgIDAwMDAwMDAwMCAgXG4jIDAwMCAgMDAwMCAgMDAwICAgICAgICAwMDAgIDAwMCAgICAgICAwMDAgICAgICAgICAgMDAwICAgICBcbiMgMDAwICAwMDAgMCAwMDAgICAgICAgIDAwMCAgMDAwMDAwMCAgIDAwMCAgICAgICAgICAwMDAgICAgIFxuIyAwMDAgIDAwMCAgMDAwMCAgMDAwICAgMDAwICAwMDAgICAgICAgMDAwICAgICAgICAgIDAwMCAgICAgXG4jIDAwMCAgMDAwICAgMDAwICAgMDAwMDAwMCAgIDAwMDAwMDAwICAgMDAwMDAwMCAgICAgMDAwICAgICBcblxuaW5qZWN0TWV0YSA9IChvcHRpb25zKSAtPiAjIG1ha2Ugc3VyZSB0aGF0IG9wdGlvbnMgaGFzIGEgbWV0YSBzZXRcbiAgICBcbiAgICBvcHRpb25zID89IHt9XG4gICAgXG4gICAgeyBleHRlbmQgfSA9IHJlcXVpcmUgJy4vaGVscGVycydcbiAgICBcbiAgICBkZWZhdWx0TWV0YSA9IHt9XG4gICAgTUVUQS5tYXAgKG0pIC0+IGRlZmF1bHRNZXRhW20ua2V5XSA9IG0ubWV0YTsgbS5tZXRhLmtleSA9IG0ua2V5OyBtLm1ldGEuaW5mbyA9IG0uaW5mb1xuICAgIFxuICAgIG1ldGEgICAgPSBleHRlbmQgZGVmYXVsdE1ldGEsIG9wdGlvbnMubWV0YSA/IHt9XG4gICAgb3B0aW9ucyA9IGV4dGVuZCB7IG1ldGE6IG1ldGEgfSwgb3B0aW9uc1xuICAgIG9wdGlvbnNcblxubG9nTWV0YXMgPSAtPlxuICAgIFxuICAgIHsgcGFkIH0gPSByZXF1aXJlICcuL2hlbHBlcnMnXG4gICAgeyBncmF5IH0gPSByZXF1aXJlICdjb2xvcmV0dGUnXG4gICAgbG9nIFwiI3tncmF5ICdNZXRhczonfVxcblxcbiN7IE1FVEEubWFwKChmKSAtPiBcIiAgICAje3BhZCBmLmtleX0je2dyYXkgZi5kZXNjID8gXCIje2Yua2V5fSAuLi5cIn1cIikuam9pbignXFxuJykgfVwiXG4gICAgbG9nIFwiICAgIOKWuGlmICAgICAgICAgICAgICAgICAgICAgI3tncmF5ICfilrhpZiBjb25kIC4uLiBbW+KWuGVsaWYgY29uZCAuLi5dIOKWuGVsc2UgLi4uXSd9XFxuXCJcbiAgICBcbm1vZHVsZS5leHBvcnRzID0geyBNRVRBLCBpbmplY3RNZXRhLCBsb2dNZXRhcywgY29tcGlsZU1ldGFJZiB9XG4iXX0=
+//# sourceURL=../coffee/meta.coffee

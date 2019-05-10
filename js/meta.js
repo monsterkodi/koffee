@@ -1,4 +1,4 @@
-// koffee 0.26.0
+// koffee 0.27.0
 
 /*
 00     00  00000000  000000000   0000000   
@@ -18,8 +18,8 @@
 
     META = [
         {
-            key: 'profile',
-            desc: '@profile [id] ...',
+            key: '▸profile',
+            desc: '▸profile [id] ...',
             meta: function(arg) {
                 var args, id, name, node, ref1, ref2, ref3;
                 args = (ref1 = arg.args) != null ? ref1 : null, node = (ref2 = arg.node) != null ? ref2 : null;
@@ -33,8 +33,8 @@
                 };
             }
         }, {
-            key: 'start',
-            desc: '@start id ...',
+            key: '▸start',
+            desc: '▸start id ...',
             info: {
                 then: true,
                 args: 1
@@ -50,8 +50,8 @@
                 };
             }
         }, {
-            key: 'end',
-            desc: '@end id ...',
+            key: '▸end',
+            desc: '▸end id ...',
             info: {
                 then: true,
                 args: 1
@@ -67,8 +67,8 @@
                 };
             }
         }, {
-            key: 'dbg',
-            desc: '@dbg msg ...',
+            key: '▸dbg',
+            desc: '▸dbg msg ...',
             info: {
                 then: true,
                 args: 1
@@ -90,8 +90,8 @@
                 };
             }
         }, {
-            key: 'test',
-            desc: '@test id ...',
+            key: '▸test',
+            desc: '▸test id ...',
             meta: function(arg) {
                 var args, node, opts, ref1, ref2, ref3;
                 opts = (ref1 = arg.opts) != null ? ref1 : null, args = (ref2 = arg.args) != null ? ref2 : null, node = (ref3 = arg.node) != null ? ref3 : null;
@@ -108,7 +108,7 @@
                 };
             }
         }, {
-            key: 'rand',
+            key: '▸rand',
             meta: function(arg) {
                 var args, ref1, ref2;
                 args = (ref1 = arg.args) != null ? ref1 : null;
@@ -124,7 +124,7 @@
     TAB = '    ';
 
     compileMetaIf = function(arg) {
-        var Assign, Block, Literal, Value, args, body, bodyOpt, cond, err, frag, fs, indent, info, merge, metaKey, node, opts, os, ref1, ref10, ref11, ref12, ref13, ref2, ref3, ref4, ref5, ref6, ref7, ref8, ref9;
+        var Assign, Block, Literal, Value, args, body, bodyOpt, cond, err, frag, fs, indent, info, merge, metaKey, node, opts, os, ref1, ref2, ref3, ref4, ref5, ref6, ref7, ref8, ref9;
         node = (ref1 = arg.node) != null ? ref1 : null, opts = (ref2 = arg.opts) != null ? ref2 : null;
         ref3 = require('./nodes'), Block = ref3.Block, Assign = ref3.Assign, Value = ref3.Value, Literal = ref3.Literal;
         merge = require('./helpers').merge;
@@ -132,8 +132,8 @@
             reduce: true,
             "eval": true
         };
-        if (((ref4 = node.condition.base) != null ? ref4.value : void 0) === 'this') {
-            metaKey = (ref5 = node.condition.properties) != null ? (ref6 = ref5[0]) != null ? (ref7 = ref6.name) != null ? ref7.value : void 0 : void 0 : void 0;
+        if ((ref4 = node.condition.base) != null ? (ref5 = ref4.value) != null ? ref5.startsWith('▸') : void 0 : void 0) {
+            metaKey = node.condition.base.value;
             if (typeof opts.meta[metaKey] === 'function') {
                 info = opts.meta[metaKey]({
                     opts: opts,
@@ -141,16 +141,17 @@
                     args: []
                 });
             }
-        } else if (((ref8 = node.condition.variable) != null ? (ref9 = ref8.base) != null ? ref9.value : void 0 : void 0) === 'this') {
-            metaKey = (ref10 = node.condition.variable.properties) != null ? (ref11 = ref10[0]) != null ? (ref12 = ref11.name) != null ? ref12.value : void 0 : void 0 : void 0;
+        }
+        if ((ref6 = node.condition.variable) != null ? (ref7 = ref6.base) != null ? (ref8 = ref7.value) != null ? ref8.startsWith('▸') : void 0 : void 0 : void 0) {
+            metaKey = node.condition.variable.base.value;
             if (typeof opts.meta[metaKey] === 'function') {
                 args = node.condition.args.map(function(a) {
-                    var ref13;
-                    return (ref13 = a.base) != null ? ref13.value : void 0;
+                    var ref9;
+                    return (ref9 = a.base) != null ? ref9.value : void 0;
                 });
                 args = args.map(function(a) {
-                    var ref13;
-                    if ((ref13 = a[0]) === '"' || ref13 === "'") {
+                    var ref9;
+                    if ((ref9 = a[0]) === '"' || ref9 === "'") {
                         return a.slice(1, -1);
                     } else {
                         return a;
@@ -167,7 +168,7 @@
             return [];
         }
         if (info["eval"]) {
-            cond = (ref13 = info.code) != null ? ref13 : node.fragmentsToText(node.condition.compileToFragments(opts, 2));
+            cond = (ref9 = info.code) != null ? ref9 : node.fragmentsToText(node.condition.compileToFragments(opts, 2));
             try {
                 os = require('os');
                 fs = require('fs');

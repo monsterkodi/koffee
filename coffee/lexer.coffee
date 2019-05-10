@@ -155,16 +155,18 @@ class Lexer
             else
                 'IDENTIFIER'
 
-        if tag is 'PROPERTY' and prev?[0] is '@' and id in META_KEYWORDS
-            # log '@PROPERTY', id, @tokens[-1..-1], @tokens[-1], @tokens.length
-            @tokens.pop()
-            if id == 'elif'
+        if tag is 'IDENTIFIER' and id[0] == '▸' and id[1..] in META_KEYWORDS
+            # log '▸META', id #, @tokens[-1..-1], @tokens[-1], @tokens.length
+            # @tokens.pop()
+            if id == '▸elif'
                 @token 'META_ELSE', 'else'
                 tag = 'META_IF'
                 id  = 'if'
-            else if id == 'then'
+            else if id == '▸then'
                 tag = 'THEN'
+                id  = 'then'
             else
+                id = id[1..]
                 tag = 'META_' + id.toUpperCase()
             
         else if tag is 'IDENTIFIER' and (id in JS_KEYWORDS or id in COFFEE_KEYWORDS) and not (@exportSpecifierList and id in COFFEE_KEYWORDS)

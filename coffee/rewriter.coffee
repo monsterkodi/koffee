@@ -11,7 +11,7 @@
 # The language has a good deal of optional, implicit and shorthand syntax. 
 # This can greatly complicate a grammar and bloat the resulting parse table. 
 # Instead of making the parser handle it all, we take a series of passes over the token stream, 
-# using this **Rewriter** to convert shorthand into the unambiguous long form, 
+# using this Rewriter to convert shorthand into the unambiguous long form, 
 # add implicit indentation and parentheses, and generally clean things up.
 # The Rewriter is used by the Lexer, directly against its internal array of tokens.
 
@@ -170,12 +170,13 @@ class Rewriter
                             return 2
                             
             if hasFeature @opts, 'meta'
-                if @check i-1, '@', i, 'PROPERTY'
-                    if @tag(i-2) not in ['META_IF']
+                
+                if token[1][0] == '▸'
+                    if @tag(i-1) not in ['META_IF']
                         if token[1] in Object.keys @opts.meta
                             meta = @opts.meta[token[1]]
-                            tokens.splice i-1, 0, @generate 'META_IF', 'if'
-                            tokens[i-1].spaced = true
+                            tokens.splice i, 0, @generate 'META_IF', 'if'
+                            tokens[i].spaced = true
                             adv = 2
                             if @tag(i+adv) == 'CALL_START'
                                 while @tag(i+adv++) not in ['CALL_END', ')', 'TERMINATOR']

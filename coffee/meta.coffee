@@ -17,8 +17,8 @@ META = [
     # 00000000   0000000    000   000  000000    000  000      0000000   
     # 000        000   000  000   000  000       000  000      000       
     # 000        000   000   0000000   000       000  0000000  00000000  
-    key:  'profile'   
-    desc: '@profile [id] ...'
+    key:  '▸profile'   
+    desc: '▸profile [id] ...'
     meta: (args:,node:) -> 
         
         id = "#{node.condition.locationData.first_line+1}_#{node.condition.locationData.first_column}"
@@ -33,8 +33,8 @@ META = [
     # 0000000      000     000000000  0000000       000     
     #      000     000     000   000  000   000     000     
     # 0000000      000     000   000  000   000     000     
-    key:  'start'   
-    desc: '@start id ...'
+    key:  '▸start'   
+    desc: '▸start id ...'
     info:
         then: true
         args: 1
@@ -44,8 +44,8 @@ META = [
         reduce: true
         body:   false
 ,
-    key:  'end'     
-    desc: '@end id ...'
+    key:  '▸end'     
+    desc: '▸end id ...'
     info:
         then: true
         args: 1
@@ -60,8 +60,8 @@ META = [
     # 000   000  0000000    000  0000  
     # 000   000  000   000  000   000  
     # 0000000    0000000     0000000   
-    key: 'dbg'    
-    desc: '@dbg msg ...'
+    key: '▸dbg'    
+    desc: '▸dbg msg ...'
     info:
         then: true
         args: 1
@@ -78,8 +78,8 @@ META = [
     #    000     0000000   0000000      000     
     #    000     000            000     000     
     #    000     00000000  0000000      000     
-    key: 'test'
-    desc: '@test id ...'
+    key: '▸test'
+    desc: '▸test id ...'
     meta: (opts:,args:,node:) ->
         before: opts.test and logSource opts:opts, args:args, node:node, close:true
         skip:   not opts.test
@@ -91,7 +91,7 @@ META = [
     # 0000000    000000000  000 0 000  000   000  
     # 000   000  000   000  000  0000  000   000  
     # 000   000  000   000  000   000  0000000    
-    key: 'rand'    
+    key: '▸rand'    
     meta: (args:) -> 
         code:"Math.random() < #{args?[0] ? 0.5}" 
         reduce:false 
@@ -112,18 +112,18 @@ compileMetaIf = (node:,opts:) ->
 
     { Block, Assign, Value, Literal } = require './nodes'
     { merge } = require './helpers'
-    
+        
     info = reduce:true, eval:true
     
-    if node.condition.base?.value == 'this'
+    if node.condition.base?.value?.startsWith '▸'
         
-        metaKey = node.condition.properties?[0]?.name?.value
+        metaKey = node.condition.base.value
         if typeof opts.meta[metaKey] == 'function'
             info = opts.meta[metaKey] opts:opts, node:node, args:[]
             
-    else if node.condition.variable?.base?.value == 'this'
+    if node.condition.variable?.base?.value?.startsWith '▸'
         
-        metaKey = node.condition.variable.properties?[0]?.name?.value
+        metaKey = node.condition.variable.base.value
         if typeof opts.meta[metaKey] == 'function'
             args = node.condition.args.map (a) -> 
                 a.base?.value

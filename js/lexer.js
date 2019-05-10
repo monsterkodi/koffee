@@ -1,4 +1,4 @@
-// koffee 0.26.0
+// koffee 0.27.0
 
 /*
 000      00000000  000   000  00000000  00000000   
@@ -76,7 +76,7 @@
         };
 
         Lexer.prototype.identifierToken = function() {
-            var alias, colon, colonOffset, id, idLength, input, match, poppedToken, prev, ref1, ref2, ref3, ref4, ref5, ref6, ref7, ref8, tag, tagToken;
+            var alias, colon, colonOffset, id, idLength, input, match, poppedToken, prev, ref1, ref2, ref3, ref4, ref5, ref6, ref7, ref8, ref9, tag, tagToken;
             if (!(match = IDENTIFIER.exec(this.chunk))) {
                 return 0;
             }
@@ -112,20 +112,21 @@
             }
             ref5 = this.tokens, prev = ref5[ref5.length - 1];
             tag = colon || (prev != null) && (((ref6 = prev[0]) === '.' || ref6 === '?.' || ref6 === '::' || ref6 === '?::') || !prev.spaced && prev[0] === '@') ? 'PROPERTY' : 'IDENTIFIER';
-            if (tag === 'PROPERTY' && (prev != null ? prev[0] : void 0) === '@' && indexOf.call(META_KEYWORDS, id) >= 0) {
-                this.tokens.pop();
-                if (id === 'elif') {
+            if (tag === 'IDENTIFIER' && id[0] === '▸' && (ref7 = id.slice(1), indexOf.call(META_KEYWORDS, ref7) >= 0)) {
+                if (id === '▸elif') {
                     this.token('META_ELSE', 'else');
                     tag = 'META_IF';
                     id = 'if';
-                } else if (id === 'then') {
+                } else if (id === '▸then') {
                     tag = 'THEN';
+                    id = 'then';
                 } else {
+                    id = id.slice(1);
                     tag = 'META_' + id.toUpperCase();
                 }
             } else if (tag === 'IDENTIFIER' && (indexOf.call(JS_KEYWORDS, id) >= 0 || indexOf.call(COFFEE_KEYWORDS, id) >= 0) && !(this.exportSpecifierList && indexOf.call(COFFEE_KEYWORDS, id) >= 0)) {
                 tag = id.toUpperCase();
-                if (tag === 'WHEN' && (ref7 = this.tag(), indexOf.call(LINE_BREAK, ref7) >= 0)) {
+                if (tag === 'WHEN' && (ref8 = this.tag(), indexOf.call(LINE_BREAK, ref8) >= 0)) {
                     tag = 'LEADING_WHEN';
                 } else if (tag === 'FOR') {
                     this.seenFor = true;
@@ -190,7 +191,7 @@
                 tagToken.origin = [tag, alias, tagToken[2]];
             }
             if (poppedToken) {
-                ref8 = [poppedToken[2].first_line, poppedToken[2].first_column], tagToken[2].first_line = ref8[0], tagToken[2].first_column = ref8[1];
+                ref9 = [poppedToken[2].first_line, poppedToken[2].first_column], tagToken[2].first_line = ref9[0], tagToken[2].first_column = ref9[1];
             }
             if (colon) {
                 colonOffset = input.lastIndexOf(':');

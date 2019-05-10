@@ -14,55 +14,55 @@ equal = (c,p) ->
 test "meta if", ->
             
     eq os?.platform, undefined
-    equal "@if os.platform()=='win' then no @else yes", require('os').platform()=='win' and 'false;;\n' or 'true;;\n'
-    equal "@if 0         then no @else yes", 'true;;\n'
-    equal "@if null      then no @else yes", 'true;;\n'
-    equal "@if undefined then no @else yes", 'true;;\n'
-    equal "@if ''        then no @else yes", 'true;;\n'
-    equal "@if {}        then no @else yes", 'true;;\n'
-    equal "@if true      then yes @else no", 'true;;\n'
-    equal "@if false     then yes @else no", 'false;;\n'
+    equal "▸if os.platform()=='win' then no ▸else yes", require('os').platform()=='win' and 'false;;\n' or 'true;;\n'
+    equal "▸if 0         then no ▸else yes", 'true;;\n'
+    equal "▸if null      then no ▸else yes", 'true;;\n'
+    equal "▸if undefined then no ▸else yes", 'true;;\n'
+    equal "▸if ''        then no ▸else yes", 'true;;\n'
+    equal "▸if {}        then no ▸else yes", 'true;;\n'
+    equal "▸if true      then yes ▸else no", 'true;;\n'
+    equal "▸if false     then yes ▸else no", 'false;;\n'
     
-    equal "@if 1         @then yes @else no", 'true;;\n'
-    equal "@if true      @then yes @else no", 'true;;\n'
-    equal "@if 'a'       @then yes @else no", 'true;;\n'
-    equal "@if []        @then yes @else no", 'true;;\n'
+    equal "▸if 1         ▸then yes ▸else no", 'true;;\n'
+    equal "▸if true      ▸then yes ▸else no", 'true;;\n'
+    equal "▸if 'a'       ▸then yes ▸else no", 'true;;\n'
+    equal "▸if []        ▸then yes ▸else no", 'true;;\n'
     
-    equal "@if 0         @then 1 @else 2; @if 3 @then 4 @else 5", '2;\n4;;;\n'
+    equal "▸if 0         ▸then 1 ▸else 2; ▸if 3 ▸then 4 ▸else 5", '2;\n4;;;\n'
     
     equal "2;4;5", '2;\n4;\n5;\n\n'
     
     equal """
-        @if 'a'
+        ▸if 'a'
             'hello'
-        @else 
+        ▸else 
             'world'""", "'hello';;\n"
     equal """
-        @if false
+        ▸if false
             'hello'
-        @else 
+        ▸else 
             'world'""", "'world';;\n"
 
     equal """
-        @if false
+        ▸if false
             'hello'
-        @else @if yes
+        ▸else ▸if yes
             123
-        @else 
+        ▸else 
             'world'""", "123;;\n"
 
     equal """
-        @if false
+        ▸if false
             'hello'
-        @elif yes
+        ▸elif yes
             345
-        @else 
+        ▸else 
             'world'""", "345;;\n"
 
 test "meta profile", ->
 
     check """
-        @if @profile abc
+        ▸if ▸profile abc
             a 1
             b 2
             c 3
@@ -76,20 +76,20 @@ test "meta profile", ->
         """
 
     check """
-        @if @profile then Math.sin(1)
+        ▸if ▸profile then Math.sin(1)
         """, "if (koffee_1_4 = process.hrtime()) {\n    Math.sin(1)"
 
     check """
-        @if @profile(test) then Math.sin(1)
-        """, "if (koffee_1_4 = process.hrtime()) {\n    Math.sin(1);\n    console.log('test',"
+        ▸if ▸profile(test) then Math.sin(2)
+        """, "if (koffee_1_4 = process.hrtime()) {\n    Math.sin(2);\n    console.log('test',"
 
     check """
-        @if @profile test @then Math.sin(1)
-        """, "if (koffee_1_4 = process.hrtime()) {\n    Math.sin(1);\n    console.log('test',"
+        ▸if ▸profile test ▸then Math.sin(3)
+        """, "if (koffee_1_4 = process.hrtime()) {\n    Math.sin(3);\n    console.log('test',"
     
     check """
-        @if @profile
-            @if @profile then bla()
+        ▸if ▸profile
+            ▸if ▸profile then bla()
         """, """
         if (koffee_1_4 = process.hrtime()) {
             if (koffee_2_8 = process.hrtime()) {
@@ -98,7 +98,7 @@ test "meta profile", ->
 test "meta profile shortcut", ->
     
     check """
-        @profile
+        ▸profile
             a 1
             b 2
             c 3
@@ -112,9 +112,9 @@ test "meta profile shortcut", ->
         """
         
     check """
-        @profile
-            @profile
-                @profile
+        ▸profile
+            ▸profile
+                ▸profile
                     a 1
         """, """
         if (koffee_1_0 = process.hrtime()) {
@@ -129,50 +129,33 @@ test "meta profile shortcut", ->
         };"""
 
     check """
-        @profile 'hello1' sin 0.5
+        ▸profile 'hello1' sin 0.5
         """, """
         if (koffee_1_0 = process.hrtime()) {
             sin(0.5);
             console.log('hello1',"""
             
-    check """@profile() sin 0.5""", """
+    check """▸profile() sin 0.5""", """
         if (koffee_1_0 = process.hrtime()) {
             sin(0.5);"""        
     
-    check """@profile sin 0.5""", """
+    check """▸profile sin 0.5""", """
         if (koffee_1_0 = process.hrtime()) {
             sin(0.5);"""        
     
-    check """@profile 123 sin 2""", """
+    check """▸profile 123 sin 2""", """
         if (koffee_1_0 = process.hrtime()) {
             sin(2);
             console.log('123',"""
 
-    check """@profile "123" sin 2""", """
+    check """▸profile "123" sin 2""", """
         if (koffee_1_0 = process.hrtime()) {
             sin(2);
             console.log('123',"""
             
-    check """@profile(hello3) sin 3""", """
+    check """▸profile(hello3) sin 3""", """
         if (koffee_1_0 = process.hrtime()) {
             sin(3);
             console.log('hello3'"""
                 
-test "broken stuff", ->
-
-    throws -> compile """
-        class A
-            @if: -> 'if'
-    """
-
-    throws -> compile """
-        class A
-            @: -> @if() == 'if'
-            @if: -> 'if'
-    """
-    
-    throws -> compile """
-        class A
-            @: -> @if?
-    """
     

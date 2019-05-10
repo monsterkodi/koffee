@@ -528,7 +528,7 @@ printRewriter = (tokens) ->
             when ':'                                 then spaced yellowDim
             when '@' 
                 if tokens[index+1][0] not in ['META_IF' 'META_ELSE' 'POST_META_IF'] then spaced(yellowDim) else spaced blueDim
-            when 'META_IF' 'META_ELSE' 'POST_META_IF' then spaced blue
+            when 'META_IF' 'META_ELSE' 'POST_META_IF' then spaced blue, '▸'+value
             when 'NUMBER'                            then spaced blue
             when '{''}'                              then if not token.generated then spaced gray
             when '=' '+' '-' '++' '--' '...' '::' \

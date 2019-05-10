@@ -32,7 +32,7 @@ test "feature color", ->
 test "feature config parameters", ->
     
     run = (c,o,p) -> 
-        r = Koffee.eval c, o
+        r = Koffee.eval c, extend {sandbox:{_:_}}, o
         eq r,p
     
     # make sure the new super call behaviour isn't active in old style destructuring code
@@ -51,7 +51,6 @@ test "feature config parameters", ->
     # make sure the new super call behaviour is active when using the new style
     
     run """
-    _ = require 'underscore'
     class B
         @: (@a:3) ->
          
@@ -65,7 +64,6 @@ test "feature config parameters", ->
     # make sure we can turn it off
     
     throws -> run """
-    _ = require 'underscore'
     class B
         @: (@a:3) ->
          

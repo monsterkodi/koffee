@@ -236,11 +236,12 @@ exports.run = (code, options = {}) ->
 
 # Compile and evaluate a string in a Node.js-like environment. The REPL uses this to run the input.
 
-exports.eval = (code, options = {}) ->
+exports.eval = (code, options={}) ->
     
     return unless code = code.trim()
     
-    createContext = vm.Script.createContext ? vm.createContext
+    # createContext = vm.Script.createContext ? vm.createContext
+    createContext = vm.createContext
 
     isContext = vm.isContext ? (ctx) ->
         options.sandbox instanceof createContext().constructor

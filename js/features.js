@@ -1,4 +1,4 @@
-// koffee 0.28.0
+// koffee 0.29.0
 
 /*
 00000000  00000000   0000000   000000000  000   000  00000000   00000000   0000000  
@@ -7,96 +7,96 @@
 000       000       000   000     000     000   000  000   000  000            000  
 000       00000000  000   000     000      0000000   000   000  00000000  0000000
  */
+var FEATURES, hasFeature, injectFeature, logFeatures;
 
-(function() {
-    var FEATURES, hasFeature, injectFeature, logFeatures;
+FEATURES = [
+    {
+        flag: 'color',
+        key: 'color',
+        desc: 'output with ansi colors',
+        enabled: true
+    }, {
+        flag: 'config-parameters',
+        key: 'config_parameters',
+        desc: 'enable config parameters',
+        enabled: true
+    }, {
+        flag: 'console-shortcut',
+        key: 'console_shortcut',
+        desc: 'replace log with console.log',
+        enabled: true
+    }, {
+        flag: 'constructor-shortcut',
+        key: 'constructor_shortcut',
+        desc: 'replace @: with constructor:',
+        enabled: true
+    }, {
+        flag: 'header',
+        key: 'header',
+        desc: 'prefix with koffee version header',
+        enabled: false
+    }, {
+        flag: 'negative-index',
+        key: 'negative_index',
+        desc: 'replace a[-1] with a[-1..-1]',
+        enabled: true
+    }, {
+        flag: 'optional-commata',
+        key: 'optional_commata',
+        desc: 'insert commata when possible',
+        enabled: true
+    }, {
+        flag: 'rewrite',
+        key: 'rewrite',
+        desc: 'rewrite tokens',
+        enabled: true
+    }, {
+        flag: 'meta',
+        key: 'meta',
+        desc: 'meta',
+        enabled: true
+    }
+];
 
-    FEATURES = [
-        {
-            flag: 'color',
-            key: 'color',
-            desc: 'output with ansi colors',
-            enabled: true
-        }, {
-            flag: 'config-parameters',
-            key: 'config_parameters',
-            desc: 'enable config parameters',
-            enabled: true
-        }, {
-            flag: 'console-shortcut',
-            key: 'console_shortcut',
-            desc: 'replace log with console.log',
-            enabled: true
-        }, {
-            flag: 'constructor-shortcut',
-            key: 'constructor_shortcut',
-            desc: 'replace @: with constructor:',
-            enabled: true
-        }, {
-            flag: 'header',
-            key: 'header',
-            desc: 'prefix with koffee version header',
-            enabled: false
-        }, {
-            flag: 'negative-index',
-            key: 'negative_index',
-            desc: 'replace a[-1] with a[-1..-1]',
-            enabled: true
-        }, {
-            flag: 'optional-commata',
-            key: 'optional_commata',
-            desc: 'insert commata when possible',
-            enabled: true
-        }, {
-            flag: 'rewrite',
-            key: 'rewrite',
-            desc: 'rewrite tokens',
-            enabled: true
-        }, {
-            flag: 'meta',
-            key: 'meta',
-            desc: 'meta',
-            enabled: true
-        }
-    ];
+hasFeature = function(options, feature) {
+    var ref;
+    return (options != null ? (ref = options.feature) != null ? ref[feature] : void 0 : void 0) !== false;
+};
 
-    hasFeature = function(options, feature) {
-        var ref;
-        return (options != null ? (ref = options.feature) != null ? ref[feature] : void 0 : void 0) !== false;
-    };
+injectFeature = function(options) {
+    var extend, feature, merge, o, ref, ref1;
+    ref = require('./helpers'), extend = ref.extend, merge = ref.merge;
+    if (options != null) {
+        options;
+    } else {
+        options = {};
+    }
+    feature = {};
+    FEATURES.map(function(f) {
+        return feature[f.key] = f.enabled;
+    });
+    o = extend({}, options);
+    o.feature = extend(feature, (ref1 = options.feature) != null ? ref1 : {});
+    return o;
+};
 
-    injectFeature = function(options) {
-        var extend, features, ref;
-        extend = require('./helpers').extend;
-        if (options != null) {
-            options;
-        } else {
-            options = {};
-        }
-        features = {};
-        FEATURES.map(function(f) {
-            return features[f.key] = f.enabled;
-        });
-        options.feature = extend(features, (ref = options.feature) != null ? ref : {});
-        return options;
-    };
+logFeatures = function() {
+    var gray, logMetas, pad;
+    pad = require('./helpers').pad;
+    gray = require('colorette').gray;
+    console.log("\n" + (gray('Features:')) + "\n\n" + (FEATURES.map(function(f) {
+        return "    " + (pad(f.flag)) + (gray(f.desc));
+    }).join('\n')) + "\n");
+    logMetas = require('./meta').logMetas;
+    return logMetas();
+};
 
-    logFeatures = function() {
-        var gray, logMetas, pad;
-        pad = require('./helpers').pad;
-        gray = require('colorette').gray;
-        console.log("\n" + (gray('Features:')) + "\n\n" + (FEATURES.map(function(f) {
-            return "    " + (pad(f.flag)) + (gray(f.desc));
-        }).join('\n')) + "\n");
-        logMetas = require('./meta').logMetas;
-        return logMetas();
-    };
+module.exports = {
+    FEATURES: FEATURES,
+    injectFeature: injectFeature,
+    logFeatures: logFeatures,
+    hasFeature: hasFeature
+};
 
-    module.exports = {
-        FEATURES: FEATURES,
-        injectFeature: injectFeature,
-        logFeatures: logFeatures,
-        hasFeature: hasFeature
-    };
-
-}).call(this);
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiZmVhdHVyZXMuanMiLCJzb3VyY2VSb290IjoiLiIsInNvdXJjZXMiOlsiIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7O0FBQUE7Ozs7Ozs7QUFBQSxJQUFBOztBQVFBLFFBQUEsR0FBVztJQUNQO1FBQUUsSUFBQSxFQUFNLE9BQVI7UUFBZ0MsR0FBQSxFQUFLLE9BQXJDO1FBQTZELElBQUEsRUFBTSx5QkFBbkU7UUFBdUcsT0FBQSxFQUFTLElBQWhIO0tBRE8sRUFFUDtRQUFFLElBQUEsRUFBTSxtQkFBUjtRQUFnQyxHQUFBLEVBQUssbUJBQXJDO1FBQTZELElBQUEsRUFBTSwwQkFBbkU7UUFBdUcsT0FBQSxFQUFTLElBQWhIO0tBRk8sRUFHUDtRQUFFLElBQUEsRUFBTSxrQkFBUjtRQUFnQyxHQUFBLEVBQUssa0JBQXJDO1FBQTZELElBQUEsRUFBTSw4QkFBbkU7UUFBdUcsT0FBQSxFQUFTLElBQWhIO0tBSE8sRUFJUDtRQUFFLElBQUEsRUFBTSxzQkFBUjtRQUFnQyxHQUFBLEVBQUssc0JBQXJDO1FBQTZELElBQUEsRUFBTSw4QkFBbkU7UUFBdUcsT0FBQSxFQUFTLElBQWhIO0tBSk8sRUFLUDtRQUFFLElBQUEsRUFBTSxRQUFSO1FBQWdDLEdBQUEsRUFBSyxRQUFyQztRQUE2RCxJQUFBLEVBQU0sbUNBQW5FO1FBQXVHLE9BQUEsRUFBUyxLQUFoSDtLQUxPLEVBTVA7UUFBRSxJQUFBLEVBQU0sZ0JBQVI7UUFBZ0MsR0FBQSxFQUFLLGdCQUFyQztRQUE2RCxJQUFBLEVBQU0sOEJBQW5FO1FBQXVHLE9BQUEsRUFBUyxJQUFoSDtLQU5PLEVBT1A7UUFBRSxJQUFBLEVBQU0sa0JBQVI7UUFBZ0MsR0FBQSxFQUFLLGtCQUFyQztRQUE2RCxJQUFBLEVBQU0sOEJBQW5FO1FBQXVHLE9BQUEsRUFBUyxJQUFoSDtLQVBPLEVBUVA7UUFBRSxJQUFBLEVBQU0sU0FBUjtRQUFnQyxHQUFBLEVBQUssU0FBckM7UUFBNkQsSUFBQSxFQUFNLGdCQUFuRTtRQUF1RyxPQUFBLEVBQVMsSUFBaEg7S0FSTyxFQVNQO1FBQUUsSUFBQSxFQUFNLE1BQVI7UUFBZ0MsR0FBQSxFQUFLLE1BQXJDO1FBQTZELElBQUEsRUFBTSxNQUFuRTtRQUF1RyxPQUFBLEVBQVMsSUFBaEg7S0FUTzs7O0FBWVgsVUFBQSxHQUFhLFNBQUMsT0FBRCxFQUFVLE9BQVY7QUFBc0IsUUFBQTttRUFBa0IsQ0FBQSxPQUFBLG9CQUFsQixLQUE4QjtBQUFwRDs7QUFFYixhQUFBLEdBQWdCLFNBQUMsT0FBRDtBQUVaLFFBQUE7SUFBQSxNQUFvQixPQUFBLENBQVEsV0FBUixDQUFwQixFQUFFLG1CQUFGLEVBQVU7O1FBRVY7O1FBQUEsVUFBVzs7SUFDWCxPQUFBLEdBQVU7SUFDVixRQUFRLENBQUMsR0FBVCxDQUFhLFNBQUMsQ0FBRDtlQUFPLE9BQVEsQ0FBQSxDQUFDLENBQUMsR0FBRixDQUFSLEdBQWlCLENBQUMsQ0FBQztJQUExQixDQUFiO0lBQ0EsQ0FBQSxHQUFJLE1BQUEsQ0FBTyxFQUFQLEVBQVcsT0FBWDtJQUNKLENBQUMsQ0FBQyxPQUFGLEdBQVksTUFBQSxDQUFPLE9BQVAsNENBQWtDLEVBQWxDO1dBQ1o7QUFUWTs7QUFXaEIsV0FBQSxHQUFjLFNBQUE7QUFFVixRQUFBO0lBQUUsTUFBUSxPQUFBLENBQVEsV0FBUjtJQUNSLE9BQVMsT0FBQSxDQUFRLFdBQVI7SUFBbUIsT0FBQSxDQUM5QixHQUQ4QixDQUMxQixJQUFBLEdBQUksQ0FBQyxJQUFBLENBQUssV0FBTCxDQUFELENBQUosR0FBc0IsTUFBdEIsR0FBMkIsQ0FBRSxRQUFRLENBQUMsR0FBVCxDQUFhLFNBQUMsQ0FBRDtlQUFPLE1BQUEsR0FBTSxDQUFDLEdBQUEsQ0FBSSxDQUFDLENBQUMsSUFBTixDQUFELENBQU4sR0FBbUIsQ0FBQyxJQUFBLENBQUssQ0FBQyxDQUFDLElBQVAsQ0FBRDtJQUExQixDQUFiLENBQXNELENBQUMsSUFBdkQsQ0FBNEQsSUFBNUQsQ0FBRixDQUEzQixHQUFnRyxJQUR0RTtJQUc1QixXQUFhLE9BQUEsQ0FBUSxRQUFSO1dBQ2YsUUFBQSxDQUFBO0FBUFU7O0FBU2QsTUFBTSxDQUFDLE9BQVAsR0FBaUI7SUFBRSxVQUFBLFFBQUY7SUFBWSxlQUFBLGFBQVo7SUFBMkIsYUFBQSxXQUEzQjtJQUF3QyxZQUFBLFVBQXhDIiwic291cmNlc0NvbnRlbnQiOlsiIyMjXG4wMDAwMDAwMCAgMDAwMDAwMDAgICAwMDAwMDAwICAgMDAwMDAwMDAwICAwMDAgICAwMDAgIDAwMDAwMDAwICAgMDAwMDAwMDAgICAwMDAwMDAwICBcbjAwMCAgICAgICAwMDAgICAgICAgMDAwICAgMDAwICAgICAwMDAgICAgIDAwMCAgIDAwMCAgMDAwICAgMDAwICAwMDAgICAgICAgMDAwICAgICAgIFxuMDAwMDAwICAgIDAwMDAwMDAgICAwMDAwMDAwMDAgICAgIDAwMCAgICAgMDAwICAgMDAwICAwMDAwMDAwICAgIDAwMDAwMDAgICAwMDAwMDAwICAgXG4wMDAgICAgICAgMDAwICAgICAgIDAwMCAgIDAwMCAgICAgMDAwICAgICAwMDAgICAwMDAgIDAwMCAgIDAwMCAgMDAwICAgICAgICAgICAgMDAwICBcbjAwMCAgICAgICAwMDAwMDAwMCAgMDAwICAgMDAwICAgICAwMDAgICAgICAwMDAwMDAwICAgMDAwICAgMDAwICAwMDAwMDAwMCAgMDAwMDAwMCAgIFxuIyMjXG5cbkZFQVRVUkVTID0gW1xuICAgIHsgZmxhZzogJ2NvbG9yJyAgICAgICAgICAgICAgICAga2V5OiAnY29sb3InICAgICAgICAgICAgICAgICBkZXNjOiAnb3V0cHV0IHdpdGggYW5zaSBjb2xvcnMnICAgICAgICAgICBlbmFibGVkOiB0cnVlICB9XG4gICAgeyBmbGFnOiAnY29uZmlnLXBhcmFtZXRlcnMnICAgICBrZXk6ICdjb25maWdfcGFyYW1ldGVycycgICAgIGRlc2M6ICdlbmFibGUgY29uZmlnIHBhcmFtZXRlcnMnICAgICAgICAgIGVuYWJsZWQ6IHRydWUgIH1cbiAgICB7IGZsYWc6ICdjb25zb2xlLXNob3J0Y3V0JyAgICAgIGtleTogJ2NvbnNvbGVfc2hvcnRjdXQnICAgICAgZGVzYzogJ3JlcGxhY2UgbG9nIHdpdGggY29uc29sZS5sb2cnICAgICAgZW5hYmxlZDogdHJ1ZSAgfVxuICAgIHsgZmxhZzogJ2NvbnN0cnVjdG9yLXNob3J0Y3V0JyAga2V5OiAnY29uc3RydWN0b3Jfc2hvcnRjdXQnICBkZXNjOiAncmVwbGFjZSBAOiB3aXRoIGNvbnN0cnVjdG9yOicgICAgICBlbmFibGVkOiB0cnVlICB9XG4gICAgeyBmbGFnOiAnaGVhZGVyJyAgICAgICAgICAgICAgICBrZXk6ICdoZWFkZXInICAgICAgICAgICAgICAgIGRlc2M6ICdwcmVmaXggd2l0aCBrb2ZmZWUgdmVyc2lvbiBoZWFkZXInIGVuYWJsZWQ6IGZhbHNlIH1cbiAgICB7IGZsYWc6ICduZWdhdGl2ZS1pbmRleCcgICAgICAgIGtleTogJ25lZ2F0aXZlX2luZGV4JyAgICAgICAgZGVzYzogJ3JlcGxhY2UgYVstMV0gd2l0aCBhWy0xLi4tMV0nICAgICAgZW5hYmxlZDogdHJ1ZSAgfVxuICAgIHsgZmxhZzogJ29wdGlvbmFsLWNvbW1hdGEnICAgICAga2V5OiAnb3B0aW9uYWxfY29tbWF0YScgICAgICBkZXNjOiAnaW5zZXJ0IGNvbW1hdGEgd2hlbiBwb3NzaWJsZScgICAgICBlbmFibGVkOiB0cnVlICB9XG4gICAgeyBmbGFnOiAncmV3cml0ZScgICAgICAgICAgICAgICBrZXk6ICdyZXdyaXRlJyAgICAgICAgICAgICAgIGRlc2M6ICdyZXdyaXRlIHRva2VucycgICAgICAgICAgICAgICAgICAgIGVuYWJsZWQ6IHRydWUgIH1cbiAgICB7IGZsYWc6ICdtZXRhJyAgICAgICAgICAgICAgICAgIGtleTogJ21ldGEnICAgICAgICAgICAgICAgICAgZGVzYzogJ21ldGEnICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgZW5hYmxlZDogdHJ1ZSAgfVxuXVxuXG5oYXNGZWF0dXJlID0gKG9wdGlvbnMsIGZlYXR1cmUpIC0+IG9wdGlvbnM/LmZlYXR1cmU/W2ZlYXR1cmVdICE9IGZhbHNlXG5cbmluamVjdEZlYXR1cmUgPSAob3B0aW9ucykgLT4gIyBtYWtlIHN1cmUgdGhhdCBvcHRpb25zIGhhcyBhIGZlYXR1cmUgc2V0XG4gICAgXG4gICAgeyBleHRlbmQsIG1lcmdlIH0gPSByZXF1aXJlICcuL2hlbHBlcnMnXG4gICAgXG4gICAgb3B0aW9ucyA/PSB7fVxuICAgIGZlYXR1cmUgPSB7fVxuICAgIEZFQVRVUkVTLm1hcCAoZikgLT4gZmVhdHVyZVtmLmtleV0gPSBmLmVuYWJsZWRcbiAgICBvID0gZXh0ZW5kIHt9LCBvcHRpb25zXG4gICAgby5mZWF0dXJlID0gZXh0ZW5kIGZlYXR1cmUsIG9wdGlvbnMuZmVhdHVyZSA/IHt9XG4gICAgb1xuXG5sb2dGZWF0dXJlcyA9IC0+XG4gICAgXG4gICAgeyBwYWQgfSA9IHJlcXVpcmUgJy4vaGVscGVycydcbiAgICB7IGdyYXkgfSA9IHJlcXVpcmUgJ2NvbG9yZXR0ZSdcbiAgICBsb2cgXCJcXG4je2dyYXkgJ0ZlYXR1cmVzOid9XFxuXFxuI3sgRkVBVFVSRVMubWFwKChmKSAtPiBcIiAgICAje3BhZCBmLmZsYWd9I3tncmF5IGYuZGVzY31cIikuam9pbignXFxuJykgfVxcblwiXG4gICAgXG4gICAgeyBsb2dNZXRhcyB9ID0gcmVxdWlyZSAnLi9tZXRhJ1xuICAgIGxvZ01ldGFzKClcbiAgICBcbm1vZHVsZS5leHBvcnRzID0geyBGRUFUVVJFUywgaW5qZWN0RmVhdHVyZSwgbG9nRmVhdHVyZXMsIGhhc0ZlYXR1cmUgfVxuIl19
+//# sourceURL=../coffee/features.coffee

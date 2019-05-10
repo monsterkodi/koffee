@@ -168,25 +168,25 @@ exports.isCoffee = (file) -> /\.[ck]offee$/.test file
 # marker showing where the error is.
 
 exports.throwSyntaxError = (message, location) ->
-    error = new SyntaxError message
-    error.location = location
-    error.toString = syntaxErrorToString
+    err = new SyntaxError message
+    err.location = location
+    err.toString = syntaxErrorToString
 
     # Instead of showing the compiler's stacktrace, show our custom error message.
     # This is useful when the error bubbles up in Node.js applications that compile Koffee.
-    error.stack = error.toString()
+    err.stack = err.toString()
 
-    throw error
+    throw err
 
 # Update a compiler SyntaxError with source code information if it didn't have it already.
 
-exports.updateSyntaxError = (error, code, filename) ->
+exports.updateSyntaxError = (err, code, filename) ->
     # Avoid screwing up the `stack` property of other errors (i.e. possible bugs).
-    if error.toString is syntaxErrorToString
-        error.code     or= code
-        error.filename or= filename
-        error.stack      = error.toString()
-    error
+    if err.toString is syntaxErrorToString
+        err.code     or= code
+        err.filename or= filename
+        err.stack = err.toString()
+    err
 
 syntaxErrorToString = ->
     

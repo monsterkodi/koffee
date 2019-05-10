@@ -81,7 +81,7 @@ log 'a:' a , 'd:' 3
 
 We are probably reaching the limits of minimalism here :)
 
-## Meta Macros
+## Meta If
 
 **koffee** allows you to control which blocks of code get compiled into JavaScript:
 
@@ -117,11 +117,13 @@ on macOS, on other platforms it will produce
 process.exit(0);
 ```
 
+### Macros
+
 If the condition part of `▸if` starts with a `▸`, a lookup will be made into the compile options meta map.
 If a matching entry is found, the provided coffeescript blocks can be modified arbitrarily before they are written to JavaScript.
 When the macro is only operating on one block of code, you can omit the leading `▸if`.
 
-The default map includes some simple but useful examples that use this feature. 
+The default map includes some simple but useful macros that demonstrate this feature. 
 
 ```coffeescript
                                 # log file position and object

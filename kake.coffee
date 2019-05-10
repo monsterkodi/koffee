@@ -203,7 +203,7 @@ runTests = (testsets) ->
     
     return failedTests
 
-task 'test',   'run the tests',    -> process.exit runTests ['koffee' 'coffee']
+task 'test',   'run the tests',    -> process.exit runTests ['koffee' 'coffee'] # order should not be important. If it is, koffee tests might call eval without sandbox.
 task 'coffee', 'run coffee tests', -> process.exit runTests ['coffee']
 task 'koffee', 'run koffee tests', -> process.exit runTests ['koffee']
 

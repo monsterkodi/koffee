@@ -43,7 +43,7 @@ test "console shortcut works", ->
     
 test "console shortcut keep non calls", ->
 
-    check = (c,p='console') -> eq -1, compile(c).indexOf p
+    check = (c,p='console') -> if -1 != compile(c).indexOf p then eq c, "to not include 'console'"
     
     check 'log'
     check 'log = b'
@@ -76,5 +76,8 @@ test "console shortcut keep non calls", ->
             error:error 
         catch error
             error.error error"""
+            
+    check 'error.stack'
+    check 'eq /file.coffee:(\d)/.exec(error.stack.toString())[1], 3'
             
             

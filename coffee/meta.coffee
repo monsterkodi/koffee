@@ -17,6 +17,7 @@ META = [
     # 00000000   0000000    000   000  000000    000  000      0000000   
     # 000        000   000  000   000  000       000  000      000       
     # 000        000   000   0000000   000       000  0000000  00000000  
+    
     key:  '▸profile'   
     desc: '▸profile [id] ...'
     meta: (args:,node:) -> 
@@ -33,6 +34,7 @@ META = [
     # 0000000      000     000000000  0000000       000     
     #      000     000     000   000  000   000     000     
     # 0000000      000     000   000  000   000     000     
+    
     key:  '▸start'   
     desc: '▸start id ...'
     info:
@@ -60,10 +62,11 @@ META = [
     # 000   000  0000000    000  0000  
     # 000   000  000   000  000   000  
     # 0000000    0000000     0000000   
-    key: '▸dbg'    
+    
+    key:  '▸dbg'    
     desc: '▸dbg msg ...'
     info:
-        then: true
+        then: true # should not be used with a block
         args: 1
     meta: (opts:,args:,node:) ->
         code:   "true"
@@ -72,13 +75,40 @@ META = [
         after:  ")"
         reduce: true
         block:  false
+,        
+    #  0000000    0000000   0000000  00000000  00000000   000000000  
+    # 000   000  000       000       000       000   000     000     
+    # 000000000  0000000   0000000   0000000   0000000       000     
+    # 000   000       000       000  000       000   000     000     
+    # 000   000  0000000   0000000   00000000  000   000     000     
+    
+    key:  '▸assert'    
+    desc: '▸assert msg ...'
+    meta: (opts:,args:,node:) ->
+        
+        if node.body instanceof Block
+            body = node.body.expressions[0]
+        else
+            body = node.body
+            
+        frag = body.compileToFragments opts
+        text = node.fragmentsToText frag
+        code = "not (#{text})"
+        
+        before: logSource opts:opts, args:args, node:node
+        eval:   true
+        after:  ")"
+        reduce: true
+        block:  false
+        code:   condition            
 ,    
     # 000000000  00000000   0000000  000000000  
     #    000     000       000          000     
     #    000     0000000   0000000      000     
     #    000     000            000     000     
     #    000     00000000  0000000      000     
-    key: '▸test'
+    
+    key:  '▸test'
     desc: '▸test id ...'
     meta: (opts:,args:,node:) ->
         before: opts.test and logSource opts:opts, args:args, node:node, close:true
@@ -91,13 +121,14 @@ META = [
     # 0000000    000000000  000 0 000  000   000  
     # 000   000  000   000  000  0000  000   000  
     # 000   000  000   000  000   000  0000000    
+    
     key: '▸rand'    
     meta: (args:) -> 
-        code:"Math.random() < #{args?[0] ? 0.5}" 
-        reduce:false 
-        body:true   
+        code:   "Math.random() < #{args?[0] ? 0.5}" 
+        reduce: false 
+        body:   true   
     
-    # key: 'token' 'parse' 'code' 'test' 'assert'
+    # key: 'token' 'parse' 'code' 'assert'
 ]
 
 #  0000000   0000000   00     00  00000000   000  000      00000000  

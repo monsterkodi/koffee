@@ -22,13 +22,14 @@ hasFeature = (options, feature) -> options?.feature?[feature] != false
 
 injectFeature = (options) -> # make sure that options has a feature set
     
-    { extend } = require './helpers'
+    { extend, merge } = require './helpers'
     
     options ?= {}
-    features = {}
-    FEATURES.map (f) -> features[f.key] = f.enabled
-    options.feature = extend features, options.feature ? {}
-    options
+    feature = {}
+    FEATURES.map (f) -> feature[f.key] = f.enabled
+    o = extend {}, options
+    o.feature = extend feature, options.feature ? {}
+    o
 
 logFeatures = ->
     

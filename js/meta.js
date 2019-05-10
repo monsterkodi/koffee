@@ -1,4 +1,4 @@
-// koffee 0.28.0
+// koffee 0.29.0
 
 /*
 00     00  00000000  000000000   0000000   
@@ -87,6 +87,33 @@
                     after: ")",
                     reduce: true,
                     block: false
+                };
+            }
+        }, {
+            key: '▸assert',
+            desc: '▸assert msg ...',
+            meta: function(arg) {
+                var args, body, code, frag, node, opts, ref1, ref2, ref3, text;
+                opts = (ref1 = arg.opts) != null ? ref1 : null, args = (ref2 = arg.args) != null ? ref2 : null, node = (ref3 = arg.node) != null ? ref3 : null;
+                if (node.body instanceof Block) {
+                    body = node.body.expressions[0];
+                } else {
+                    body = node.body;
+                }
+                frag = body.compileToFragments(opts);
+                text = node.fragmentsToText(frag);
+                code = "not (" + text + ")";
+                return {
+                    before: logSource({
+                        opts: opts,
+                        args: args,
+                        node: node
+                    }),
+                    "eval": true,
+                    after: ")",
+                    reduce: true,
+                    block: false,
+                    code: condition
                 };
             }
         }, {

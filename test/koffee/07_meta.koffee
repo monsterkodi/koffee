@@ -206,3 +206,5 @@ test "assert", ->
     file.koffee:4 4!
     file.koffee:6 5!\n"""
     
+    # ▸assert 'true?' [] ?[1]==[1]
+    

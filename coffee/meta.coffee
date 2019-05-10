@@ -95,7 +95,7 @@ META = [
         frag = body.compileToFragments opts
         text = node.fragmentsToText frag
         code = "!(#{text})"
-        
+        args = ['assertion failure!'] if not args.length
         before: logSource opts:opts, args:args, node:node, close:true
         then:   true # should not be used with a block
         eval:   false

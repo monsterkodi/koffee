@@ -129,6 +129,9 @@ The default map includes some simple but useful macros that demonstrate this fea
                                 # log file position and object
 ▸dbg 'my object' a:1, b:2       # -> file:1 my object { a: 1, b: 2 }
 
+▸assert 'message' condition     # log file position and message if condition isn't truish
+▸assert condition               # log file position and 'assertion failure!' if condition isn't truish
+                                
                                 # log execution times  
 ▸profile 'sum'                  # -> 6_4 1ms          line_col prefix
     ▸profile s1()               # -> 7_4 2ms          if not named

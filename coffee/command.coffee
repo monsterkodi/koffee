@@ -26,21 +26,11 @@ Koffee           = require './koffee'
 useWinPathSep    = path.sep is '\\'
 
 helpers.extend Koffee, new EventEmitter # Allow emitting Node events
+helpers.colors()
 
 { FEATURES, logFeatures } = require './features'
 
 { baseFileName, isCoffee, stringify, merge, pad } = helpers
-{ 
-    dim,    bold, 
-    red,    redBright,
-    gray,   grayBright, 
-    yellow, yellowBright,
-    green,  greenBright,
-    white,  whiteBright, 
-    blue,   blueBright, 
-    cyan,   cyanBright,
-    magenta, magentaBright,
-} = require 'colorette'
 
 error     = console.error
 print     = (line) -> process.stdout.write line

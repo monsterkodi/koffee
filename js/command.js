@@ -1,4 +1,4 @@
-// koffee 0.30.0
+// koffee 0.31.0
 
 /*
  0000000   0000000   00     00  00     00   0000000   000   000  0000000    
@@ -9,7 +9,7 @@
  */
 
 (function() {
-    var EventEmitter, FEATURES, Koffee, SWITCHES, baseFileName, blue, blueBright, bold, compileOptions, compilePath, compileScript, compileStdio, cyan, cyanBright, dim, error, exec, findDirectoryIndex, fs, gray, grayBright, green, greenBright, helpers, hidden, isCoffee, logFeatures, magenta, magentaBright, makePrelude, merge, mkdirp, nopt, opts, outputPath, pad, parseOptions, path, print, printLine, printRewriter, printTokens, printWarn, red, redBright, ref, ref1, ref2, run, spawn, startRepl, stringify, timeLog, usage, useWinPathSep, version, wait, watchDir, watchFile, watchPath, white, whiteBright, writeJs, yellow, yellowBright;
+    var EventEmitter, FEATURES, Koffee, SWITCHES, baseFileName, compileOptions, compilePath, compileScript, compileStdio, error, exec, findDirectoryIndex, fs, helpers, hidden, isCoffee, logFeatures, makePrelude, merge, mkdirp, nopt, opts, outputPath, pad, parseOptions, path, print, printLine, printRewriter, printTokens, printWarn, ref, ref1, run, spawn, startRepl, stringify, timeLog, usage, useWinPathSep, version, wait, watchDir, watchFile, watchPath, writeJs;
 
     fs = require('fs');
 
@@ -29,11 +29,11 @@
 
     helpers.extend(Koffee, new EventEmitter);
 
+    helpers.colors();
+
     ref1 = require('./features'), FEATURES = ref1.FEATURES, logFeatures = ref1.logFeatures;
 
     baseFileName = helpers.baseFileName, isCoffee = helpers.isCoffee, stringify = helpers.stringify, merge = helpers.merge, pad = helpers.pad;
-
-    ref2 = require('colorette'), dim = ref2.dim, bold = ref2.bold, red = ref2.red, redBright = ref2.redBright, gray = ref2.gray, grayBright = ref2.grayBright, yellow = ref2.yellow, yellowBright = ref2.yellowBright, green = ref2.green, greenBright = ref2.greenBright, white = ref2.white, whiteBright = ref2.whiteBright, blue = ref2.blue, blueBright = ref2.blueBright, cyan = ref2.cyan, cyanBright = ref2.cyanBright, magenta = ref2.magenta, magentaBright = ref2.magentaBright;
 
     error = console.error;
 
@@ -89,8 +89,8 @@
         o.js = !!(o.js || o["eval"] || o.stdio && o.compile);
         o.feature = {};
         FEATURES.map(function(f) {
-            var ref3;
-            o.feature[f.key] = (ref3 = o[f.flag]) != null ? ref3 : true;
+            var ref2;
+            o.feature[f.key] = (ref2 = o[f.flag]) != null ? ref2 : true;
             return delete o[f.flag];
         });
         if (o.Debug) {
@@ -100,7 +100,7 @@
     };
 
     run = function() {
-        var eval, i, j, len, len1, literals, ref3, ref4, results, source;
+        var eval, i, j, len, len1, literals, ref2, ref3, results, source;
         parseOptions();
         if (opts.features) {
             return logFeatures();
@@ -118,9 +118,9 @@
             return compileStdio();
         }
         if (opts["eval"]) {
-            ref3 = opts["eval"];
-            for (i = 0, len = ref3.length; i < len; i++) {
-                eval = ref3[i];
+            ref2 = opts["eval"];
+            for (i = 0, len = ref2.length; i < len; i++) {
+                eval = ref2[i];
                 compileScript(eval);
             }
             return;
@@ -134,10 +134,10 @@
         if (opts.output) {
             opts.output = path.resolve(opts.output);
         }
-        ref4 = opts["arguments"];
+        ref3 = opts["arguments"];
         results = [];
-        for (j = 0, len1 = ref4.length; j < len1; j++) {
-            source = ref4[j];
+        for (j = 0, len1 = ref3.length; j < len1; j++) {
+            source = ref3[j];
             source = path.resolve(source);
             if (opts.watch) {
                 results.push(watchPath(source));
@@ -173,8 +173,8 @@
     };
 
     compilePath = function(source, arg) {
-        var code, err, file, files, i, len, ref3, ref4, results, stats, topLevel;
-        topLevel = (ref3 = arg.topLevel) != null ? ref3 : false;
+        var code, err, file, files, i, len, ref2, ref3, results, stats, topLevel;
+        topLevel = (ref2 = arg.topLevel) != null ? ref2 : false;
         if (!topLevel && hidden(source)) {
             return;
         }
@@ -189,7 +189,7 @@
             throw err;
         }
         if (stats.isDirectory()) {
-            if ((ref4 = path.basename(source)) === 'node_modules' || ref4 === '.git') {
+            if ((ref3 = path.basename(source)) === 'node_modules' || ref3 === '.git') {
                 return;
             }
             if (opts.run) {
@@ -234,10 +234,10 @@
     };
 
     findDirectoryIndex = function(source) {
-        var err, ext, i, index, len, ref3;
-        ref3 = Koffee.FILE_EXTENSIONS;
-        for (i = 0, len = ref3.length; i < len; i++) {
-            ext = ref3[i];
+        var err, ext, i, index, len, ref2;
+        ref2 = Koffee.FILE_EXTENSIONS;
+        for (i = 0, len = ref2.length; i < len; i++) {
+            ext = ref2[i];
             index = path.join(source, "index" + ext);
             try {
                 if ((fs.statSync(index)).isFile()) {
@@ -576,9 +576,9 @@
     };
 
     printTokens = function(tokens) {
-        var ctag, cvalue, i, index, ref3, results, tag, token, value;
+        var ctag, cvalue, i, index, ref2, results, tag, token, value;
         results = [];
-        for (index = i = 0, ref3 = tokens.length; 0 <= ref3 ? i < ref3 : i > ref3; index = 0 <= ref3 ? ++i : --i) {
+        for (index = i = 0, ref2 = tokens.length; 0 <= ref2 ? i < ref2 : i > ref2; index = 0 <= ref2 ? ++i : --i) {
             token = tokens[index];
             tag = token[0];
             value = token[1].toString().replace(/\n/, '\\n');
@@ -603,10 +603,10 @@
     };
 
     printRewriter = function(tokens) {
-        var blueDim, grayDim, i, indent, index, ref3, ref4, results, spaced, tag, token, value, yellowDim;
+        var blueDim, grayDim, i, indent, index, ref2, ref3, results, spaced, tag, token, value, yellowDim;
         indent = 0;
         results = [];
-        for (index = i = 0, ref3 = tokens.length; 0 <= ref3 ? i < ref3 : i > ref3; index = 0 <= ref3 ? ++i : --i) {
+        for (index = i = 0, ref2 = tokens.length; 0 <= ref2 ? i < ref2 : i > ref2; index = 0 <= ref2 ? ++i : --i) {
             token = tokens[index];
             tag = token[0];
             value = token[1];
@@ -620,9 +620,9 @@
                 return dim(yellow(s));
             };
             spaced = function(color, v) {
-                var ref4;
+                var ref3;
                 print(color("" + (v != null ? v : value)));
-                if (token.spaced && ((ref4 = tokens[index + 1][0]) !== 'CALL_START')) {
+                if (token.spaced && ((ref3 = tokens[index + 1][0]) !== 'CALL_START')) {
                     return print(' ');
                 }
             };
@@ -668,7 +668,7 @@
                     results.push(spaced(yellowDim));
                     break;
                 case '@':
-                    if ((ref4 = tokens[index + 1][0]) !== 'META_IF' && ref4 !== 'META_ELSE' && ref4 !== 'POST_META_IF') {
+                    if ((ref3 = tokens[index + 1][0]) !== 'META_IF' && ref3 !== 'META_ELSE' && ref3 !== 'POST_META_IF') {
                         results.push(spaced(yellowDim));
                     } else {
                         results.push(spaced(blueDim));

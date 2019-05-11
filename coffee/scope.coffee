@@ -11,7 +11,7 @@
 # Each scope knows about the variables declared within it, and has a reference to its parent enclosing scope. 
 # In this way, we know which variables are new and need to be declared with `var`, and which are shared with external scopes.
 
-exports.Scope = class Scope
+class Scope
 
     # Initialize a scope with its parent, for lookups up the chain,
     # as well as a reference to the Block node it belongs to, 
@@ -114,3 +114,4 @@ exports.Scope = class Scope
 
     assignedVariables: -> "#{v.name} = #{v.type.value}" for v in @variables when v.type.assigned
         
+module.exports = Scope

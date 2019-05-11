@@ -15,7 +15,7 @@ nopt     = require 'nopt'
 helpers  = require './helpers'
 Koffee   = require './koffee'
 
-{ gray, white, yellow } = require 'colorette'
+helpers.colors()
 
 tasks    = {}
 
@@ -60,8 +60,6 @@ run = ->
     tasklist = nopt().argv.remain
     return printTasks() if not tasklist.length
     invoke arg for arg in tasklist
-
-exports.run = run
         
 printTasks = ->
     
@@ -81,3 +79,5 @@ kakefileDirectory = (dir) -> # Search in the current and all parent directories 
     parent = path.normalize path.join dir, '..'
     return kakefileDirectory parent unless parent is dir
     throw new Error "kake.coffee not found in #{process.cwd()}"
+
+module.exports = run

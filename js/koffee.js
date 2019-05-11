@@ -1,4 +1,4 @@
-// koffee 0.30.0
+// koffee 0.31.0
 
 /*
 000   000   0000000   00000000  00000000  00000000  00000000  
@@ -9,7 +9,7 @@
  */
 
 (function() {
-    var FILE_EXTENSIONS, Lexer, SourceMap, base64encode, compile, count, formatSourcePosition, fs, getSourceMap, hasFeature, helpers, injectFeature, injectMeta, isCoffee, lexer, nameWhitespaceCharacter, parser, path, pkg, sourceMaps, sources, stringify, throwSyntaxError, updateSyntaxError, vm, withPrettyErrors,
+    var FILE_EXTENSIONS, Lexer, SourceMap, base64encode, compile, compileFile, count, evaluate, fs, getSourceMap, hasFeature, helpers, injectFeature, injectMeta, isCoffee, lexer, nameWhitespaceCharacter, nodes, parser, path, pkg, ref, run, sourceMaps, sources, stringify, throwSyntaxError, updateSyntaxError, vm,
         hasProp = {}.hasOwnProperty;
 
     fs = require('fs');
@@ -28,13 +28,13 @@
 
     pkg = require('../package.json');
 
-    exports.VERSION = pkg.version;
+    injectMeta = require('./meta').injectMeta;
 
-    exports.FILE_EXTENSIONS = FILE_EXTENSIONS = ['.coffee', '.koffee'];
+    ref = require('./features'), injectFeature = ref.injectFeature, hasFeature = ref.hasFeature;
 
-    exports.helpers = helpers;
+    updateSyntaxError = helpers.updateSyntaxError, nameWhitespaceCharacter = helpers.nameWhitespaceCharacter, throwSyntaxError = helpers.throwSyntaxError, isCoffee = helpers.isCoffee, count = helpers.count, stringify = helpers.stringify;
 
-    injectFeature = helpers.injectFeature, injectMeta = helpers.injectMeta, updateSyntaxError = helpers.updateSyntaxError, nameWhitespaceCharacter = helpers.nameWhitespaceCharacter, throwSyntaxError = helpers.throwSyntaxError, isCoffee = helpers.isCoffee, count = helpers.count, hasFeature = helpers.hasFeature, stringify = helpers.stringify;
+    FILE_EXTENSIONS = ['.coffee', '.koffee'];
 
     base64encode = function(src) {
         if (typeof Buffer === 'function') {
@@ -48,36 +48,19 @@
         }
     };
 
-    withPrettyErrors = function(fn) {
-        return function(code, options) {
-            var err;
-            if (options == null) {
-                options = {};
-            }
-            try {
-                return fn.call(this, code, options);
-            } catch (error) {
-                err = error;
-                if (typeof code !== 'string') {
-                    throw new Error(err.toString());
-                } else {
-                    throw updateSyntaxError(err, code, options.filename);
-                }
-            }
-        };
-    };
+    lexer = new Lexer;
 
     sources = {};
 
     sourceMaps = {};
 
-    exports.compile = compile = withPrettyErrors(function(code, options) {
-        var currentColumn, currentLine, encoded, extend, filename, fragment, fragments, generateSourceMap, header, i, j, js, len, len1, map, merge, newLines, ref, ref1, sourceMapDataURI, sourceURL, token, tokens, v3SourceMap;
+    compile = function(code, options) {
+        var currentColumn, currentLine, encoded, extend, filename, fragment, fragments, generateSourceMap, header, i, j, js, len, len1, map, merge, newLines, ref1, ref2, sourceMapDataURI, sourceURL, token, tokens, v3SourceMap;
         merge = helpers.merge, extend = helpers.extend;
         options = injectFeature(options);
         options = injectMeta(options);
         generateSourceMap = options.sourceMap || options.inlineMap || (options.filename == null);
-        filename = options.filename || '<anonymous>';
+        filename = options.filename || '?';
         sources[filename] = code;
         if (generateSourceMap) {
             map = new SourceMap;
@@ -97,7 +80,7 @@
         if (!options.bare) {
             for (i = 0, len = tokens.length; i < len; i++) {
                 token = tokens[i];
-                if ((ref = token[0]) === 'IMPORT' || ref === 'EXPORT') {
+                if ((ref1 = token[0]) === 'IMPORT' || ref1 === 'EXPORT') {
                     options.bare = true;
                     break;
                 }
@@ -142,7 +125,7 @@
         if (options.inlineMap) {
             encoded = base64encode(JSON.stringify(v3SourceMap));
             sourceMapDataURI = "//# sourceMappingURL=data:application/json;base64," + encoded;
-            sourceURL = "//# sourceURL=" + ((ref1 = options.filename) != null ? ref1 : 'koffee');
+            sourceURL = "//# sourceURL=" + ((ref2 = options.filename) != null ? ref2 : 'koffee');
             js = js + "\n" + sourceMapDataURI + "\n" + sourceURL;
         }
         if (options.sourceMap) {
@@ -154,41 +137,44 @@
         } else {
             return js;
         }
-    });
+    };
 
-    exports.tokens = withPrettyErrors(function(code, options) {
-        return lexer.tokenize(code, options);
-    });
-
-    exports.nodes = withPrettyErrors(function(source, options) {
-        if (typeof source === 'string') {
-            return parser.parse(lexer.tokenize(source, options));
+    nodes = function(code, options) {
+        if (typeof code === 'string') {
+            return parser.parse(lexer.tokenize(code, options));
         } else {
-            return parser.parse(source);
+            return parser.parse(code);
         }
-    });
+    };
 
-    exports.run = function(code, options) {
-        var answer, dir, mainModule, ref;
+    run = function(code, options) {
+        var answer, dir, err, mainModule, ref1;
         if (options == null) {
             options = {};
         }
         options = injectFeature(options);
         options = injectMeta(options);
         mainModule = require.main;
-        mainModule.filename = process.argv[1] = options.filename ? fs.realpathSync(options.filename) : '<anonymous>';
+        mainModule.filename = process.argv[1] = options.filename ? fs.realpathSync(options.filename) : '?';
         mainModule.moduleCache && (mainModule.moduleCache = {});
         dir = options.filename != null ? path.dirname(fs.realpathSync(options.filename)) : fs.realpathSync('.');
         mainModule.paths = require('module')._nodeModulePaths(dir);
         if (!isCoffee(mainModule.filename) || require.extensions) {
-            answer = compile(code, options);
-            code = (ref = answer.js) != null ? ref : answer;
+            try {
+                answer = compile(code, options);
+            } catch (error) {
+                err = error;
+                updateSyntaxError(err, code, mainModule.filename);
+                console.log(err.message);
+                return;
+            }
+            code = (ref1 = answer.js) != null ? ref1 : answer;
         }
         return mainModule._compile(code, mainModule.filename);
     };
 
-    exports["eval"] = function(code, options) {
-        var Module, _module, _require, createContext, i, isContext, js, k, len, o, r, ref, ref1, ref2, sandbox, v;
+    evaluate = function(code, options) {
+        var Module, _module, _require, createContext, i, isContext, js, k, len, o, r, ref1, ref2, ref3, sandbox, v;
         if (options == null) {
             options = {};
         }
@@ -196,7 +182,7 @@
             return;
         }
         createContext = vm.createContext;
-        isContext = (ref = vm.isContext) != null ? ref : function(ctx) {
+        isContext = (ref1 = vm.isContext) != null ? ref1 : function(ctx) {
             return options.sandbox instanceof createContext().constructor;
         };
         if (createContext) {
@@ -205,10 +191,10 @@
                     sandbox = options.sandbox;
                 } else {
                     sandbox = createContext();
-                    ref1 = options.sandbox;
-                    for (k in ref1) {
-                        if (!hasProp.call(ref1, k)) continue;
-                        v = ref1[k];
+                    ref2 = options.sandbox;
+                    for (k in ref2) {
+                        if (!hasProp.call(ref2, k)) continue;
+                        v = ref2[k];
                         sandbox[k] = v;
                     }
                 }
@@ -225,9 +211,9 @@
                     return Module._load(path, _module, true);
                 };
                 _module.filename = sandbox.__filename;
-                ref2 = Object.getOwnPropertyNames(require);
-                for (i = 0, len = ref2.length; i < len; i++) {
-                    r = ref2[i];
+                ref3 = Object.getOwnPropertyNames(require);
+                for (i = 0, len = ref3.length; i < len; i++) {
+                    r = ref3[i];
                     if (r !== 'paths' && r !== 'arguments' && r !== 'caller') {
                         _require[r] = require[r];
                     }
@@ -253,11 +239,7 @@
         }
     };
 
-    exports.register = function() {
-        return require('./register');
-    };
-
-    exports._compileFile = function(filename, sourceMap, inlineMap) {
+    compileFile = function(filename, sourceMap, inlineMap) {
         var answer, err, raw, stripped;
         if (sourceMap == null) {
             sourceMap = false;
@@ -281,18 +263,16 @@
         return answer;
     };
 
-    lexer = new Lexer;
-
     parser.lexer = {
         lex: function() {
-            var ref, tag, token;
+            var ref1, tag, token;
             token = parser.tokens[this.pos++];
             if (token) {
                 tag = token[0], this.yytext = token[1], this.yylloc = token[2];
                 parser.errorToken = token.origin || token;
-                if (((ref = this.yylloc) != null ? ref.first_line : void 0) == null) {
-                    console.error('DAFUK', token);
-                }
+                if (!(((ref1 = this.yylloc) != null ? ref1.first_line : void 0) != null)) {
+                    console.log('[33m[93mkoffee[33m[2m.[22m[2mcoffee[22m[39m[2m[34m:[39m[22m[94m306[39m', '[1m[97m@yylloc?.first_line?[39m[22m');
+                };
                 this.yylineno = this.yylloc.first_line;
             } else {
                 tag = '';
@@ -327,15 +307,19 @@
                     return nameWhitespaceCharacter(errorText);
             }
         })();
-        return throwSyntaxError("unexpected " + errorText, errorLoc);
+        return throwSyntaxError({
+            module: 'koffee',
+            message: "unexpected " + errorText,
+            location: errorLoc
+        });
     };
 
     getSourceMap = function(filename) {
         var answer;
         if (sourceMaps[filename] != null) {
             return sourceMaps[filename];
-        } else if (sourceMaps['<anonymous>'] != null) {
-            return sourceMaps['<anonymous>'];
+        } else if (sourceMaps['?'] != null) {
+            return sourceMaps['?'];
         } else if (sources[filename] != null) {
             answer = compile(sources[filename], {
                 filename: filename,
@@ -347,81 +331,19 @@
         }
     };
 
-    Error.prepareStackTrace = function(err, stack) {
-        var frame, frames, getSourceMapping;
-        getSourceMapping = function(filename, line, column) {
-            var answer, sourceMap;
-            sourceMap = getSourceMap(filename);
-            if (sourceMap != null) {
-                answer = sourceMap.sourceLocation([line - 1, column - 1]);
-            }
-            if (answer != null) {
-                return [answer[0] + 1, answer[1] + 1];
-            } else {
-                return null;
-            }
-        };
-        frames = (function() {
-            var i, len, results;
-            results = [];
-            for (i = 0, len = stack.length; i < len; i++) {
-                frame = stack[i];
-                if (frame.getFunction() === exports.run) {
-                    break;
-                }
-                results.push("        at " + (formatSourcePosition(frame, getSourceMapping)));
-            }
-            return results;
-        })();
-        return (err.toString()) + "\n" + (frames.join('\n')) + "\n";
-    };
-
-    formatSourcePosition = function(frame, getSourceMapping) {
-        var as, column, fileLocation, filename, functionName, isConstructor, isMethodCall, line, methodName, source, tp, typeName;
-        filename = void 0;
-        fileLocation = '';
-        if (frame.isNative()) {
-            fileLocation = "native";
-        } else {
-            if (frame.isEval()) {
-                filename = frame.getScriptNameOrSourceURL();
-                if (!filename) {
-                    fileLocation = (frame.getEvalOrigin()) + ", ";
-                }
-            } else {
-                filename = frame.getFileName();
-            }
-            filename || (filename = "<anonymous>");
-            line = frame.getLineNumber();
-            column = frame.getColumnNumber();
-            source = getSourceMapping(filename, line, column);
-            fileLocation = source ? filename + ":" + source[0] + ":" + source[1] : filename + ":" + line + ":" + column;
-        }
-        functionName = frame.getFunctionName();
-        isConstructor = frame.isConstructor();
-        isMethodCall = !(frame.isToplevel() || isConstructor);
-        if (isMethodCall) {
-            methodName = frame.getMethodName();
-            typeName = frame.getTypeName();
-            if (functionName) {
-                tp = as = '';
-                if (typeName && functionName.indexOf(typeName)) {
-                    tp = typeName + ".";
-                }
-                if (methodName && functionName.indexOf("." + methodName) !== functionName.length - methodName.length - 1) {
-                    as = " [as " + methodName + "]";
-                }
-                return "" + tp + functionName + as + " (" + fileLocation + ")";
-            } else {
-                return typeName + "." + (methodName || '<anonymous>') + " (" + fileLocation + ")";
-            }
-        } else if (isConstructor) {
-            return "new " + (functionName || '<anonymous>') + " (" + fileLocation + ")";
-        } else if (functionName) {
-            return functionName + " (" + fileLocation + ")";
-        } else {
-            return fileLocation;
-        }
+    module.exports = {
+        FILE_EXTENSIONS: FILE_EXTENSIONS,
+        VERSION: pkg.version,
+        run: run,
+        "eval": evaluate,
+        nodes: nodes,
+        helpers: helpers,
+        compile: compile,
+        tokens: lexer.tokenize,
+        register: function() {
+            return require('./register');
+        },
+        compileFile: compileFile
     };
 
 }).call(this);

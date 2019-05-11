@@ -1,4 +1,4 @@
-// koffee 0.30.0
+// koffee 0.31.0
 
 /*
 00000000   00000000   0000000   000   0000000  000000000  00000000  00000000   
@@ -21,7 +21,7 @@
 
     loadFile = function(module, filename) {
         var answer;
-        answer = Koffee._compileFile(filename, false, true);
+        answer = Koffee.compileFile(filename, false, true);
         return module._compile(answer, filename);
     };
 

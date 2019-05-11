@@ -1,4 +1,4 @@
-// koffee 0.30.0
+// koffee 0.31.0
 
 /*
 000   000  00000000  000      00000000   00000000  00000000    0000000  
@@ -9,29 +9,30 @@
  */
 
 (function() {
-    var arrayEgal, buildLocationData, egal, extend, features, flatten, meta, ref, repeat, syntaxErrorToString;
+    var addLocationDataFn, arrayEgal, arrayEq, baseFileName, buildLocationData, colors, compact, count, del, egal, ends, eq, extend, flatten, initTest, isCoffee, locationDataToString, merge, nameWhitespaceCharacter, pad, ref, repeat, some, starts, stringify, syntaxErrorToString, throwSyntaxError, toJS, updateSyntaxError;
 
-    features = require('./features');
+    colors = function() {
+        var colorette, colornames, i, len1, name;
+        colorette = require('colorette');
+        colornames = ['dim', 'bold', 'red', 'redBright', 'gray', 'grayBright', 'yellow', 'yellowBright', 'green', 'greenBright', 'white', 'whiteBright', 'blue', 'blueBright', 'cyan', 'cyanBright', 'magenta', 'magentaBright'];
+        for (i = 0, len1 = colornames.length; i < len1; i++) {
+            name = colornames[i];
+            global[name] = colorette[name];
+        }
+        return global.colorette = colorette;
+    };
 
-    meta = require('./meta');
-
-    exports.injectFeature = features.injectFeature;
-
-    exports.hasFeature = features.hasFeature;
-
-    exports.injectMeta = meta.injectMeta;
-
-    exports.starts = function(string, literal, start) {
+    starts = function(string, literal, start) {
         return literal === string.substr(start, literal.length);
     };
 
-    exports.ends = function(string, literal, back) {
+    ends = function(string, literal, back) {
         var len;
         len = literal.length;
         return literal === string.substr(string.length - len - (back || 0), len);
     };
 
-    exports.repeat = repeat = function(str, n) {
+    repeat = function(str, n) {
         var res;
         res = '';
         while (n > 0) {
@@ -44,7 +45,7 @@
         return res;
     };
 
-    exports.pad = function(str, length) {
+    pad = function(str, length) {
         var spaces;
         if (length == null) {
             length = 24;
@@ -54,7 +55,7 @@
         return "" + str + spaces;
     };
 
-    exports.compact = function(array) {
+    compact = function(array) {
         var i, item, len1, results;
         results = [];
         for (i = 0, len1 = array.length; i < len1; i++) {
@@ -66,7 +67,7 @@
         return results;
     };
 
-    exports.count = function(s, substr) {
+    count = function(s, substr) {
         var num, pos;
         num = pos = 0;
         if (!substr.length) {
@@ -78,11 +79,7 @@
         return num;
     };
 
-    exports.merge = function(options, overrides) {
-        return extend(extend({}, options), overrides);
-    };
-
-    exports.extend = extend = function(object, properties) {
+    extend = function(object, properties) {
         var key, val;
         for (key in properties) {
             val = properties[key];
@@ -91,7 +88,11 @@
         return object;
     };
 
-    exports.flatten = flatten = function(array) {
+    merge = function(options, overrides) {
+        return extend(extend({}, options), overrides);
+    };
+
+    flatten = function(array) {
         var element, flattened, i, len1;
         flattened = [];
         for (i = 0, len1 = array.length; i < len1; i++) {
@@ -105,14 +106,14 @@
         return flattened;
     };
 
-    exports.del = function(obj, key) {
+    del = function(obj, key) {
         var val;
         val = obj[key];
         delete obj[key];
         return val;
     };
 
-    exports.some = (ref = Array.prototype.some) != null ? ref : function(fn) {
+    some = (ref = Array.prototype.some) != null ? ref : function(fn) {
         var e, i, len1, ref1;
         ref1 = this;
         for (i = 0, len1 = ref1.length; i < len1; i++) {
@@ -137,7 +138,7 @@
         }
     };
 
-    exports.addLocationDataFn = function(first, last) {
+    addLocationDataFn = function(first, last) {
         return function(obj) {
             if (((typeof obj) === 'object') && (!!obj['updateLocationDataIfMissing'])) {
                 obj.updateLocationDataIfMissing(buildLocationData(first, last));
@@ -146,7 +147,7 @@
         };
     };
 
-    exports.locationDataToString = function(obj) {
+    locationDataToString = function(obj) {
         var locationData;
         if (("2" in obj) && ("first_line" in obj[2])) {
             locationData = obj[2];
@@ -160,7 +161,7 @@
         }
     };
 
-    exports.baseFileName = function(file, stripExt, useWinPathSep) {
+    baseFileName = function(file, stripExt, useWinPathSep) {
         var parts, pathSep;
         if (stripExt == null) {
             stripExt = false;
@@ -182,34 +183,39 @@
         return parts.join('.');
     };
 
-    exports.isCoffee = function(file) {
+    isCoffee = function(file) {
         return /\.[ck]offee$/.test(file);
     };
 
-    exports.throwSyntaxError = function(message, location) {
-        var err;
-        err = new SyntaxError(message);
+    throwSyntaxError = function(arg) {
+        var err, location, message, module, ref1, ref2, ref3;
+        module = (ref1 = arg.module) != null ? ref1 : null, message = (ref2 = arg.message) != null ? ref2 : null, location = (ref3 = arg.location) != null ? ref3 : null;
+        err = new SyntaxError(" " + message + " #" + module);
         err.location = location;
-        err.toString = syntaxErrorToString;
-        err.stack = err.toString();
         throw err;
     };
 
-    exports.updateSyntaxError = function(err, code, filename) {
-        if (err.toString === syntaxErrorToString) {
-            err.code || (err.code = code);
-            err.filename || (err.filename = filename);
-            err.stack = err.toString();
+    updateSyntaxError = function(err, code, filename) {
+        if (err.code != null) {
+            err.code;
+        } else {
+            err.code = code;
         }
+        if (err.filename != null) {
+            err.filename;
+        } else {
+            err.filename = filename;
+        }
+        err.message = syntaxErrorToString(err);
         return err;
     };
 
-    syntaxErrorToString = function() {
-        var codeLine, colorize, colorsEnabled, end, filename, first_column, first_line, last_column, last_line, marker, ref1, ref2, ref3, ref4, start;
-        if (!(this.code && this.location)) {
-            return Error.prototype.toString.call(this);
+    syntaxErrorToString = function(err) {
+        var codeLine, colorize, colorsEnabled, end, fileLine, first_column, first_line, last_column, last_line, marker, ref1, ref2, ref3, ref4, ref5, start;
+        if (!err.code || !err.location) {
+            return Error.prototype.toString.call(err);
         }
-        ref1 = this.location, first_line = ref1.first_line, first_column = ref1.first_column, last_line = ref1.last_line, last_column = ref1.last_column;
+        ref1 = err.location, first_line = ref1.first_line, first_column = ref1.first_column, last_line = ref1.last_line, last_column = ref1.last_column;
         if (last_line != null) {
             last_line;
         } else {
@@ -220,25 +226,25 @@
         } else {
             last_column = first_column;
         }
-        filename = this.filename || '[stdin]';
-        codeLine = this.code.split('\n')[first_line];
+        codeLine = err.code.split('\n')[first_line];
         start = first_column;
         end = first_line === last_line ? last_column + 1 : codeLine.length;
-        marker = codeLine.slice(0, start).replace(/[^\s]/g, ' ') + repeat('^', end - start);
+        marker = codeLine.slice(0, start).replace(/[^\s]/g, ' ') + repeat('▲', end - start);
         if (typeof process !== "undefined" && process !== null) {
             colorsEnabled = ((ref2 = process.stdout) != null ? ref2.isTTY : void 0) && !((ref3 = process.env) != null ? ref3.NODE_DISABLE_COLORS : void 0);
         }
-        if ((ref4 = this.colorful) != null ? ref4 : colorsEnabled) {
+        if ((ref4 = err.colorful) != null ? ref4 : colorsEnabled) {
             colorize = function(str) {
                 return "\x1B[1;31m" + str + "\x1B[0m";
             };
             codeLine = codeLine.slice(0, start) + colorize(codeLine.slice(start, end)) + codeLine.slice(end);
             marker = colorize(marker);
         }
-        return filename + ":" + (first_line + 1) + ":" + (first_column + 1) + ": error: " + this.message + "\n" + codeLine + "\n" + marker;
+        fileLine = ((ref5 = err.filename) != null ? ref5 : '?') + ":" + (first_line + 1) + ":" + (first_column + 1);
+        return fileLine + " " + codeLine + "\n" + (pad('', fileLine.length + 1) + marker) + " " + err.message;
     };
 
-    exports.nameWhitespaceCharacter = function(string) {
+    nameWhitespaceCharacter = function(string) {
         switch (string) {
             case ' ':
                 return 'space';
@@ -279,21 +285,21 @@
         }
     };
 
-    exports.eq = function(a, b, msg) {
+    eq = function(a, b, msg) {
         return ok(egal(a, b), msg || ("\x1B[0;90m\n <<< expected >>>\n\x1B[0;93m" + a + "\x1B[0;90m<<< to equal >>>\n\x1B[0;93m" + b + "\x1B[0;90m<<< expected >>>\n"));
     };
 
-    exports.arrayEq = function(a, b, msg) {
+    arrayEq = function(a, b, msg) {
         return ok(arrayEgal(a, b), msg || ("\x1B[0;90m\n >>>\n\x1B[0;93m" + a + "\x1B[0;90m<<< to deep equal >>>\n\x1B[0;93m" + b + "\x1B[0;90m<<< expected >>>\n"));
     };
 
-    exports.toJS = function(str) {
+    toJS = function(str) {
         return Koffee.compile(str, {
             bare: true
         }).replace(/^\s+|\s+$/g, '');
     };
 
-    exports.stringify = function(o) {
+    stringify = function(o) {
         var noon;
         noon = require('noon');
         return noon.stringify(o, {
@@ -302,17 +308,44 @@
         });
     };
 
-    exports.initTest = function() {
+    initTest = function() {
         extend(global, require('assert'));
         global.Koffee = require('./koffee');
         global._ = require('underscore');
-        extend(global, exports);
+        extend(global, module.exports);
         if (!global.test) {
             return global.test = function(n, f) {
                 console.log(n);
                 return f();
             };
         }
+    };
+
+    module.exports = {
+        colors: colors,
+        starts: starts,
+        ends: ends,
+        repeat: repeat,
+        pad: pad,
+        compact: compact,
+        count: count,
+        merge: merge,
+        extend: extend,
+        flatten: flatten,
+        del: del,
+        some: some,
+        addLocationDataFn: addLocationDataFn,
+        locationDataToString: locationDataToString,
+        baseFileName: baseFileName,
+        isCoffee: isCoffee,
+        throwSyntaxError: throwSyntaxError,
+        updateSyntaxError: updateSyntaxError,
+        nameWhitespaceCharacter: nameWhitespaceCharacter,
+        eq: eq,
+        arrayEq: arrayEq,
+        toJS: toJS,
+        stringify: stringify,
+        initTest: initTest
     };
 
 }).call(this);

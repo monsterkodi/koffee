@@ -1,4 +1,4 @@
-// koffee 0.30.0
+// koffee 0.31.0
 
 /*
 000   000   0000000   000   000  00000000  
@@ -9,7 +9,7 @@
  */
 
 (function() {
-    var Koffee, fs, gray, helpers, kakefileDirectory, nopt, path, printTasks, ref, run, tasks, white, yellow;
+    var Koffee, fs, helpers, kakefileDirectory, nopt, path, printTasks, run, tasks;
 
     fs = require('fs');
 
@@ -21,7 +21,7 @@
 
     Koffee = require('./koffee');
 
-    ref = require('colorette'), gray = ref.gray, white = ref.white, yellow = ref.yellow;
+    helpers.colors();
 
     tasks = {};
 
@@ -29,9 +29,9 @@
 
     helpers.extend(global, {
         task: function(name, description, action) {
-            var ref1;
+            var ref;
             if (!action) {
-                ref1 = [description, action], action = ref1[0], description = ref1[1];
+                ref = [description, action], action = ref[0], description = ref[1];
             }
             return tasks[name] = {
                 name: name,
@@ -68,8 +68,6 @@
         return results;
     };
 
-    exports.run = run;
-
     printTasks = function() {
         var cakefilePath, desc, name, relative, task;
         relative = path.relative || path.resolve;
@@ -95,5 +93,7 @@
         }
         throw new Error("kake.coffee not found in " + (process.cwd()));
     };
+
+    module.exports = run;
 
 }).call(this);

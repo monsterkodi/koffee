@@ -1,4 +1,4 @@
-// koffee 0.30.0
+// koffee 0.31.0
 
 /*
 00     00  00000000  000000000   0000000   
@@ -9,22 +9,24 @@
  */
 
 (function() {
-    var META, TAB, blue, blueBright, bold, compileMetaIf, dim, gray, green, injectMeta, logMetas, logSource, options, path, red, ref, white, whiteBright, yellow, yellowBright,
+    var META, TAB, compileMetaIf, helpers, injectMeta, logMetas, logSource, path,
         slice = [].slice;
 
     path = require('path');
 
-    ref = require('colorette'), red = ref.red, green = ref.green, blue = ref.blue, blueBright = ref.blueBright, yellow = ref.yellow, yellowBright = ref.yellowBright, white = ref.white, whiteBright = ref.whiteBright, gray = ref.gray, bold = ref.bold, dim = ref.dim, options = ref.options;
+    helpers = require('./helpers');
+
+    helpers.colors();
 
     META = [
         {
             key: '▸profile',
             desc: '▸profile [id] ...',
             meta: function(arg) {
-                var args, id, name, node, ref1, ref2, ref3;
-                args = (ref1 = arg.args) != null ? ref1 : null, node = (ref2 = arg.node) != null ? ref2 : null;
+                var args, id, name, node, ref, ref1, ref2;
+                args = (ref = arg.args) != null ? ref : null, node = (ref1 = arg.node) != null ? ref1 : null;
                 id = (node.condition.locationData.first_line + 1) + "_" + node.condition.locationData.first_column;
-                name = (ref3 = args[0]) != null ? ref3 : id;
+                name = (ref2 = args[0]) != null ? ref2 : id;
                 return {
                     after: "console.log('" + name + "', require('pretty-time')(process.hrtime(koffee_" + id + ")));",
                     code: "koffee_" + id + " = process.hrtime()",
@@ -40,9 +42,9 @@
                 args: 1
             },
             meta: function(arg) {
-                var args, id, ref1, ref2;
-                args = (ref1 = arg.args) != null ? ref1 : null;
-                id = (ref2 = args[0]) != null ? ref2 : 'start_end';
+                var args, id, ref, ref1;
+                args = (ref = arg.args) != null ? ref : null;
+                id = (ref1 = args[0]) != null ? ref1 : 'start_end';
                 return {
                     before: "koffee_" + id + " = process.hrtime()",
                     reduce: true,
@@ -57,9 +59,9 @@
                 args: 1
             },
             meta: function(arg) {
-                var args, id, ref1, ref2;
-                args = (ref1 = arg.args) != null ? ref1 : null;
-                id = (ref2 = args[0]) != null ? ref2 : 'start_end';
+                var args, id, ref, ref1;
+                args = (ref = arg.args) != null ? ref : null;
+                id = (ref1 = args[0]) != null ? ref1 : 'start_end';
                 return {
                     before: "console.log('" + id + "', require('pretty-time')(process.hrtime(koffee_" + id + ")))",
                     reduce: true,
@@ -68,14 +70,14 @@
             }
         }, {
             key: '▸dbg',
-            desc: '▸dbg msg ...',
+            desc: '▸dbg [msg] ...',
             info: {
                 then: true,
                 args: 1
             },
             meta: function(arg) {
-                var args, node, opts, ref1, ref2, ref3;
-                opts = (ref1 = arg.opts) != null ? ref1 : null, args = (ref2 = arg.args) != null ? ref2 : null, node = (ref3 = arg.node) != null ? ref3 : null;
+                var args, node, opts, ref, ref1, ref2;
+                opts = (ref = arg.opts) != null ? ref : null, args = (ref1 = arg.args) != null ? ref1 : null, node = (ref2 = arg.node) != null ? ref2 : null;
                 return {
                     code: "true",
                     "eval": true,
@@ -91,10 +93,10 @@
             }
         }, {
             key: '▸assert',
-            desc: '▸assert msg ...',
+            desc: '▸assert [msg] ...',
             meta: function(arg) {
-                var Block, args, body, code, frag, node, opts, ref1, ref2, ref3, text;
-                opts = (ref1 = arg.opts) != null ? ref1 : null, args = (ref2 = arg.args) != null ? ref2 : null, node = (ref3 = arg.node) != null ? ref3 : null;
+                var Block, args, body, code, frag, node, opts, ref, ref1, ref2, text;
+                opts = (ref = arg.opts) != null ? ref : null, args = (ref1 = arg.args) != null ? ref1 : null, node = (ref2 = arg.node) != null ? ref2 : null;
                 Block = require('./nodes').Block;
                 if (node.body instanceof Block) {
                     body = node.body.expressions[0];
@@ -122,10 +124,10 @@
             }
         }, {
             key: '▸test',
-            desc: '▸test id ...',
+            desc: '▸test [id] ...',
             meta: function(arg) {
-                var args, node, opts, ref1, ref2, ref3;
-                opts = (ref1 = arg.opts) != null ? ref1 : null, args = (ref2 = arg.args) != null ? ref2 : null, node = (ref3 = arg.node) != null ? ref3 : null;
+                var args, node, opts, ref, ref1, ref2;
+                opts = (ref = arg.opts) != null ? ref : null, args = (ref1 = arg.args) != null ? ref1 : null, node = (ref2 = arg.node) != null ? ref2 : null;
                 return {
                     before: opts.test && logSource({
                         opts: opts,
@@ -141,10 +143,10 @@
         }, {
             key: '▸rand',
             meta: function(arg) {
-                var args, ref1, ref2;
-                args = (ref1 = arg.args) != null ? ref1 : null;
+                var args, ref, ref1;
+                args = (ref = arg.args) != null ? ref : null;
                 return {
-                    code: "Math.random() < " + ((ref2 = args != null ? args[0] : void 0) != null ? ref2 : 0.5),
+                    code: "Math.random() < " + ((ref1 = args != null ? args[0] : void 0) != null ? ref1 : 0.5),
                     reduce: false,
                     body: true
                 };
@@ -155,15 +157,15 @@
     TAB = '    ';
 
     compileMetaIf = function(arg) {
-        var Assign, Block, Literal, Value, args, body, bodyOpt, cond, err, frag, fs, indent, info, merge, metaKey, node, opts, os, ref1, ref2, ref3, ref4, ref5, ref6, ref7, ref8, ref9;
-        node = (ref1 = arg.node) != null ? ref1 : null, opts = (ref2 = arg.opts) != null ? ref2 : null;
-        ref3 = require('./nodes'), Block = ref3.Block, Assign = ref3.Assign, Value = ref3.Value, Literal = ref3.Literal;
+        var Assign, Block, Literal, Value, args, body, bodyOpt, cond, err, frag, fs, indent, info, merge, metaKey, node, opts, os, ref, ref1, ref2, ref3, ref4, ref5, ref6, ref7, ref8;
+        node = (ref = arg.node) != null ? ref : null, opts = (ref1 = arg.opts) != null ? ref1 : null;
+        ref2 = require('./nodes'), Block = ref2.Block, Assign = ref2.Assign, Value = ref2.Value, Literal = ref2.Literal;
         merge = require('./helpers').merge;
         info = {
             reduce: true,
             "eval": true
         };
-        if ((ref4 = node.condition.base) != null ? (ref5 = ref4.value) != null ? ref5.startsWith('▸') : void 0 : void 0) {
+        if ((ref3 = node.condition.base) != null ? (ref4 = ref3.value) != null ? ref4.startsWith('▸') : void 0 : void 0) {
             metaKey = node.condition.base.value;
             if (typeof opts.meta[metaKey] === 'function') {
                 info = opts.meta[metaKey]({
@@ -173,16 +175,16 @@
                 });
             }
         }
-        if ((ref6 = node.condition.variable) != null ? (ref7 = ref6.base) != null ? (ref8 = ref7.value) != null ? ref8.startsWith('▸') : void 0 : void 0 : void 0) {
+        if ((ref5 = node.condition.variable) != null ? (ref6 = ref5.base) != null ? (ref7 = ref6.value) != null ? ref7.startsWith('▸') : void 0 : void 0 : void 0) {
             metaKey = node.condition.variable.base.value;
             if (typeof opts.meta[metaKey] === 'function') {
                 args = node.condition.args.map(function(a) {
-                    var ref9;
-                    return (ref9 = a.base) != null ? ref9.value : void 0;
+                    var ref8;
+                    return (ref8 = a.base) != null ? ref8.value : void 0;
                 });
                 args = args.map(function(a) {
-                    var ref9;
-                    if ((ref9 = a[0]) === '"' || ref9 === "'") {
+                    var ref8;
+                    if ((ref8 = a[0]) === '"' || ref8 === "'") {
                         return a.slice(1, -1);
                     } else {
                         return a;
@@ -199,7 +201,7 @@
             return [];
         }
         if (info["eval"]) {
-            cond = (ref9 = info.code) != null ? ref9 : node.fragmentsToText(node.condition.compileToFragments(opts, 2));
+            cond = (ref8 = info.code) != null ? ref8 : node.fragmentsToText(node.condition.compileToFragments(opts, 2));
             try {
                 os = require('os');
                 fs = require('fs');
@@ -262,13 +264,13 @@
     };
 
     logSource = function(arg) {
-        var args, before, close, ext, node, opts, ref1, ref2, ref3, ref4, ref5, ref6, ref7, source;
-        opts = (ref1 = arg.opts) != null ? ref1 : null, args = (ref2 = arg.args) != null ? ref2 : null, node = (ref3 = arg.node) != null ? ref3 : null, close = (ref4 = arg.close) != null ? ref4 : null;
-        options.enabled = opts.feature.color;
-        source = (ref5 = (ref6 = opts.source) != null ? ref6 : opts.filename) != null ? ref5 : '';
+        var args, before, close, ext, node, opts, ref, ref1, ref2, ref3, ref4, ref5, ref6, source;
+        opts = (ref = arg.opts) != null ? ref : null, args = (ref1 = arg.args) != null ? ref1 : null, node = (ref2 = arg.node) != null ? ref2 : null, close = (ref3 = arg.close) != null ? ref3 : null;
+        colorette.options.enabled = opts.feature.color;
+        source = (ref4 = (ref5 = opts.source) != null ? ref5 : opts.filename) != null ? ref4 : '';
         ext = '';
         if (source) {
-            ref7 = path.basename(source).split('.'), source = ref7[0], ext = 2 <= ref7.length ? slice.call(ref7, 1) : [];
+            ref6 = path.basename(source).split('.'), source = ref6[0], ext = 2 <= ref6.length ? slice.call(ref6, 1) : [];
             source = yellow([yellowBright(source), dim(ext.join`.`)].join(dim('.')));
         }
         before = "console.log('" + source + (dim(blue(':'))) + (blueBright("" + (node.condition.locationData.first_line + 1))) + "'";
@@ -280,12 +282,12 @@
         } else {
             before += ", ";
         }
-        options.enabled = true;
+        colorette.options.enabled = true;
         return before;
     };
 
     injectMeta = function(options) {
-        var defaultMeta, extend, meta, ref1;
+        var defaultMeta, extend, meta, ref;
         if (options != null) {
             options;
         } else {
@@ -298,7 +300,7 @@
             m.meta.key = m.key;
             return m.meta.info = m.info;
         });
-        meta = extend(defaultMeta, (ref1 = options.meta) != null ? ref1 : {});
+        meta = extend(defaultMeta, (ref = options.meta) != null ? ref : {});
         options = extend({
             meta: meta
         }, options);
@@ -306,12 +308,9 @@
     };
 
     logMetas = function() {
-        var pad;
-        pad = require('./helpers').pad;
-        gray = require('colorette').gray;
         console.log((gray('Metas:')) + "\n\n" + (META.map(function(f) {
-            var ref1;
-            return "    " + (pad(f.key)) + (gray((ref1 = f.desc) != null ? ref1 : f.key + " ..."));
+            var ref;
+            return "    " + (helpers.pad(f.key)) + (gray((ref = f.desc) != null ? ref : f.key + " ..."));
         }).join('\n')));
         return console.log("    ▸if                     " + (gray('▸if cond ... [[▸elif cond ...] ▸else ...]')) + "\n");
     };

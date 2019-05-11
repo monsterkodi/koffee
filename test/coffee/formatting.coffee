@@ -268,14 +268,14 @@ test "#1299: Disallow token misnesting", ->
         '''
         ok no
     catch e
-        eq 'unmatched ]', e.message
+        eq 'lexer -- unmatched ]', e.message
 
 test "#2981: Enforce initial indentation", ->
     try
         Koffee.compile '    a\nb-'
         ok no
     catch e
-        eq 'missing indentation', e.message
+        eq 'lexer -- missing indentation', e.message
 
 test "'single-line' expression containing multiple lines", ->
     doesNotThrow -> Koffee.compile """

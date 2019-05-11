@@ -8,7 +8,8 @@
 
 path = require 'path'
 
-{ red, green, blue, blueBright, yellow, yellowBright, white, whiteBright, gray, bold, dim, options } = require 'colorette'
+helpers = require './helpers'
+helpers.colors()
 
 META = [
     
@@ -64,7 +65,7 @@ META = [
     # 0000000    0000000     0000000   
     
     key:  '▸dbg'    
-    desc: '▸dbg msg ...'
+    desc: '▸dbg [msg] ...'
     info:
         then: true # should not be used with a block
         args: 1
@@ -83,7 +84,7 @@ META = [
     # 000   000  0000000   0000000   00000000  000   000     000     
     
     key:  '▸assert'    
-    desc: '▸assert msg ...'
+    desc: '▸assert [msg] ...'
     meta: (opts:,args:,node:) ->
         
         { Block } = require './nodes' 
@@ -110,7 +111,7 @@ META = [
     #    000     00000000  0000000      000     
     
     key:  '▸test'
-    desc: '▸test id ...'
+    desc: '▸test [id] ...'
     meta: (opts:,args:,node:) ->
         before: opts.test and logSource opts:opts, args:args, node:node, close:true
         skip:   not opts.test
@@ -129,7 +130,7 @@ META = [
         reduce: false 
         body:   true   
     
-    # key: 'token' 'parse' 'code' 'assert'
+    # key: 'token' 'parse' 'code'
 ]
 
 #  0000000   0000000   00     00  00000000   000  000      00000000  
@@ -235,7 +236,7 @@ compileMetaIf = (node:,opts:) ->
 
 logSource = (opts:,args:,node:,close:) ->
     
-    options.enabled = opts.feature.color
+    colorette.options.enabled = opts.feature.color
     source = opts.source ? opts.filename ? ''
     ext = ''
     if source
@@ -247,7 +248,7 @@ logSource = (opts:,args:,node:,close:) ->
         before += ');'
     else
         before += ", "
-    options.enabled = true
+    colorette.options.enabled = true
     before
         
 # 000  000   000        000  00000000   0000000  000000000  
@@ -271,9 +272,7 @@ injectMeta = (options) -> # make sure that options has a meta set
 
 logMetas = ->
     
-    { pad } = require './helpers'
-    { gray } = require 'colorette'
-    log "#{gray 'Metas:'}\n\n#{ META.map((f) -> "    #{pad f.key}#{gray f.desc ? "#{f.key} ..."}").join('\n') }"
+    log "#{gray 'Metas:'}\n\n#{ META.map((f) -> "    #{helpers.pad f.key}#{gray f.desc ? "#{f.key} ..."}").join('\n') }"
     log "    ▸if                     #{gray '▸if cond ... [[▸elif cond ...] ▸else ...]'}\n"
     
 module.exports = { META, injectMeta, logMetas, compileMetaIf }

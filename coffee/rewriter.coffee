@@ -6,7 +6,7 @@
 000   000  00000000  00     00  000   000  000     000     00000000  000   000  
 ###
 
-{ hasFeature } = require './helpers'
+{ hasFeature } = require './features'
 
 # The language has a good deal of optional, implicit and shorthand syntax. 
 # This can greatly complicate a grammar and bloat the resulting parse table. 
@@ -130,6 +130,28 @@ class Rewriter
                 break
 
         index:-1
+
+    findMatchingTagForwards: (open, i, check) -> 
+        
+        close = { STRING_START:'STRING_END' }[open]
+        warn "cant match #{open}" if not close
+        pushed = 0
+        j = i
+        while ++j < @tokens.length # walk forward until matching tag is found
+            current = @tag(j)
+            # log "current #{j} #{current}"
+            if current == open
+                pushed++
+            else if current == close
+                if pushed
+                    pushed--
+                else if pushed == 0 # matching bracket found
+                    # log 'FOUND'
+                    return index:j
+            else if check? and not check current 
+                break
+
+        index:-1
         
     #  0000000  000   000   0000000   00000000   000000000   0000000  000   000  000000000   0000000  
     # 000       000   000  000   000  000   000     000     000       000   000     000     000       
@@ -187,6 +209,13 @@ class Rewriter
                                     if @tag(i+adv) in ['NUMBER', 'STRING']
                                         arg++ # argument found
                                         adv++
+                                    else if @tag(i+adv) == 'STRING_START'
+                                        match = @findMatchingTagForwards @tag(i+adv), i+adv
+                                        if match.index >= 0
+                                            arg++ # string interpolation argument found
+                                            adv+= match.index - i - 1 # can we advance over the whole interpolation? 
+                                        else 
+                                            log 'match index', match, @tag(i+adv)
                                     else
                                         break
                                 if arg == 0
@@ -728,8 +757,6 @@ BALANCED_PAIRS = [
 
 # The inverse mappings of `BALANCED_PAIRS` we're trying to fix up, so we can look things up from either end.
 
-module.exports = Rewriter
-
 # The tokens that signal the start/end of a balanced pair.
 EXPRESSION_START = []
 EXPRESSION_END   = []
@@ -772,3 +799,5 @@ LINEBREAKS = ['TERMINATOR' 'INDENT' 'OUTDENT']
 
 # Tokens that close open calls when they follow a newline.
 CALL_CLOSERS = ['.' '?.' '::' '?::']
+
+module.exports = Rewriter

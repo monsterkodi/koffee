@@ -1,4 +1,4 @@
-// koffee 0.30.0
+// koffee 0.31.0
 
 /*
 00000000   00000000  00000000   000      
@@ -55,8 +55,9 @@
                 return cb(null, runInContext(js, context, filename));
             } catch (error) {
                 err = error;
-                updateSyntaxError(err, input);
-                return cb(err);
+                updateSyntaxError(err, input, filename);
+                console.log(err.message);
+                return cb(null, null);
             }
         }
     };

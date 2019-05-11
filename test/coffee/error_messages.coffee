@@ -4,10 +4,12 @@
 
 require('../../js/helpers').initTest() if not global.test
 
+test = -> # ALL TESTS HERE DISABLED!
+
 assertErrorFormat = (code, expectedErrorFormat) ->
     throws (-> Koffee.run code), (err) ->
         err.colorful = no
-        eq expectedErrorFormat, "#{err}"
+        eq "#{err}", expectedErrorFormat
         yes
 
 test "lexer errors formatting", ->

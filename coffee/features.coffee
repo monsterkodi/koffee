@@ -6,6 +6,9 @@
 000       00000000  000   000     000      0000000   000   000  00000000  0000000   
 ###
 
+helpers = require './helpers'
+helpers.colors()
+
 FEATURES = [
     { flag: 'color'                 key: 'color'                 desc: 'output with ansi colors'           enabled: true  }
     { flag: 'config-parameters'     key: 'config_parameters'     desc: 'enable config parameters'          enabled: true  }
@@ -33,9 +36,7 @@ injectFeature = (options) -> # make sure that options has a feature set
 
 logFeatures = ->
     
-    { pad } = require './helpers'
-    { gray } = require 'colorette'
-    log "\n#{gray 'Features:'}\n\n#{ FEATURES.map((f) -> "    #{pad f.flag}#{gray f.desc}").join('\n') }\n"
+    log "\n#{gray 'Features:'}\n\n#{ FEATURES.map((f) -> "    #{helpers.pad f.flag}#{gray f.desc}").join('\n') }\n"
     
     { logMetas } = require './meta'
     logMetas()

@@ -7,7 +7,7 @@ childp  = require 'child_process'
 Koffee  = require './js/koffee'
 helpers = require './js/helpers'
 
-{ white, green, red, blueBright, yellow, gray, bold } = require 'colorette'
+helpers.colors()
 
 # 000   000   0000000   0000000    00000000  
 # 0000  000  000   000  000   000  000       
@@ -119,6 +119,11 @@ task 'watch', 'rebuild and/or test on file changes', ->
 
 task 'bench', 'benchmark of compilation time', ->
     
+    { injectFeature } = require './js/features'
+    { injectMeta }    = require './js/meta'
+    
+    opts = injectMeta injectFeature {}
+    
     Rewriter  = require './js/rewriter'
     sources   = ['koffee' 'grammar' 'helpers' 'lexer' 'nodes' 'rewriter' 'scope']
     coffee    = sources.map((name) -> fs.readFileSync "coffee/#{name}.coffee").join '\n'
@@ -126,11 +131,11 @@ task 'bench', 'benchmark of compilation time', ->
     total     = 0
     now       = Date.now()
     time      = -> total += ms = -(now - now = Date.now()); fmt ms
-    tokens    = Koffee.tokens coffee, feature: rewrite: no
+    tokens    = Koffee.tokens coffee, feature:rewrite:no
     log gray  "Lex    #{time()} (#{tokens.length} tokens)"
-    tokens    = new Rewriter().rewrite tokens
+    tokens    = new Rewriter().rewrite tokens, opts
     log gray  "Rewrite#{time()} (#{tokens.length} tokens)"
-    nodes     = Koffee.nodes tokens
+    nodes     = Koffee.nodes tokens, opts
     log gray  "Parse  #{time()}"
     js        = nodes.compile bare: yes
     log gray  "Compile#{time()} (#{js.length} chars)"

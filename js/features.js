@@ -1,4 +1,4 @@
-// koffee 0.30.0
+// koffee 0.31.0
 
 /*
 00000000  00000000   0000000   000000000  000   000  00000000   00000000   0000000  
@@ -9,7 +9,11 @@
  */
 
 (function() {
-    var FEATURES, hasFeature, injectFeature, logFeatures;
+    var FEATURES, hasFeature, helpers, injectFeature, logFeatures;
+
+    helpers = require('./helpers');
+
+    helpers.colors();
 
     FEATURES = [
         {
@@ -83,11 +87,9 @@
     };
 
     logFeatures = function() {
-        var gray, logMetas, pad;
-        pad = require('./helpers').pad;
-        gray = require('colorette').gray;
+        var logMetas;
         console.log("\n" + (gray('Features:')) + "\n\n" + (FEATURES.map(function(f) {
-            return "    " + (pad(f.flag)) + (gray(f.desc));
+            return "    " + (helpers.pad(f.flag)) + (gray(f.desc));
         }).join('\n')) + "\n");
         logMetas = require('./meta').logMetas;
         return logMetas();

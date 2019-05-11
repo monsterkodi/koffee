@@ -17,7 +17,9 @@
 
 Rewriter = require './rewriter'
 
-{ count, starts, compact, repeat, locationDataToString, throwSyntaxError, injectMeta, injectFeature, hasFeature } = require './helpers'
+{ injectMeta } = require './meta'
+{ injectFeature, hasFeature } = require './features'
+{ count, starts, compact, repeat, locationDataToString, throwSyntaxError } = require './helpers'
 
 # The Lexer class reads a string and divvies it up into tagged tokens. 
 # Some potential ambiguity in the grammar has been avoided by pushing some extra smarts into the Lexer.
@@ -39,10 +41,10 @@ class Lexer
     #    000     000   000  000  000   000       000  0000  000   000     000       
     #    000      0000000   000   000  00000000  000   000  000  0000000  00000000  
             
-    tokenize: (code, opts) ->
+    tokenize: (code, opts) =>
 
         opts = injectFeature opts
-        opts = injectMeta    opts  # will be needed to shortcut metas, e.g. @token -> @if @token ...
+        opts = injectMeta    opts  # needed to shortcut metas, e.g. @token -> @if @token ...
         
         @indent     = 0            # The current indentation level.
         @baseIndent = 0            # The overall minimum indentation level
@@ -957,14 +959,14 @@ class Lexer
 
     # Throws an error at either a given offset from the current chunk or at the location of a token (`token[2]`).
     
-    error: (message, options = {}) ->
+    error: (message, options={}) ->
         location =
             if 'first_line' of options
                 options
             else
                 [first_line, first_column] = @getLineAndColumnFromChunk options.offset ? 0
                 {first_line, first_column, last_column: first_column + (options.length ? 1) - 1}
-        throwSyntaxError message, location
+        throwSyntaxError module:'lexer', message:message, location:location
 
 # 000   000  00000000  000      00000000   00000000  00000000   
 # 000   000  000       000      000   000  000       000   000  
@@ -981,9 +983,6 @@ isUnassignable = (name, displayName = name) -> switch
         "reserved word '#{displayName}' can't be assigned"
     else
         false
-
-exports.isUnassignable = isUnassignable
-exports.Lexer = Lexer
 
 # `from` isn’t a keyword, but it behaves like one in `import` and `export` statements (handled above) 
 # and in the declaration line of a `for` loop.
@@ -1056,8 +1055,6 @@ STRICT_PROSCRIBED = ['arguments' 'eval']
 
 # The superset of both JavaScript keywords and reserved words, none of which may
 # be used as identifiers or properties.
-
-exports.JS_FORBIDDEN = JS_KEYWORDS.concat(RESERVED).concat(STRICT_PROSCRIBED)
 
 BOM = 65279 # The character code of the nasty Microsoft madness otherwise known as the BOM.
 
@@ -1213,3 +1210,9 @@ UNFINISHED = ['\\' '.' '?.' '?::' 'UNARY' 'MATH' 'UNARY_MATH' '+' '-'
               'BIN?' 'THROW' 'EXTENDS']
               
 COMMENT    = /^###([^#][\s\S]*?)(?:###[^\n\S]*|###$)|^(?:\s*#(?!##[^#]).*)+/              
+
+module.exports = 
+    JS_FORBIDDEN:   JS_KEYWORDS.concat(RESERVED).concat(STRICT_PROSCRIBED)
+    isUnassignable: isUnassignable
+    Lexer:          Lexer
+    

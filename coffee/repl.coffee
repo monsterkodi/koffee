@@ -38,9 +38,6 @@ replDefaults =
             tokens = Koffee.tokens input
             referencedVars = ( token[1] for token in tokens when token[0] is 'IDENTIFIER' )
             ast = Koffee.nodes tokens
-            # ast = new Block [ # Add assignment to `_` variable to force the input to be an expression.
-                # new Assign (new Value new Literal '__'), ast, '='
-            # ]
             js = ast.compile 
                 bare:           yes
                 locals:         Object.keys context
@@ -49,10 +46,12 @@ replDefaults =
             cb null, runInContext js, context, filename
         catch err
             # AST's `compile` does not add source code information to syntax errors.
-            updateSyntaxError err, input
-            cb err
+            updateSyntaxError err, input, filename
+            log err.message
+            cb null, null
 
 runInContext = (js, context, filename) ->
+    
     if context is global
         vm.runInThisContext js, filename
     else

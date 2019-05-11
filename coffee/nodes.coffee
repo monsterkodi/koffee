@@ -13,10 +13,12 @@
 
 Error.stackTraceLimit = Infinity
 
-{ Scope } = require './scope'
+Scope = require './scope'
 { isUnassignable, JS_FORBIDDEN } = require './lexer'
 
-{ compact, flatten, extend, merge, del, starts, ends, some, injectFeature, hasFeature, injectMeta,
+{ injectMeta } = require './meta'
+{ injectFeature, hasFeature } = require './features'
+{ compact, flatten, extend, merge, del, starts, ends, some,
   addLocationDataFn, locationDataToString, throwSyntaxError, stringify } = require './helpers'
 
 { compileMetaIf } = require './meta'
@@ -84,7 +86,7 @@ exports.Base = class Base
         
         o = injectFeature o
         o = injectMeta    o
-        # log 'compileToFragments', o.level
+
         o.level  = lvl if lvl
         node     = @unfoldSoak(o) or this
         node.tab = o.indent
@@ -227,7 +229,7 @@ exports.Base = class Base
 
     error: (message) -> # Throw a SyntaxError associated with this node's location.
         
-        throwSyntaxError message, @locationData
+        throwSyntaxError module:"nodes.#{@constructor.name}", message:message, location:@locationData
 
     makeCode: (code) ->
         new CodeFragment this, code

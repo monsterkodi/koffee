@@ -17,12 +17,11 @@ helpers   = require './helpers'
 SourceMap = require './sourcemap'
 pkg       = require '../package.json'
 
-exports.VERSION = pkg.version
-exports.FILE_EXTENSIONS = FILE_EXTENSIONS = ['.coffee' '.koffee']
+{ injectMeta } = require './meta'
+{ injectFeature, hasFeature } = require './features'
+{ updateSyntaxError, nameWhitespaceCharacter, throwSyntaxError, isCoffee, count, stringify } = helpers
 
-exports.helpers = helpers
-
-{ injectFeature, injectMeta, updateSyntaxError, nameWhitespaceCharacter, throwSyntaxError, isCoffee, count, hasFeature, stringify } = helpers
+FILE_EXTENSIONS = ['.coffee' '.koffee']
 
 base64encode = (src) ->
     
@@ -38,19 +37,8 @@ base64encode = (src) ->
     else
         throw new Error('Unable to base64 encode inline sourcemap.')
 
-# Wrapper to add source file information to SyntaxErrors thrown by the lexer/parser/compiler.
-
-withPrettyErrors = (fn) ->
-    
-    (code, options = {}) -> 
-        try
-            fn.call @, code, options
-        catch err
-            if typeof code != 'string' # Support `Koffee.nodes(tokens)`.
-                throw new Error err.toString()
-            else
-                throw updateSyntaxError err, code, options.filename
-
+lexer = new Lexer # Instantiate a Lexer for our use here.
+            
 # For each compiled file, save its source in memory in case we need to
 # recompile it later. We might need to recompile if the first compilation
 # didn’t create a source map (faster) but something went wrong and we need
@@ -78,7 +66,7 @@ sourceMaps = {}
 #
 # This returns a javascript string, unless `options.sourceMap` is passed, in which case it returns a `{js, v3SourceMap, sourceMap}` object
 
-exports.compile = compile = withPrettyErrors (code, options) ->
+compile = (code, options) ->
     
     { merge, extend } = helpers
     
@@ -90,7 +78,7 @@ exports.compile = compile = withPrettyErrors (code, options) ->
     # we need to recompile it to get a source map for `prepareStackTrace`.
         
     generateSourceMap = options.sourceMap or options.inlineMap or not options.filename?
-    filename = options.filename or '<anonymous>'
+    filename = options.filename or '?'
 
     sources[filename] = code
     map = new SourceMap if generateSourceMap
@@ -161,17 +149,7 @@ exports.compile = compile = withPrettyErrors (code, options) ->
         }
     else
         js
-        
-# 000000000   0000000   000   000  00000000  000   000   0000000  
-#    000     000   000  000  000   000       0000  000  000       
-#    000     000   000  0000000    0000000   000 0 000  0000000   
-#    000     000   000  000  000   000       000  0000       000  
-#    000      0000000   000   000  00000000  000   000  0000000   
-
-# Tokenize a string of koffee code, and return the array of tokens.
-
-exports.tokens = withPrettyErrors (code, options) -> lexer.tokenize code, options
-
+                
 # 000   000   0000000   0000000    00000000   0000000  
 # 0000  000  000   000  000   000  000       000       
 # 000 0 000  000   000  000   000  0000000   0000000   
@@ -181,22 +159,22 @@ exports.tokens = withPrettyErrors (code, options) -> lexer.tokenize code, option
 # Parse a string of Koffee code or an array of lexed tokens, and return the AST. 
 # You can then compile it by calling `.compile()` on the root, or traverse it by using `.traverseChildren()` with a callback.
 
-exports.nodes = withPrettyErrors (source, options) ->
+nodes = (code, options) ->
     
-    if typeof source is 'string'
-        parser.parse lexer.tokenize source, options
+    if typeof code is 'string'
+        parser.parse lexer.tokenize code, options
     else
-        parser.parse source
-
+        parser.parse code
+        
 # 00000000   000   000  000   000  
 # 000   000  000   000  0000  000  
 # 0000000    000   000  000 0 000  
 # 000   000  000   000  000  0000  
 # 000   000   0000000   000   000  
 
-# Compile and execute a string of koffee, correctly setting `__filename`, `__dirname`, and relative `require()`.
+# Compile and execute a string of koffee
 
-exports.run = (code, options={}) ->
+run = (code, options={}) ->
     
     options = injectFeature options
     options = injectMeta    options
@@ -206,7 +184,7 @@ exports.run = (code, options={}) ->
     # Set the filename
     
     mainModule.filename = process.argv[1] =
-        if options.filename then fs.realpathSync(options.filename) else '<anonymous>'
+        if options.filename then fs.realpathSync(options.filename) else '?'
 
     mainModule.moduleCache and= {} # Clear the module cache.
 
@@ -216,12 +194,18 @@ exports.run = (code, options={}) ->
         path.dirname fs.realpathSync options.filename
     else
         fs.realpathSync '.'
+        
     mainModule.paths = require('module')._nodeModulePaths dir
 
-    # Compile
-    
     if not isCoffee(mainModule.filename) or require.extensions
-        answer = compile code, options
+        try
+            answer = compile code, options
+        catch err
+            # log 'koffee.run compile error', options.filename, mainModule.filename, err
+            updateSyntaxError err, code, mainModule.filename
+            log err.message
+            return
+        
         code = answer.js ? answer
 
     # log 'Koffee.run mainModule._compile', mainModule.filename, options if options.Debug
@@ -236,11 +220,10 @@ exports.run = (code, options={}) ->
 
 # Compile and evaluate a string in a Node.js-like environment. The REPL uses this to run the input.
 
-exports.eval = (code, options={}) ->
+evaluate = (code, options={}) ->
     
     return unless code = code.trim()
     
-    # createContext = vm.Script.createContext ? vm.createContext
     createContext = vm.createContext
 
     isContext = vm.isContext ? (ctx) ->
@@ -284,9 +267,7 @@ exports.eval = (code, options={}) ->
 # 000   000  000       000   000  000       000     000     000       000   000  
 # 000   000  00000000   0000000   000  0000000      000     00000000  000   000  
 
-exports.register = -> require './register'
-
-exports._compileFile = (filename, sourceMap = no, inlineMap = no) ->
+compileFile = (filename, sourceMap = no, inlineMap = no) ->
     
     raw = fs.readFileSync filename, 'utf8'
     # Strip the Unicode byte order mark, if this file begins with one.
@@ -311,11 +292,9 @@ exports._compileFile = (filename, sourceMap = no, inlineMap = no) ->
 # 000      000        000 000   000       000   000  
 # 0000000  00000000  000   000  00000000  000   000  
 
-lexer = new Lexer # Instantiate a Lexer for our use here.
-
-# The real Lexer produces a generic stream of tokens. This object provides a
-# thin wrapper around it, compatible with the Jison API. We can then pass it
-# directly as a "Jison lexer".
+# The real Lexer produces a generic stream of tokens. 
+# This object provides a thin wrapper around it, compatible with the Jison API. 
+# We can then pass it directly as a "Jison lexer".
 
 parser.lexer =
     
@@ -324,16 +303,17 @@ parser.lexer =
         if token
             [tag, @yytext, @yylloc] = token
             parser.errorToken = token.origin or token
-            error 'DAFUK', token if not @yylloc?.first_line?
+            ▸assert "@yylloc?.first_line?" @yylloc?.first_line?
             @yylineno = @yylloc.first_line
         else
             tag = ''
         tag
+        
     setInput: (tokens) ->
         parser.tokens = tokens
         @pos = 0
-    upcomingInput: ->
-        ""
+        
+    upcomingInput: -> ""
         
 parser.yy = require './nodes' # Make all the AST nodes visible to the parser.
 
@@ -360,7 +340,7 @@ parser.yy.parseError = (message, {token}) -> # Override Jison's default error ha
     # Unfortunately, Jison seems to send an outdated `loc` (from the previous token), 
     # so we take the location information directly from the lexer.
     
-    throwSyntaxError "unexpected #{errorText}", errorLoc
+    throwSyntaxError module:'koffee', message:"unexpected #{errorText}", location:errorLoc
 
 #  0000000   0000000   000   000  00000000    0000000  00000000  00     00   0000000   00000000   
 # 000       000   000  000   000  000   000  000       000       000   000  000   000  000   000  
@@ -375,8 +355,8 @@ getSourceMap = (filename) ->
     
     if sourceMaps[filename]?
         sourceMaps[filename]
-    else if sourceMaps['<anonymous>']?
-        sourceMaps['<anonymous>']
+    else if sourceMaps['?']?
+        sourceMaps['?']
     else if sources[filename]?
         answer = compile sources[filename],
             filename: filename
@@ -395,72 +375,85 @@ getSourceMap = (filename) ->
 # NodeJS / V8 have no support for transforming positions in stack traces using
 # sourceMap, so we must monkey-patch Error to display Koffee source positions.
 
-Error.prepareStackTrace = (err, stack) ->
-    
-    getSourceMapping = (filename, line, column) ->
-        sourceMap = getSourceMap filename
-        answer = sourceMap.sourceLocation [line - 1, column - 1] if sourceMap?
-        if answer? then [answer[0] + 1, answer[1] + 1] else null
+# Error.prepareStackTrace = (err, stack) ->
+#     
+    # getSourceMapping = (filename, line, column) ->
+        # sourceMap = getSourceMap filename
+        # answer = sourceMap.sourceLocation [line - 1, column - 1] if sourceMap?
+        # if answer? then [answer[0] + 1, answer[1] + 1] else null
 
-    frames = for frame in stack
-        break if frame.getFunction() is exports.run
-        "        at #{formatSourcePosition frame, getSourceMapping}"
+    # frames = for frame in stack
+        # break if frame.getFunction() is exports.run
+        # "        at #{formatSourcePosition frame, getSourceMapping}"
 
-    "#{err.toString()}\n#{frames.join '\n'}\n"
+    # "#{err.toString()}\n#{frames.join '\n'}\n"
     
 # Based on http://v8.googlecode.com/svn/branches/bleeding_edge/src/messages.js
 # Modified to handle sourceMap
 
-formatSourcePosition = (frame, getSourceMapping) ->
+# formatSourcePosition = (frame, getSourceMapping) ->
+#     
+    # filename = undefined
+    # fileLocation = ''
+
+    # if frame.isNative()
+        # fileLocation = "native"
+    # else
+        # if frame.isEval()
+            # filename = frame.getScriptNameOrSourceURL()
+            # fileLocation = "#{frame.getEvalOrigin()}, " unless filename
+        # else
+            # filename = frame.getFileName()
+
+        # filename or= "<anonymous>"
+
+        # line = frame.getLineNumber()
+        # column = frame.getColumnNumber()
+
+        # # Check for a sourceMap position
+        # source = getSourceMapping filename, line, column
+        # fileLocation =
+            # if source
+                # "#{filename}:#{source[0]}:#{source[1]}"
+            # else
+                # "#{filename}:#{line}:#{column}"
+
+    # functionName = frame.getFunctionName()
+    # isConstructor = frame.isConstructor()
+    # isMethodCall = not (frame.isToplevel() or isConstructor)
+
+    # if isMethodCall
+        # methodName = frame.getMethodName()
+        # typeName = frame.getTypeName()
+
+        # if functionName
+            # tp = as = ''
+            # if typeName and functionName.indexOf typeName
+                # tp = "#{typeName}."
+            # if methodName and functionName.indexOf(".#{methodName}") != functionName.length - methodName.length - 1
+                # as = " [as #{methodName}]"
+
+            # "#{tp}#{functionName}#{as} (#{fileLocation})"
+        # else
+            # "#{typeName}.#{methodName or '<anonymous>'} (#{fileLocation})"
+    # else if isConstructor
+        # "new #{functionName or '<anonymous>'} (#{fileLocation})"
+    # else if functionName
+        # "#{functionName} (#{fileLocation})"
+    # else
+        # fileLocation
     
-    filename = undefined
-    fileLocation = ''
-
-    if frame.isNative()
-        fileLocation = "native"
-    else
-        if frame.isEval()
-            filename = frame.getScriptNameOrSourceURL()
-            fileLocation = "#{frame.getEvalOrigin()}, " unless filename
-        else
-            filename = frame.getFileName()
-
-        filename or= "<anonymous>"
-
-        line = frame.getLineNumber()
-        column = frame.getColumnNumber()
-
-        # Check for a sourceMap position
-        source = getSourceMapping filename, line, column
-        fileLocation =
-            if source
-                "#{filename}:#{source[0]}:#{source[1]}"
-            else
-                "#{filename}:#{line}:#{column}"
-
-    functionName = frame.getFunctionName()
-    isConstructor = frame.isConstructor()
-    isMethodCall = not (frame.isToplevel() or isConstructor)
-
-    if isMethodCall
-        methodName = frame.getMethodName()
-        typeName = frame.getTypeName()
-
-        if functionName
-            tp = as = ''
-            if typeName and functionName.indexOf typeName
-                tp = "#{typeName}."
-            if methodName and functionName.indexOf(".#{methodName}") != functionName.length - methodName.length - 1
-                as = " [as #{methodName}]"
-
-            "#{tp}#{functionName}#{as} (#{fileLocation})"
-        else
-            "#{typeName}.#{methodName or '<anonymous>'} (#{fileLocation})"
-    else if isConstructor
-        "new #{functionName or '<anonymous>'} (#{fileLocation})"
-    else if functionName
-        "#{functionName} (#{fileLocation})"
-    else
-        fileLocation
+module.exports = 
+    
+    FILE_EXTENSIONS: FILE_EXTENSIONS
+    VERSION:         pkg.version
+    run:             run
+    eval:            evaluate
+    nodes:           nodes
+    helpers:         helpers
+    compile:         compile
+    tokens:          lexer.tokenize
+    register:        -> require './register'
+    compileFile:     compileFile
     
     

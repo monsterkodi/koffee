@@ -11,25 +11,35 @@
 
 # Peek at the beginning of a given string to see if it matches a sequence.
 
-features = require './features'
-meta     = require './meta'
+colors = ->
+    colorette = require 'colorette'
+    colornames =  [
+        'dim'     'bold'
+        'red'     'redBright'
+        'gray'    'grayBright'
+        'yellow'  'yellowBright'
+        'green'   'greenBright'
+        'white'   'whiteBright'
+        'blue'    'blueBright'
+        'cyan'    'cyanBright'
+        'magenta' 'magentaBright'
+    ] 
+    for name in colornames
+        global[name] = colorette[name]
+    global.colorette = colorette
 
-exports.injectFeature = features.injectFeature
-exports.hasFeature    = features.hasFeature
-exports.injectMeta    = meta.injectMeta
-
-exports.starts = (string, literal, start) ->
+starts = (string, literal, start) ->
     literal is string.substr start, literal.length
 
 # Peek at the end of a given string to see if it matches a sequence.
 
-exports.ends = (string, literal, back) ->
+ends = (string, literal, back) ->
     len = literal.length
     literal is string.substr string.length - len - (back or 0), len
 
 # Repeat a string `n` times.
 
-exports.repeat = repeat = (str, n) ->
+repeat = (str, n) ->
     
     # Use clever algorithm to have O(log(n)) string concatenation operations.
     res = ''
@@ -39,7 +49,7 @@ exports.repeat = repeat = (str, n) ->
         str += str
     res
 
-exports.pad = (str, length=24) -> # str padded with spaces to length
+pad = (str, length=24) -> # str padded with spaces to length
     
     spaces = length - str.length
     spaces = if spaces > 0 then Array(spaces + 1).join(' ') else ''
@@ -47,23 +57,16 @@ exports.pad = (str, length=24) -> # str padded with spaces to length
     
 # Trim out all falsy values from an array.
 
-exports.compact = (array) ->
+compact = (array) ->
     item for item in array when item
 
 # Count the number of occurrences of a string in a string.
 
-exports.count = (s, substr) ->
+count = (s, substr) ->
     num = pos = 0
     return 1/0 unless substr.length
     num++ while pos = 1 + s.indexOf substr, pos
     num
-
-# Merge objects, returning a fresh copy with attributes from both sides.
-# Used every time `Base#compile` is called, to allow properties in the
-# options hash to propagate down the tree without polluting other branches.
-
-exports.merge = (options, overrides) ->
-    extend (extend {}, options), overrides
 
 # 00000000  000   000  000000000  00000000  000   000  0000000    
 # 000        000 000      000     000       0000  000  000   000  
@@ -73,15 +76,21 @@ exports.merge = (options, overrides) ->
 
 # Extend a source object with the properties of another object (shallow copy).
 
-exports.extend = extend = (object, properties) ->
+extend = (object, properties) ->
     for key, val of properties
         object[key] = val
     object
 
+# Merge objects, returning a fresh copy with attributes from both sides.
+# Used every time `Base#compile` is called, to allow properties in the
+# options hash to propagate down the tree without polluting other branches.
+
+merge = (options, overrides) -> extend (extend {}, options), overrides
+
 # Return a flattened version of an array.
 # Handy for getting a list of `children` from the nodes.
     
-exports.flatten = flatten = (array) ->
+flatten = (array) ->
     flattened = []
     for element in array
         if '[object Array]' is Object::toString.call element
@@ -93,14 +102,14 @@ exports.flatten = flatten = (array) ->
 # Delete a key from an object, returning the value. Useful when a node is
 # looking for a particular method in an options hash.
     
-exports.del = (obj, key) ->
+del = (obj, key) ->
     val =  obj[key]
     delete obj[key]
     val
 
 # Typical Array::some
 
-exports.some = Array::some ? (fn) ->
+some = Array::some ? (fn) ->
     return true for e in this when fn e
     false
 
@@ -120,7 +129,7 @@ buildLocationData = (first, last) ->
 # object is an AST node, updates that object's locationData.
 # The object is returned either way.
 
-exports.addLocationDataFn = (first, last) ->
+addLocationDataFn = (first, last) ->
     (obj) ->
         if ((typeof obj) is 'object') and (!!obj['updateLocationDataIfMissing'])
             obj.updateLocationDataIfMissing buildLocationData(first, last)
@@ -130,7 +139,7 @@ exports.addLocationDataFn = (first, last) ->
 # Convert jison location data to a string.
 # `obj` can be a token, or a locationData.
 
-exports.locationDataToString = (obj) ->
+locationDataToString = (obj) ->
     if ("2" of obj) and ("first_line" of obj[2]) then locationData = obj[2]
     else if "first_line" of obj then locationData = obj
 
@@ -142,7 +151,7 @@ exports.locationDataToString = (obj) ->
 
 # A `.coffee.md` compatible version of `basename`, that returns the file sans-extension.
 
-exports.baseFileName = (file, stripExt = no, useWinPathSep = no) ->
+baseFileName = (file, stripExt = no, useWinPathSep = no) ->
     pathSep = if useWinPathSep then /\\|\// else /\//
     parts = file.split(pathSep)
     file = parts[parts.length - 1]
@@ -160,65 +169,68 @@ exports.baseFileName = (file, stripExt = no, useWinPathSep = no) ->
 
 # Determine if a filename represents a koffee file.
 
-exports.isCoffee = (file) -> /\.[ck]offee$/.test file
+isCoffee = (file) -> /\.[ck]offee$/.test file
 
 # Throws a SyntaxError from a given location.
 # The error's `toString` will return an error message following the "standard"
 # format `<filename>:<line>:<col>: <message>` plus the line with the error and a
 # marker showing where the error is.
 
-exports.throwSyntaxError = (message, location) ->
-    err = new SyntaxError message
+throwSyntaxError = (module:,message:,location:) ->
+    
+    # err = new SyntaxError module + ' ▸ ' + message
+    err = new SyntaxError " #{message} ##{module}"
     err.location = location
-    err.toString = syntaxErrorToString
-
-    # Instead of showing the compiler's stacktrace, show our custom error message.
-    # This is useful when the error bubbles up in Node.js applications that compile Koffee.
-    err.stack = err.toString()
-
     throw err
 
 # Update a compiler SyntaxError with source code information if it didn't have it already.
 
-exports.updateSyntaxError = (err, code, filename) ->
-    # Avoid screwing up the `stack` property of other errors (i.e. possible bugs).
-    if err.toString is syntaxErrorToString
-        err.code     or= code
-        err.filename or= filename
-        err.stack = err.toString()
+updateSyntaxError = (err, code, filename) ->
+    
+    err.code     ?= code
+    err.filename ?= filename
+    err.message   = syntaxErrorToString err
     err
 
-syntaxErrorToString = ->
+syntaxErrorToString = (err) ->
     
-    return Error::toString.call @ unless @code and @location
+    if not err.code or not err.location
+        # ▸dbg 'code or location?' code:err.code?, location:err.location?
+        return Error::toString.call err 
+        
+    # log 'got code and location', err.code, err.location
 
-    {first_line, first_column, last_line, last_column} = @location
+    {first_line, first_column, last_line, last_column} = err.location
     last_line ?= first_line
     last_column ?= first_column
 
-    filename = @filename or '[stdin]'
-    codeLine = @code.split('\n')[first_line]
+    codeLine = err.code.split('\n')[first_line]
     start    = first_column
     # Show only the first line on multi-line errors.
     end      = if first_line is last_line then last_column + 1 else codeLine.length
-    marker   = codeLine[...start].replace(/[^\s]/g, ' ') + repeat('^', end - start)
+    marker   = codeLine[...start].replace(/[^\s]/g, ' ') + repeat('▲', end - start)
 
     # Check to see if we're running on a color-enabled TTY.
     if process?
         colorsEnabled = process.stdout?.isTTY and not process.env?.NODE_DISABLE_COLORS
 
-    if @colorful ? colorsEnabled
+    if err.colorful ? colorsEnabled
         colorize = (str) -> "\x1B[1;31m#{str}\x1B[0m"
         codeLine = codeLine[...start] + colorize(codeLine[start...end]) + codeLine[end..]
         marker   = colorize marker
 
+    fileLine = "#{err.filename ? '?'}:#{first_line + 1}:#{first_column + 1}"
+        
+    # log 'file:', fileLine
+    # log 'code:', codeLine
+    # log 'mark:', marker
+    
     """
-        #{filename}:#{first_line + 1}:#{first_column + 1}: error: #{@message}
-        #{codeLine}
-        #{marker}
+        #{fileLine} #{codeLine}
+        #{pad('', fileLine.length+1) + marker} #{err.message}
     """
 
-exports.nameWhitespaceCharacter = (string) ->
+nameWhitespaceCharacter = (string) ->
     
     switch string
         when ' ' then 'space'
@@ -246,24 +258,51 @@ arrayEgal = (a, b) ->
     return no for el, idx in a when not arrayEgal el, b[idx]
     yes
 
-exports.eq      = (a, b, msg) -> ok egal(a, b), msg or "\x1B[0;90m\n <<< expected >>>\n\x1B[0;93m#{a}\x1B[0;90m<<< to equal >>>\n\x1B[0;93m#{b}\x1B[0;90m<<< expected >>>\n"
-exports.arrayEq = (a, b, msg) -> ok arrayEgal(a,b), msg or "\x1B[0;90m\n >>>\n\x1B[0;93m#{a}\x1B[0;90m<<< to deep equal >>>\n\x1B[0;93m#{b}\x1B[0;90m<<< expected >>>\n"
+eq      = (a, b, msg) -> ok egal(a, b), msg or "\x1B[0;90m\n <<< expected >>>\n\x1B[0;93m#{a}\x1B[0;90m<<< to equal >>>\n\x1B[0;93m#{b}\x1B[0;90m<<< expected >>>\n"
+arrayEq = (a, b, msg) -> ok arrayEgal(a,b), msg or "\x1B[0;90m\n >>>\n\x1B[0;93m#{a}\x1B[0;90m<<< to deep equal >>>\n\x1B[0;93m#{b}\x1B[0;90m<<< expected >>>\n"
 
-exports.toJS = (str) ->
+toJS = (str) ->
   Koffee.compile str, bare: yes
   .replace /^\s+|\s+$/g, '' # Trim leading/trailing whitespace
 
-exports.stringify = (o) ->
+stringify = (o) ->
     noon = require 'noon'
     noon.stringify o, circular: true, colors: true
     
 # Initialize global variables used in test scripts 
 # Supports running single test via `koffee test/..`
-    
-exports.initTest = ->
+
+initTest = ->
     extend global, require 'assert' 
     global.Koffee = require './koffee'
     global._ = require 'underscore'
-    extend global, exports
+    extend global, module.exports
     if not global.test then global.test = (n,f) -> log n; f()
+        
+module.exports = {
+    colors
+    starts
+    ends
+    repeat
+    pad
+    compact
+    count
+    merge
+    extend
+    flatten
+    del
+    some
+    addLocationDataFn
+    locationDataToString
+    baseFileName
+    isCoffee
+    throwSyntaxError
+    updateSyntaxError
+    nameWhitespaceCharacter
+    eq
+    arrayEq
+    toJS
+    stringify
+    initTest
+}
     

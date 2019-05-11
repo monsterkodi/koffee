@@ -14,7 +14,7 @@ path          = require 'path'
 # Load and run file for Node, stripping any `BOM`s.
     
 loadFile = (module, filename) ->
-    answer = Koffee._compileFile filename, no, yes
+    answer = Koffee.compileFile filename, no, yes
     module._compile answer, filename
 
 # If the installed version of Node supports `require.extensions`, register our extensions.

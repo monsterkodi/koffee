@@ -1,4 +1,4 @@
-// koffee 0.30.0
+// koffee 0.31.0
 
 /*
 000      00000000  000   000  00000000  00000000   
@@ -9,19 +9,26 @@
  */
 
 (function() {
-    var BOM, BOOL, CALLABLE, CODE, COFFEE_ALIASES, COFFEE_ALIAS_MAP, COFFEE_KEYWORDS, COMMENT, COMPARE, COMPOUND_ASSIGN, HERECOMMENT_ILLEGAL, HEREDOC_DOUBLE, HEREDOC_INDENT, HEREDOC_SINGLE, HEREGEX, HEREGEX_OMIT, HERE_JSTOKEN, IDENTIFIER, INDENTABLE_CLOSERS, INDEXABLE, JSTOKEN, JS_KEYWORDS, LEADING_BLANK_LINE, LINE_BREAK, LINE_CONTINUER, Lexer, MATH, META_KEYWORDS, MULTI_DENT, NOT_REGEX, NUMBER, OPERATOR, POSSIBLY_DIVISION, REGEX, REGEX_FLAGS, REGEX_ILLEGAL, REGEX_INVALID_ESCAPE, RELATION, RESERVED, Rewriter, SHIFT, SIMPLE_STRING_OMIT, STRICT_PROSCRIBED, STRING_DOUBLE, STRING_INVALID_ESCAPE, STRING_OMIT, STRING_SINGLE, STRING_START, TRAILING_BLANK_LINE, TRAILING_SPACES, UNARY, UNARY_MATH, UNFINISHED, UNICODE_CODE_POINT_ESCAPE, VALID_FLAGS, WHITESPACE, compact, count, hasFeature, injectFeature, injectMeta, isForFrom, isUnassignable, key, locationDataToString, ref, repeat, starts, throwSyntaxError,
+    var BOM, BOOL, CALLABLE, CODE, COFFEE_ALIASES, COFFEE_ALIAS_MAP, COFFEE_KEYWORDS, COMMENT, COMPARE, COMPOUND_ASSIGN, HERECOMMENT_ILLEGAL, HEREDOC_DOUBLE, HEREDOC_INDENT, HEREDOC_SINGLE, HEREGEX, HEREGEX_OMIT, HERE_JSTOKEN, IDENTIFIER, INDENTABLE_CLOSERS, INDEXABLE, JSTOKEN, JS_KEYWORDS, LEADING_BLANK_LINE, LINE_BREAK, LINE_CONTINUER, Lexer, MATH, META_KEYWORDS, MULTI_DENT, NOT_REGEX, NUMBER, OPERATOR, POSSIBLY_DIVISION, REGEX, REGEX_FLAGS, REGEX_ILLEGAL, REGEX_INVALID_ESCAPE, RELATION, RESERVED, Rewriter, SHIFT, SIMPLE_STRING_OMIT, STRICT_PROSCRIBED, STRING_DOUBLE, STRING_INVALID_ESCAPE, STRING_OMIT, STRING_SINGLE, STRING_START, TRAILING_BLANK_LINE, TRAILING_SPACES, UNARY, UNARY_MATH, UNFINISHED, UNICODE_CODE_POINT_ESCAPE, VALID_FLAGS, WHITESPACE, compact, count, hasFeature, injectFeature, injectMeta, isForFrom, isUnassignable, key, locationDataToString, ref, ref1, repeat, starts, throwSyntaxError,
+        bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
         indexOf = [].indexOf,
         slice = [].slice;
 
     Rewriter = require('./rewriter');
 
-    ref = require('./helpers'), count = ref.count, starts = ref.starts, compact = ref.compact, repeat = ref.repeat, locationDataToString = ref.locationDataToString, throwSyntaxError = ref.throwSyntaxError, injectMeta = ref.injectMeta, injectFeature = ref.injectFeature, hasFeature = ref.hasFeature;
+    injectMeta = require('./meta').injectMeta;
+
+    ref = require('./features'), injectFeature = ref.injectFeature, hasFeature = ref.hasFeature;
+
+    ref1 = require('./helpers'), count = ref1.count, starts = ref1.starts, compact = ref1.compact, repeat = ref1.repeat, locationDataToString = ref1.locationDataToString, throwSyntaxError = ref1.throwSyntaxError;
 
     Lexer = (function() {
-        function Lexer() {}
+        function Lexer() {
+            this.tokenize = bind(this.tokenize, this);
+        }
 
         Lexer.prototype.tokenize = function(code, opts) {
-            var consumed, end, i, ref1;
+            var consumed, end, i, ref2;
             opts = injectFeature(opts);
             opts = injectMeta(opts);
             this.indent = 0;
@@ -42,7 +49,7 @@
             i = 0;
             while (this.chunk = code.slice(i)) {
                 consumed = this.identifierToken() || this.commentToken() || this.whitespaceToken() || this.lineToken() || this.stringToken() || this.numberToken() || this.regexToken() || this.jsToken() || this.literalToken();
-                ref1 = this.getLineAndColumnFromChunk(consumed), this.chunkLine = ref1[0], this.chunkColumn = ref1[1];
+                ref2 = this.getLineAndColumnFromChunk(consumed), this.chunkLine = ref2[0], this.chunkColumn = ref2[1];
                 i += consumed;
                 if (opts.untilBalanced && this.ends.length === 0) {
                     return {
@@ -76,7 +83,7 @@
         };
 
         Lexer.prototype.identifierToken = function() {
-            var alias, colon, colonOffset, id, idLength, input, match, poppedToken, prev, ref1, ref2, ref3, ref4, ref5, ref6, ref7, ref8, ref9, tag, tagToken;
+            var alias, colon, colonOffset, id, idLength, input, match, poppedToken, prev, ref10, ref2, ref3, ref4, ref5, ref6, ref7, ref8, ref9, tag, tagToken;
             if (!(match = IDENTIFIER.exec(this.chunk))) {
                 return 0;
             }
@@ -94,25 +101,25 @@
             if (id === 'as' && this.seenImport) {
                 if (this.value() === '*') {
                     this.tokens[this.tokens.length - 1][0] = 'IMPORT_ALL';
-                } else if (ref1 = this.value(), indexOf.call(COFFEE_KEYWORDS, ref1) >= 0) {
+                } else if (ref2 = this.value(), indexOf.call(COFFEE_KEYWORDS, ref2) >= 0) {
                     this.tokens[this.tokens.length - 1][0] = 'IDENTIFIER';
                 }
-                if ((ref2 = this.tag()) === 'DEFAULT' || ref2 === 'IMPORT_ALL' || ref2 === 'IDENTIFIER') {
+                if ((ref3 = this.tag()) === 'DEFAULT' || ref3 === 'IMPORT_ALL' || ref3 === 'IDENTIFIER') {
                     this.token('AS', id);
                     return id.length;
                 }
             }
-            if (id === 'as' && this.seenExport && ((ref3 = this.tag()) === 'IDENTIFIER' || ref3 === 'DEFAULT')) {
+            if (id === 'as' && this.seenExport && ((ref4 = this.tag()) === 'IDENTIFIER' || ref4 === 'DEFAULT')) {
                 this.token('AS', id);
                 return id.length;
             }
-            if (id === 'default' && this.seenExport && ((ref4 = this.tag()) === 'EXPORT' || ref4 === 'AS')) {
+            if (id === 'default' && this.seenExport && ((ref5 = this.tag()) === 'EXPORT' || ref5 === 'AS')) {
                 this.token('DEFAULT', id);
                 return id.length;
             }
-            ref5 = this.tokens, prev = ref5[ref5.length - 1];
-            tag = colon || (prev != null) && (((ref6 = prev[0]) === '.' || ref6 === '?.' || ref6 === '::' || ref6 === '?::') || !prev.spaced && prev[0] === '@') ? 'PROPERTY' : 'IDENTIFIER';
-            if (tag === 'IDENTIFIER' && id[0] === '▸' && (ref7 = id.slice(1), indexOf.call(META_KEYWORDS, ref7) >= 0)) {
+            ref6 = this.tokens, prev = ref6[ref6.length - 1];
+            tag = colon || (prev != null) && (((ref7 = prev[0]) === '.' || ref7 === '?.' || ref7 === '::' || ref7 === '?::') || !prev.spaced && prev[0] === '@') ? 'PROPERTY' : 'IDENTIFIER';
+            if (tag === 'IDENTIFIER' && id[0] === '▸' && (ref8 = id.slice(1), indexOf.call(META_KEYWORDS, ref8) >= 0)) {
                 if (id === '▸elif') {
                     this.token('META_ELSE', 'else');
                     tag = 'META_IF';
@@ -126,7 +133,7 @@
                 }
             } else if (tag === 'IDENTIFIER' && (indexOf.call(JS_KEYWORDS, id) >= 0 || indexOf.call(COFFEE_KEYWORDS, id) >= 0) && !(this.exportSpecifierList && indexOf.call(COFFEE_KEYWORDS, id) >= 0)) {
                 tag = id.toUpperCase();
-                if (tag === 'WHEN' && (ref8 = this.tag(), indexOf.call(LINE_BREAK, ref8) >= 0)) {
+                if (tag === 'WHEN' && (ref9 = this.tag(), indexOf.call(LINE_BREAK, ref9) >= 0)) {
                     tag = 'LEADING_WHEN';
                 } else if (tag === 'FOR') {
                     this.seenFor = true;
@@ -191,7 +198,7 @@
                 tagToken.origin = [tag, alias, tagToken[2]];
             }
             if (poppedToken) {
-                ref9 = [poppedToken[2].first_line, poppedToken[2].first_column], tagToken[2].first_line = ref9[0], tagToken[2].first_column = ref9[1];
+                ref10 = [poppedToken[2].first_line, poppedToken[2].first_column], tagToken[2].first_line = ref10[0], tagToken[2].first_column = ref10[1];
             }
             if (colon) {
                 colonOffset = input.lastIndexOf(':');
@@ -201,7 +208,7 @@
         };
 
         Lexer.prototype.numberToken = function() {
-            var base, lexedLength, match, number, numberValue, ref1, tag;
+            var base, lexedLength, match, number, numberValue, ref2, tag;
             if (!(match = NUMBER.exec(this.chunk))) {
                 return 0;
             }
@@ -241,7 +248,7 @@
                 }
             })();
             numberValue = base != null ? parseInt(number.slice(2), base) : parseFloat(number);
-            if ((ref1 = number.charAt(1)) === 'b' || ref1 === 'o') {
+            if ((ref2 = number.charAt(1)) === 'b' || ref2 === 'o') {
                 number = "0x" + (numberValue.toString(16));
             }
             tag = numberValue === 2e308 ? 'INFINITY' : 'NUMBER';
@@ -250,7 +257,7 @@
         };
 
         Lexer.prototype.stringToken = function() {
-            var $, attempt, delimiter, doc, end, heredoc, i, indent, indentRegex, match, quote, ref1, ref2, regex, token, tokens;
+            var $, attempt, delimiter, doc, end, heredoc, i, indent, indentRegex, match, quote, ref2, ref3, regex, token, tokens;
             quote = (STRING_START.exec(this.chunk) || [])[0];
             if (!quote) {
                 return 0;
@@ -271,7 +278,7 @@
                 }
             })();
             heredoc = quote.length === 3;
-            ref1 = this.matchWithInterpolations(regex, quote), tokens = ref1.tokens, end = ref1.index;
+            ref2 = this.matchWithInterpolations(regex, quote), tokens = ref2.tokens, end = ref2.index;
             $ = tokens.length - 1;
             delimiter = quote.charAt(0);
             if (heredoc) {
@@ -289,7 +296,7 @@
                 })()).join('#{}');
                 while (match = HEREDOC_INDENT.exec(doc)) {
                     attempt = match[1];
-                    if (indent === null || (0 < (ref2 = attempt.length) && ref2 < indent.length)) {
+                    if (indent === null || (0 < (ref3 = attempt.length) && ref3 < indent.length)) {
                         indent = attempt;
                     }
                 }
@@ -371,7 +378,7 @@
         };
 
         Lexer.prototype.regexToken = function() {
-            var body, closed, end, flags, index, match, origin, prev, ref1, ref2, ref3, regex, tokens;
+            var body, closed, end, flags, index, match, origin, prev, ref2, ref3, ref4, regex, tokens;
             switch (false) {
                 case !(match = REGEX_ILLEGAL.exec(this.chunk)):
                     this.error("regular expressions cannot begin with " + match[2], {
@@ -391,13 +398,13 @@
                         delimiter: '/'
                     });
                     index = regex.length;
-                    ref1 = this.tokens, prev = ref1[ref1.length - 1];
+                    ref2 = this.tokens, prev = ref2[ref2.length - 1];
                     if (prev) {
-                        if (prev.spaced && (ref2 = prev[0], indexOf.call(CALLABLE, ref2) >= 0)) {
+                        if (prev.spaced && (ref3 = prev[0], indexOf.call(CALLABLE, ref3) >= 0)) {
                             if (!closed || POSSIBLY_DIVISION.test(regex)) {
                                 return 0;
                             }
-                        } else if (ref3 = prev[0], indexOf.call(NOT_REGEX, ref3) >= 0) {
+                        } else if (ref4 = prev[0], indexOf.call(NOT_REGEX, ref4) >= 0) {
                             return 0;
                         }
                     }
@@ -499,7 +506,7 @@
         };
 
         Lexer.prototype.outdentToken = function(moveOut, noNewlines, outdentLength) {
-            var decreasedIndent, dent, lastIndent, ref1;
+            var decreasedIndent, dent, lastIndent, ref2;
             decreasedIndent = this.indent - moveOut;
             while (moveOut > 0) {
                 lastIndent = this.indents[this.indents.length - 1];
@@ -513,7 +520,7 @@
                     moveOut -= lastIndent;
                 } else {
                     dent = this.indents.pop() + this.outdebt;
-                    if (outdentLength && (ref1 = this.chunk[outdentLength], indexOf.call(INDENTABLE_CLOSERS, ref1) >= 0)) {
+                    if (outdentLength && (ref2 = this.chunk[outdentLength], indexOf.call(INDENTABLE_CLOSERS, ref2) >= 0)) {
                         decreasedIndent -= dent - moveOut;
                         moveOut = dent;
                     }
@@ -537,11 +544,11 @@
         };
 
         Lexer.prototype.whitespaceToken = function() {
-            var match, nline, prev, ref1;
+            var match, nline, prev, ref2;
             if (!((match = WHITESPACE.exec(this.chunk)) || (nline = this.chunk.charAt(0) === '\n'))) {
                 return 0;
             }
-            ref1 = this.tokens, prev = ref1[ref1.length - 1];
+            ref2 = this.tokens, prev = ref2[ref2.length - 1];
             if (prev) {
                 prev[match ? 'spaced' : 'newLine'] = true;
             }
@@ -570,7 +577,7 @@
         };
 
         Lexer.prototype.literalToken = function() {
-            var match, message, origin, prev, ref1, ref2, ref3, ref4, ref5, skipToken, tag, token, value;
+            var match, message, origin, prev, ref2, ref3, ref4, ref5, ref6, skipToken, tag, token, value;
             if (match = OPERATOR.exec(this.chunk)) {
                 value = match[0];
                 if (CODE.test(value)) {
@@ -580,17 +587,17 @@
                 value = this.chunk.charAt(0);
             }
             tag = value;
-            ref1 = this.tokens, prev = ref1[ref1.length - 1];
+            ref2 = this.tokens, prev = ref2[ref2.length - 1];
             if (prev && indexOf.call(['='].concat(slice.call(COMPOUND_ASSIGN)), value) >= 0) {
                 skipToken = false;
-                if (value === '=' && ((ref2 = prev[1]) === '||' || ref2 === '&&') && !prev.spaced) {
+                if (value === '=' && ((ref3 = prev[1]) === '||' || ref3 === '&&') && !prev.spaced) {
                     prev[0] = 'COMPOUND_ASSIGN';
                     prev[1] += '=';
                     prev = this.tokens[this.tokens.length - 2];
                     skipToken = true;
                 }
                 if (prev && prev[0] !== 'PROPERTY') {
-                    origin = (ref3 = prev.origin) != null ? ref3 : prev;
+                    origin = (ref4 = prev.origin) != null ? ref4 : prev;
                     message = isUnassignable(prev[1], origin[1]);
                     if (message) {
                         this.error(message, origin[2]);
@@ -629,12 +636,12 @@
             } else if (value === '?' && (prev != null ? prev.spaced : void 0)) {
                 tag = 'BIN?';
             } else if (prev && !prev.spaced) {
-                if (value === '(' && (ref4 = prev[0], indexOf.call(CALLABLE, ref4) >= 0)) {
+                if (value === '(' && (ref5 = prev[0], indexOf.call(CALLABLE, ref5) >= 0)) {
                     if (prev[0] === '?') {
                         prev[0] = 'FUNC_EXIST';
                     }
                     tag = 'CALL_START';
-                } else if (value === '[' && (ref5 = prev[0], indexOf.call(INDEXABLE, ref5) >= 0)) {
+                } else if (value === '[' && (ref6 = prev[0], indexOf.call(INDEXABLE, ref6) >= 0)) {
                     tag = 'INDEX_START';
                     switch (prev[0]) {
                         case '?':
@@ -704,7 +711,7 @@
         };
 
         Lexer.prototype.matchWithInterpolations = function(regex, delimiter) {
-            var close, column, firstToken, index, lastToken, line, nested, offsetInChunk, open, ref1, ref2, ref3, str, strPart, tokens;
+            var close, column, firstToken, index, lastToken, line, nested, offsetInChunk, open, ref2, ref3, ref4, str, strPart, tokens;
             tokens = [];
             offsetInChunk = delimiter.length;
             if (this.chunk.slice(0, offsetInChunk) !== delimiter) {
@@ -723,18 +730,18 @@
                 if (str.slice(0, 2) !== '#{') {
                     break;
                 }
-                ref1 = this.getLineAndColumnFromChunk(offsetInChunk + 1), line = ref1[0], column = ref1[1];
-                ref2 = new Lexer().tokenize(str.slice(1), {
+                ref2 = this.getLineAndColumnFromChunk(offsetInChunk + 1), line = ref2[0], column = ref2[1];
+                ref3 = new Lexer().tokenize(str.slice(1), {
                     line: line,
                     column: column,
                     untilBalanced: true
-                }), nested = ref2.tokens, index = ref2.index;
+                }), nested = ref3.tokens, index = ref3.index;
                 index += 1;
                 open = nested[0], close = nested[nested.length - 1];
                 open[0] = open[1] = '(';
                 close[0] = close[1] = ')';
                 close.origin = ['', 'end of interpolation', close[2]];
-                if (((ref3 = nested[1]) != null ? ref3[0] : void 0) === 'TERMINATOR') {
+                if (((ref4 = nested[1]) != null ? ref4[0] : void 0) === 'TERMINATOR') {
                     nested.splice(1, 1);
                 }
                 tokens.push(['TOKENS', nested]);
@@ -764,7 +771,7 @@
         };
 
         Lexer.prototype.mergeInterpolationTokens = function(tokens, options, fn) {
-            var converted, firstEmptyStringIndex, firstIndex, i, j, lastToken, len, locationToken, lparen, plusToken, ref1, rparen, tag, token, tokensToPush, value;
+            var converted, firstEmptyStringIndex, firstIndex, i, j, lastToken, len, locationToken, lparen, plusToken, ref2, rparen, tag, token, tokensToPush, value;
             if (tokens.length > 1) {
                 lparen = this.token('STRING_START', '(', 0, 0);
             }
@@ -806,7 +813,7 @@
                         last_column: locationToken[2].first_column
                     };
                 }
-                (ref1 = this.tokens).push.apply(ref1, tokensToPush);
+                (ref2 = this.tokens).push.apply(ref2, tokensToPush);
             }
             if (lparen) {
                 lastToken = tokens[tokens.length - 1];
@@ -829,13 +836,13 @@
         };
 
         Lexer.prototype.pair = function(tag) {
-            var lastIndent, prev, ref1, ref2, wanted;
-            ref1 = this.ends, prev = ref1[ref1.length - 1];
+            var lastIndent, prev, ref2, ref3, wanted;
+            ref2 = this.ends, prev = ref2[ref2.length - 1];
             if (tag !== (wanted = prev != null ? prev.tag : void 0)) {
                 if ('OUTDENT' !== wanted) {
                     this.error("unmatched " + tag);
                 }
-                ref2 = this.indents, lastIndent = ref2[ref2.length - 1];
+                ref3 = this.indents, lastIndent = ref3[ref3.length - 1];
                 this.outdentToken(lastIndent, true);
                 return this.pair(tag);
             }
@@ -843,7 +850,7 @@
         };
 
         Lexer.prototype.getLineAndColumnFromChunk = function(offset) {
-            var column, lastLine, lineCount, ref1, string;
+            var column, lastLine, lineCount, ref2, string;
             if (offset === 0) {
                 return [this.chunkLine, this.chunkColumn];
             }
@@ -855,7 +862,7 @@
             lineCount = count(string, '\n');
             column = this.chunkColumn;
             if (lineCount > 0) {
-                ref1 = string.split('\n'), lastLine = ref1[ref1.length - 1];
+                ref2 = string.split('\n'), lastLine = ref2[ref2.length - 1];
                 column = lastLine.length;
             } else {
                 column += string.length;
@@ -864,7 +871,7 @@
         };
 
         Lexer.prototype.makeToken = function(tag, value, offsetInChunk, length) {
-            var lastCharacter, locationData, ref1, ref2, token;
+            var lastCharacter, locationData, ref2, ref3, token;
             if (offsetInChunk == null) {
                 offsetInChunk = 0;
             }
@@ -872,9 +879,9 @@
                 length = value.length;
             }
             locationData = {};
-            ref1 = this.getLineAndColumnFromChunk(offsetInChunk), locationData.first_line = ref1[0], locationData.first_column = ref1[1];
+            ref2 = this.getLineAndColumnFromChunk(offsetInChunk), locationData.first_line = ref2[0], locationData.first_column = ref2[1];
             lastCharacter = length > 0 ? length - 1 : 0;
-            ref2 = this.getLineAndColumnFromChunk(offsetInChunk + lastCharacter), locationData.last_line = ref2[0], locationData.last_column = ref2[1];
+            ref3 = this.getLineAndColumnFromChunk(offsetInChunk + lastCharacter), locationData.last_line = ref3[0], locationData.last_column = ref3[1];
             token = [tag, value, locationData];
             return token;
         };
@@ -890,20 +897,20 @@
         };
 
         Lexer.prototype.tag = function() {
-            var ref1, token;
-            ref1 = this.tokens, token = ref1[ref1.length - 1];
+            var ref2, token;
+            ref2 = this.tokens, token = ref2[ref2.length - 1];
             return token != null ? token[0] : void 0;
         };
 
         Lexer.prototype.value = function() {
-            var ref1, token;
-            ref1 = this.tokens, token = ref1[ref1.length - 1];
+            var ref2, token;
+            ref2 = this.tokens, token = ref2[ref2.length - 1];
             return token != null ? token[1] : void 0;
         };
 
         Lexer.prototype.unfinished = function() {
-            var ref1;
-            return LINE_CONTINUER.test(this.chunk) || (ref1 = this.tag(), indexOf.call(UNFINISHED, ref1) >= 0);
+            var ref2;
+            return LINE_CONTINUER.test(this.chunk) || (ref2 = this.tag(), indexOf.call(UNFINISHED, ref2) >= 0);
         };
 
         Lexer.prototype.formatString = function(str, options) {
@@ -955,7 +962,7 @@
         };
 
         Lexer.prototype.validateEscapes = function(str, options) {
-            var before, hex, invalidEscape, invalidEscapeRegex, match, message, octal, ref1, unicode, unicodeCodePoint;
+            var before, hex, invalidEscape, invalidEscapeRegex, match, message, octal, ref2, unicode, unicodeCodePoint;
             if (options == null) {
                 options = {};
             }
@@ -968,7 +975,7 @@
             message = octal ? "octal escape sequences are not allowed" : "invalid escape sequence";
             invalidEscape = "\\" + (octal || hex || unicodeCodePoint || unicode);
             return this.error(message + " " + invalidEscape, {
-                offset: ((ref1 = options.offsetInChunk) != null ? ref1 : 0) + match.index + before.length,
+                offset: ((ref2 = options.offsetInChunk) != null ? ref2 : 0) + match.index + before.length,
                 length: invalidEscape.length
             });
         };
@@ -1014,16 +1021,20 @@
         };
 
         Lexer.prototype.error = function(message, options) {
-            var first_column, first_line, location, ref1, ref2, ref3;
+            var first_column, first_line, location, ref2, ref3, ref4;
             if (options == null) {
                 options = {};
             }
-            location = 'first_line' in options ? options : ((ref2 = this.getLineAndColumnFromChunk((ref1 = options.offset) != null ? ref1 : 0), first_line = ref2[0], first_column = ref2[1], ref2), {
+            location = 'first_line' in options ? options : ((ref3 = this.getLineAndColumnFromChunk((ref2 = options.offset) != null ? ref2 : 0), first_line = ref3[0], first_column = ref3[1], ref3), {
                 first_line: first_line,
                 first_column: first_column,
-                last_column: first_column + ((ref3 = options.length) != null ? ref3 : 1) - 1
+                last_column: first_column + ((ref4 = options.length) != null ? ref4 : 1) - 1
             });
-            return throwSyntaxError(message, location);
+            return throwSyntaxError({
+                module: 'lexer',
+                message: message,
+                location: location
+            });
         };
 
         return Lexer;
@@ -1046,12 +1057,8 @@
         }
     };
 
-    exports.isUnassignable = isUnassignable;
-
-    exports.Lexer = Lexer;
-
     isForFrom = function(prev) {
-        var ref1;
+        var ref2;
         if (prev[0] === 'IDENTIFIER') {
             if (prev[1] === 'from') {
                 prev[1][0] = 'IDENTIFIER';
@@ -1060,7 +1067,7 @@
             return true;
         } else if (prev[0] === 'FOR') {
             return false;
-        } else if ((ref1 = prev[1]) === '{' || ref1 === '[' || ref1 === ',' || ref1 === ':') {
+        } else if ((ref2 = prev[1]) === '{' || ref2 === '[' || ref2 === ',' || ref2 === ':') {
             return false;
         } else {
             return true;
@@ -1108,8 +1115,6 @@
     RESERVED = ['case', 'function', 'var', 'void', 'with', 'const', 'let', 'enum', 'native', 'implements', 'interface', 'package', 'private', 'protected', 'public', 'static'];
 
     STRICT_PROSCRIBED = ['arguments', 'eval'];
-
-    exports.JS_FORBIDDEN = JS_KEYWORDS.concat(RESERVED).concat(STRICT_PROSCRIBED);
 
     BOM = 65279;
 
@@ -1204,5 +1209,11 @@
     UNFINISHED = ['\\', '.', '?.', '?::', 'UNARY', 'MATH', 'UNARY_MATH', '+', '-', '**', 'SHIFT', 'RELATION', 'COMPARE', '&', '^', '|', '&&', '||', 'BIN?', 'THROW', 'EXTENDS'];
 
     COMMENT = /^###([^#][\s\S]*?)(?:###[^\n\S]*|###$)|^(?:\s*#(?!##[^#]).*)+/;
+
+    module.exports = {
+        JS_FORBIDDEN: JS_KEYWORDS.concat(RESERVED).concat(STRICT_PROSCRIBED),
+        isUnassignable: isUnassignable,
+        Lexer: Lexer
+    };
 
 }).call(this);

@@ -186,6 +186,7 @@ test "assert", ->
     
     out = ''
     run = (c,p) -> 
+        out = ''
         r = Koffee.eval c, 
             feature:color:false
             source:'file.koffee'
@@ -206,5 +207,11 @@ test "assert", ->
     file.koffee:4 4!
     file.koffee:6 5!\n"""
     
-    # ▸assert 'true?' [] ?[1]==[1]
+    # run """
+    # a = 1
+    # ▸assert "is #{a}==2?" a==2
+    # """
+    # eq out, """
+    # file.koffee:2 is 1==2?\n"""
+    
     

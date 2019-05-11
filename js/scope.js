@@ -1,4 +1,4 @@
-// koffee 0.30.0
+// koffee 0.31.0
 
 /*
  0000000   0000000   0000000   00000000   00000000  
@@ -12,7 +12,7 @@
     var Scope,
         indexOf = [].indexOf;
 
-    exports.Scope = Scope = (function() {
+    Scope = (function() {
         function Scope(parent, expressions, method, referencedVars) {
             var ref, ref1;
             this.parent = parent;
@@ -170,5 +170,7 @@
         return Scope;
 
     })();
+
+    module.exports = Scope;
 
 }).call(this);

@@ -1,4 +1,4 @@
-// koffee 0.30.0
+// koffee 0.31.0
 
 /*
 00000000   00000000  000   000  00000000   000  000000000  00000000  00000000   
@@ -13,7 +13,7 @@
         indexOf = [].indexOf,
         slice = [].slice;
 
-    hasFeature = require('./helpers').hasFeature;
+    hasFeature = require('./features').hasFeature;
 
     Rewriter = (function() {
         function Rewriter() {}
@@ -161,6 +161,37 @@
             };
         };
 
+        Rewriter.prototype.findMatchingTagForwards = function(open, i, check) {
+            var close, current, j, pushed;
+            close = {
+                STRING_START: 'STRING_END'
+            }[open];
+            if (!close) {
+                console.warn("cant match " + open);
+            }
+            pushed = 0;
+            j = i;
+            while (++j < this.tokens.length) {
+                current = this.tag(j);
+                if (current === open) {
+                    pushed++;
+                } else if (current === close) {
+                    if (pushed) {
+                        pushed--;
+                    } else if (pushed === 0) {
+                        return {
+                            index: j
+                        };
+                    }
+                } else if ((check != null) && !check(current)) {
+                    break;
+                }
+            }
+            return {
+                index: -1
+            };
+        };
+
         Rewriter.prototype.shortcuts = function() {
             return this.scanTokens(function(token, i, tokens) {
                 var a, adv, arg, k, match, meta, ref, ref1, ref10, ref11, ref2, ref3, ref4, ref5, ref6, ref7, ref8, ref9;
@@ -221,6 +252,14 @@
                                         if ((ref9 = this.tag(i + adv)) === 'NUMBER' || ref9 === 'STRING') {
                                             arg++;
                                             adv++;
+                                        } else if (this.tag(i + adv) === 'STRING_START') {
+                                            match = this.findMatchingTagForwards(this.tag(i + adv), i + adv);
+                                            if (match.index >= 0) {
+                                                arg++;
+                                                adv += match.index - i - 1;
+                                            } else {
+                                                console.log('match index', match, this.tag(i + adv));
+                                            }
                                         } else {
                                             break;
                                         }
@@ -751,8 +790,6 @@
 
     BALANCED_PAIRS = [['(', ')'], ['[', ']'], ['{', '}'], ['INDENT', 'OUTDENT'], ['CALL_START', 'CALL_END'], ['PARAM_START', 'PARAM_END'], ['INDEX_START', 'INDEX_END'], ['STRING_START', 'STRING_END'], ['REGEX_START', 'REGEX_END']];
 
-    module.exports = Rewriter;
-
     EXPRESSION_START = [];
 
     EXPRESSION_END = [];
@@ -784,5 +821,7 @@
     LINEBREAKS = ['TERMINATOR', 'INDENT', 'OUTDENT'];
 
     CALL_CLOSERS = ['.', '?.', '::', '?::'];
+
+    module.exports = Rewriter;
 
 }).call(this);

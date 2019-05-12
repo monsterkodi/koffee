@@ -1,3 +1,5 @@
+![banner](./bin/banner.png)
+
 ## koffee 
 
 is a clone of [Coffeescript](http://coffeescript.org) (Version 1) with a few enhancements.
@@ -123,7 +125,7 @@ If the condition part of `▸if` starts with a `▸`, a lookup will be made into
 If a matching entry is found, the provided coffeescript blocks can be modified arbitrarily before they are written to JavaScript.
 When the macro is only operating on one block of code, you can omit the leading `▸if`.
 
-The default map includes some simple but useful macros that demonstrate this feature. 
+The [default map](https://github.com/monsterkodi/koffee/blob/master/coffee/meta.coffee) includes some simple but useful macros that demonstrate this feature. 
 
 ```coffeescript
                                 # log file position and object

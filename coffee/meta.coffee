@@ -219,15 +219,6 @@ compileMetaIf = (node:,opts:) ->
         
     return frag
     
-# utility = (name, o) ->
-    # {root} = o.scope
-    # if name of root.utilities
-        # root.utilities[name]
-    # else
-        # ref = root.freeVariable name
-        # root.assign ref, UTILITIES[name] o # <- adds utility to top level scope
-        # root.utilities[name] = ref
-
 # 000       0000000    0000000          0000000   0000000   000   000  00000000    0000000  00000000  
 # 000      000   000  000              000       000   000  000   000  000   000  000       000       
 # 000      000   000  000  0000        0000000   000   000  000   000  0000000    000       0000000   

@@ -44,7 +44,7 @@ testRepl 'reads history file', (input, output, repl) ->
     eq '3', output.lastWrite()
 
 testRepl "starts with prompt", (input, output) ->
-    eq 'koffee> ', output.lastWrite(0)
+    eq '▶ ', output.lastWrite(0)
 
 testRepl "writes eval to output", (input, output) ->
     input.emitLine '1+1'
@@ -71,7 +71,7 @@ testRepl "ctrl-v toggles multiline prompt", (input, output) ->
     input.emit 'keypress', null, ctrlV
     eq '------> ', output.lastWrite(0)
     input.emit 'keypress', null, ctrlV
-    eq 'koffee> ', output.lastWrite(0)
+    eq '▶ ', output.lastWrite(0)
 
 testRepl "multiline continuation changes prompt", (input, output) ->
     input.emit 'keypress', null, ctrlV

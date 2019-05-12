@@ -10,12 +10,21 @@ Koffee        = require './koffee'
 child_process = require 'child_process'
 helpers       = require './helpers'
 path          = require 'path'
+fs            = require 'fs'
 
-# Load and run file for Node, stripping any `BOM`s.
-    
 loadFile = (module, filename) ->
-    answer = Koffee.compileFile filename, no, yes
-    module._compile answer, filename
+    
+    code = fs.readFileSync filename, 'utf8'
+
+    try
+        answer = Koffee.compile code, 
+            filename:  filename
+            sourceMap: false
+            inlineMap: true
+            sourceFiles: [filename]
+        module._compile answer, filename
+    catch err
+        throw updateSyntaxError err, code, filename
 
 # If the installed version of Node supports `require.extensions`, register our extensions.
 

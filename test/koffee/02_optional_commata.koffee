@@ -94,8 +94,7 @@ test "optional commata", ->
         
         
 assertErrorFormat = (code, expectedErrorFormat) ->
-    throws (-> Koffee.run code), (err) ->
-        err.colorful = no
+    throws (-> Koffee.run code, feature:color:false), (err) ->
         eq "#{err}", expectedErrorFormat
         yes
 

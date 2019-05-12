@@ -22,7 +22,7 @@ Koffee   = require './koffee'
 
 replDefaults =
     
-    prompt: 'koffee> ',
+    prompt: blue "■▶ ",
     historyFile: path.join process.env.HOME, '.koffee_history' if process.env.HOME
     historyMaxInputSize: 10240
     
@@ -42,13 +42,15 @@ replDefaults =
                 bare:           yes
                 locals:         Object.keys context
                 referencedVars: referencedVars
-            # log js
-            cb null, runInContext js, context, filename
+            if js.trim().length
+                cb null, runInContext js, context, filename
+            else
+                cb null
         catch err
             # AST's `compile` does not add source code information to syntax errors.
-            updateSyntaxError err, input, filename
+            updateSyntaxError err, input, '?'
             log err.message
-            cb null, null
+            cb null
 
 runInContext = (js, context, filename) ->
     
@@ -61,56 +63,51 @@ addMultilineHandler = (repl) ->
     
     {rli, inputStream, outputStream} = repl
     
-    origPrompt = repl._prompt ? repl.prompt # Node 0.11.12 changed API, prompt is now _prompt.
+    origPrompt = repl._prompt
 
     multiline =
         enabled: off
-        initialPrompt: origPrompt.replace /^[^> ]*/, (x) -> x.replace /./g, '-'
-        prompt: origPrompt.replace /^[^> ]*>?/, (x) -> x.replace /./g, '.'
         buffer: ''
 
-    # Proxy node's line listener
     nodeLineListener = rli.listeners('line')[0]
     rli.removeListener 'line', nodeLineListener
     rli.on 'line', (cmd) ->
         if multiline.enabled
             multiline.buffer += "#{cmd}\n"
-            rli.setPrompt multiline.prompt
+            rli.setPrompt '   '
             rli.prompt true
         else
             rli.setPrompt origPrompt
             nodeLineListener cmd
         return
-
-    # Handle Ctrl-v (multiline)
     
     inputStream.on 'keypress', (char, key) ->
         
-        return unless key and key.ctrl and not key.meta and not key.shift and key.name is 'v'
+        if key?.name == 'escape' # escape (multiline)
         
-        if multiline.enabled
-            # allow arbitrarily switching between modes any time before multiple lines are entered
-            unless multiline.buffer.match /\n/
+            if multiline.enabled
+                # allow arbitrarily switching between modes any time before multiple lines are entered
+                unless multiline.buffer.match /\n/
+                    multiline.enabled = not multiline.enabled
+                    rli.setPrompt origPrompt
+                    rli.prompt true
+                    return
+                # no-op unless the current line is empty
+                return if rli.line? and not rli.line.match /^\s*$/
+                # eval, print, loop
                 multiline.enabled = not multiline.enabled
-                rli.setPrompt origPrompt
+                rli.line = ''
+                rli.cursor = 0
+                rli.output.cursorTo 0
+                rli.output.clearLine 1
+                # XXX: multiline hack
+                multiline.buffer = multiline.buffer.replace /\n/g, '\uFF00'
+                rli.emit 'line', multiline.buffer
+                multiline.buffer = ''
+            else
+                multiline.enabled = not multiline.enabled
+                rli.setPrompt yellow '◖▶ '
                 rli.prompt true
-                return
-            # no-op unless the current line is empty
-            return if rli.line? and not rli.line.match /^\s*$/
-            # eval, print, loop
-            multiline.enabled = not multiline.enabled
-            rli.line = ''
-            rli.cursor = 0
-            rli.output.cursorTo 0
-            rli.output.clearLine 1
-            # XXX: multiline hack
-            multiline.buffer = multiline.buffer.replace /\n/g, '\uFF00'
-            rli.emit 'line', multiline.buffer
-            multiline.buffer = ''
-        else
-            multiline.enabled = not multiline.enabled
-            rli.setPrompt multiline.initialPrompt
-            rli.prompt true
         return
 
 addHistory = (repl, filename, maxSize) ->

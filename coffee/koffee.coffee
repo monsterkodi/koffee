@@ -19,7 +19,7 @@ pkg       = require '../package.json'
 
 { injectMeta } = require './meta'
 { injectFeature, hasFeature } = require './features'
-{ updateSyntaxError, nameWhitespaceCharacter, throwSyntaxError, isCoffee, count, stringify } = helpers
+{ updateSyntaxError, throwSyntaxError, isCoffee, count, stringify } = helpers
 
 FILE_EXTENSIONS = ['.coffee' '.koffee']
 
@@ -202,7 +202,7 @@ run = (code, options={}) ->
             answer = compile code, options
         catch err
             # log 'koffee.run compile error', options.filename, mainModule.filename, err
-            updateSyntaxError err, code, mainModule.filename
+            updateSyntaxError err, code, mainModule.filename, options
             log err.message
             return
         
@@ -261,31 +261,6 @@ evaluate = (code, options={}) ->
     else
         vm.runInContext js, sandbox
 
-# 00000000   00000000   0000000   000   0000000  000000000  00000000  00000000   
-# 000   000  000       000        000  000          000     000       000   000  
-# 0000000    0000000   000  0000  000  0000000      000     0000000   0000000    
-# 000   000  000       000   000  000       000     000     000       000   000  
-# 000   000  00000000   0000000   000  0000000      000     00000000  000   000  
-
-compileFile = (filename, sourceMap = no, inlineMap = no) ->
-    
-    raw = fs.readFileSync filename, 'utf8'
-    # Strip the Unicode byte order mark, if this file begins with one.
-    stripped = if raw.charCodeAt(0) is 0xFEFF then raw.substring 1 else raw
-
-    try
-        answer = compile stripped, {
-            filename, sourceMap, inlineMap
-            sourceFiles: [filename]
-        }
-    catch err
-        # As the filename and code of a dynamically loaded file will be different
-        # from the original file compiled with Koffee.run, add that
-        # information to error so it can be pretty-printed later.
-        throw updateSyntaxError err, stripped, filename
-
-    answer
-
 # 000      00000000  000   000  00000000  00000000   
 # 000      000        000 000   000       000   000  
 # 000      0000000     00000    0000000   0000000    
@@ -334,8 +309,13 @@ parser.yy.parseError = (message, {token}) -> # Override Jison's default error ha
         when errorTag in ['IDENTIFIER' 'NUMBER' 'INFINITY' 'STRING' 'STRING_START' 'REGEX' 'REGEX_START']
             errorTag.replace(/_START$/, '').toLowerCase()
         else
-            nameWhitespaceCharacter errorText
-
+            switch errorText # nameWhitespaceCharacter
+                when ' ' then 'space'
+                when '\n' then 'newline'
+                when '\r' then 'carriage return'
+                when '\t' then 'tab'
+                else errorText
+            
     # The second argument has a `loc` property, which should have the location data for this token. 
     # Unfortunately, Jison seems to send an outdated `loc` (from the previous token), 
     # so we take the location information directly from the lexer.
@@ -454,6 +434,5 @@ module.exports =
     compile:         compile
     tokens:          lexer.tokenize
     register:        -> require './register'
-    compileFile:     compileFile
     
     

@@ -161,83 +161,54 @@ baseFileName = (file, stripExt = no, useWinPathSep = no) ->
     parts.pop() if /^[ck]offee$/.test(parts[parts.length-1]) and parts.length > 1
     parts.join('.')
 
-# 000   0000000   0000000   0000000   00000000  00000000  00000000  00000000  
-# 000  000       000       000   000  000       000       000       000       
-# 000  0000000   000       000   000  000000    000000    0000000   0000000   
-# 000       000  000       000   000  000       000       000       000       
-# 000  0000000    0000000   0000000   000       000       00000000  00000000  
-
 # Determine if a filename represents a koffee file.
 
 isCoffee = (file) -> /\.[ck]offee$/.test file
 
-# Throws a SyntaxError from a given location.
-# The error's `toString` will return an error message following the "standard"
-# format `<filename>:<line>:<col>: <message>` plus the line with the error and a
-# marker showing where the error is.
+#  0000000  000   000  000   000  000000000   0000000   000   000  00000000  00000000   00000000    0000000   00000000   
+# 000        000 000   0000  000     000     000   000   000 000   000       000   000  000   000  000   000  000   000  
+# 0000000     00000    000 0 000     000     000000000    00000    0000000   0000000    0000000    000   000  0000000    
+#      000     000     000  0000     000     000   000   000 000   000       000   000  000   000  000   000  000   000  
+# 0000000      000     000   000     000     000   000  000   000  00000000  000   000  000   000   0000000   000   000  
 
 throwSyntaxError = (module:,message:,location:) ->
     
-    # err = new SyntaxError module + ' ▸ ' + message
-    err = new SyntaxError " #{message} ##{module}"
+    err = new SyntaxError "#{bold yellowBright message} #{dim gray '#'} #{gray module}"
     err.location = location
     throw err
 
-# Update a compiler SyntaxError with source code information if it didn't have it already.
-
-updateSyntaxError = (err, code, filename) ->
+updateSyntaxError = (err, code, filename, options) -> # Update a compiler SyntaxError with source code information
     
     err.code     ?= code
     err.filename ?= filename
-    err.message   = syntaxErrorToString err
-    err
-
-syntaxErrorToString = (err) ->
     
-    if not err.code or not err.location
+    if err.code and err.location        
+
+        {first_line, first_column, last_line, last_column} = err.location
+        last_line ?= first_line
+        last_column ?= first_column
+    
+        codeLine = err.code.split('\n')[first_line]
+        start    = first_column        
+        end      = if first_line is last_line then last_column + 1 else codeLine.length # Show only the first line on multi-line errors.
+        marker   = codeLine[...start].replace(/[^\s]/g, ' ') + repeat('▲', end - start)
+    
+        if options?.feature?.color != false
+            colorize = (str) -> red str
+            codeLine = codeLine[...start] + colorize(codeLine[start...end]) + codeLine[end..]
+            marker   = colorize marker
+                
+        fileLine = "#{err.filename ? '?'}:#{first_line + 1}:#{first_column + 1}"
+            
+        err.message = """
+            #{fileLine} #{codeLine}
+            #{pad('', fileLine.length+1) + marker} #{err.message}
+            """
+    else
         # ▸dbg 'code or location?' code:err.code?, location:err.location?
-        return Error::toString.call err 
+        err.message = Error::toString.call err 
         
-    # log 'got code and location', err.code, err.location
-
-    {first_line, first_column, last_line, last_column} = err.location
-    last_line ?= first_line
-    last_column ?= first_column
-
-    codeLine = err.code.split('\n')[first_line]
-    start    = first_column
-    # Show only the first line on multi-line errors.
-    end      = if first_line is last_line then last_column + 1 else codeLine.length
-    marker   = codeLine[...start].replace(/[^\s]/g, ' ') + repeat('▲', end - start)
-
-    # Check to see if we're running on a color-enabled TTY.
-    if process?
-        colorsEnabled = process.stdout?.isTTY and not process.env?.NODE_DISABLE_COLORS
-
-    if err.colorful ? colorsEnabled
-        colorize = (str) -> "\x1B[1;31m#{str}\x1B[0m"
-        codeLine = codeLine[...start] + colorize(codeLine[start...end]) + codeLine[end..]
-        marker   = colorize marker
-
-    fileLine = "#{err.filename ? '?'}:#{first_line + 1}:#{first_column + 1}"
-        
-    # log 'file:', fileLine
-    # log 'code:', codeLine
-    # log 'mark:', marker
-    
-    """
-        #{fileLine} #{codeLine}
-        #{pad('', fileLine.length+1) + marker} #{err.message}
-    """
-
-nameWhitespaceCharacter = (string) ->
-    
-    switch string
-        when ' ' then 'space'
-        when '\n' then 'newline'
-        when '\r' then 'carriage return'
-        when '\t' then 'tab'
-        else string
+    err
 
 # 000000000  00000000   0000000  000000000  
 #    000     000       000          000     
@@ -298,7 +269,6 @@ module.exports = {
     isCoffee
     throwSyntaxError
     updateSyntaxError
-    nameWhitespaceCharacter
     eq
     arrayEq
     toJS

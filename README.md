@@ -1,8 +1,6 @@
 ![banner](./bin/banner.png)
 
-## koffee 
-
-is a clone of [Coffeescript](http://coffeescript.org) (Version 1) with a few enhancements.
+**koffee** is a clone of [Coffeescript](http://coffeescript.org) with a few enhancements.
 
 ## Constructor shortcut
 
@@ -147,7 +145,7 @@ f()                             # -> a 824μs
     myTest()                    # includes logs for each test block
 ```
 
-The uncode symbol `▸` can be substited by `~>`.
+The unicode symbol `▸` can be substited by `~>`.
 
 ## Config arguments
 

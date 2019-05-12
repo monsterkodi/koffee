@@ -99,6 +99,9 @@ parseOptions = ->
 run = ->
     
     parseOptions()
+    
+    if opts.feature.color == false
+        colorette.options.enabled = false
         
     return logFeatures()  if opts.features
     return usage()        if opts.help
@@ -217,7 +220,7 @@ findDirectoryIndex = (source) ->
 # Compile a single source script, containing the given code, according to the requested options. 
 # If evaluating the script directly sets `__filename`, `__dirname` and `module.filename` to be correct relative to the script's path.
 
-compileScript = (code, source = null) ->
+compileScript = (code, source=null) ->
     
     o = opts
     options = compileOptions source
@@ -259,8 +262,9 @@ compileScript = (code, source = null) ->
         
         Koffee.emit 'failure', err, task
         return if Koffee.listeners('failure').length
-        message = err?.stack or "#{err}"
-        if o.watch
+        # message = err?.stack or "#{err}"
+        message = err.message
+        if o.watch or o.eval
             printLine message + '\x07'
         else
             printWarn message
@@ -296,10 +300,8 @@ compileStdio = ->
     
     buffers = []
     stdin = process.openStdin()
-    stdin.on 'data', (buffer) ->
-        buffers.push buffer if buffer
-    stdin.on 'end', ->
-        compileScript Buffer.concat(buffers).toString()
+    stdin.on 'data', (buffer) -> buffers.push buffer if buffer
+    stdin.on 'end', -> compileScript Buffer.concat(buffers).toString()
 
 # 000   000   0000000   000000000   0000000  000   000  
 # 000 0 000  000   000     000     000       000   000  

@@ -6,6 +6,8 @@
 000   000  00000000  0000000  000        00000000  000   000  0000000   
 ###
 
+path = require 'path'
+
 # Functions that we'd like to share among the Lexer, Rewriter, and Nodes. 
 # Merge objects, flatten arrays, count characters, that sort of thing.
 
@@ -173,7 +175,7 @@ isCoffee = (file) -> /\.[ck]offee$/.test file
 
 throwSyntaxError = (module:,message:,location:) ->
     
-    err = new SyntaxError "#{bold yellowBright message} #{dim gray '#'} #{gray module}"
+    err = new SyntaxError message
     err.location = location
     throw err
 
@@ -181,6 +183,8 @@ updateSyntaxError = (err, code, filename, options) -> # Update a compiler Syntax
     
     err.code     ?= code
     err.filename ?= filename
+        
+    return err if err.markLine
     
     if err.code and err.location        
 
@@ -191,19 +195,36 @@ updateSyntaxError = (err, code, filename, options) -> # Update a compiler Syntax
         codeLine = err.code.split('\n')[first_line]
         start    = first_column        
         end      = if first_line is last_line then last_column + 1 else codeLine.length # Show only the first line on multi-line errors.
-        marker   = codeLine[...start].replace(/[^\s]/g, ' ') + repeat('▲', end - start)
+        markLine = codeLine[...start].replace(/[^\s]/g, ' ') + repeat('▲', end - start)
     
+        message  = err.message
+        
+        err.line   = first_line+1
+        err.column = first_column+1
+        
         if options?.feature?.color != false
-            colorize = (str) -> red str
-            codeLine = codeLine[...start] + colorize(codeLine[start...end]) + codeLine[end..]
-            marker   = colorize marker
-                
-        fileLine = "#{err.filename ? '?'}:#{first_line + 1}:#{first_column + 1}"
-            
+            codeLine = codeLine[...start] + red(codeLine[start...end]) + codeLine[end..]
+            markLine = red markLine
+            message  = yellowBright message 
+            sep = dim blue ':'
+            line = blue "#{err.line}"
+            colm = dim blue "#{err.column}"
+            file = path.parse err.filename ? ''
+            file = yellow(file.name) + dim yellow file.ext
+            fileLine = "#{file}#{sep}#{line}#{sep}#{colm}"
+        else
+            fileLine = "#{err.filename ? '?'}:#{err.line}:#{err.column}"
+           
+        err.fileLine = fileLine
+        err.codeLine = codeLine
+        err.markLine = markLine + ' ' + message
+        
         err.message = """
-            #{fileLine} #{codeLine}
-            #{pad('', fileLine.length+1) + marker} #{err.message}
+            #{err.fileLine}
+            #{err.codeLine}
+            #{err.markLine}
             """
+        # ▸dbg 'err' message:err.message, markLine:err.markLine
     else
         # ▸dbg 'code or location?' code:err.code?, location:err.location?
         err.message = Error::toString.call err 

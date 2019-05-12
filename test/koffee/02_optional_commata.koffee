@@ -94,6 +94,7 @@ test "optional commata", ->
         
         
 assertErrorFormat = (code, expectedErrorFormat) ->
+    
     throws (-> Koffee.run code, feature:color:false), (err) ->
         eq "#{err}", expectedErrorFormat
         yes
@@ -101,84 +102,84 @@ assertErrorFormat = (code, expectedErrorFormat) ->
 test "stuff that doesn't work", ->
     
     assertErrorFormat "a = 'a' 'b'", '''
-        [stdin]:1:7: error: unexpected ,
+        SyntaxError: :1:7
         a = 'a' 'b'
-              ^
+              ▲ unexpected ,
     '''
 
     assertErrorFormat "a = 1 2", '''
-        [stdin]:1:5: error: unexpected ,
+        SyntaxError: :1:5
         a = 1 2
-            ^
+            ▲ unexpected ,
     '''
 
     assertErrorFormat 'a = "#{1}" 2', '''
-        [stdin]:1:10: error: unexpected ,
+        SyntaxError: :1:10
         a = "#{1}" 2
-                 ^
+                 ▲ unexpected ,
     '''
     
 test "CS1 tests from error_messages", ->
     
     assertErrorFormat "1''", '''
-        [stdin]:1:1: error: unexpected ,
+        SyntaxError: :1:1
         1''
-        ^
+        ▲ unexpected ,
     '''
     assertErrorFormat '1""', '''
-        [stdin]:1:1: error: unexpected ,
+        SyntaxError: :1:1
         1""
-        ^
+        ▲ unexpected ,
     '''
     assertErrorFormat "1'b'", '''
-        [stdin]:1:1: error: unexpected ,
+        SyntaxError: :1:1
         1'b'
-        ^
+        ▲ unexpected ,
     '''
     assertErrorFormat '1"b"', '''
-        [stdin]:1:1: error: unexpected ,
+        SyntaxError: :1:1
         1"b"
-        ^
+        ▲ unexpected ,
     '''
     assertErrorFormat "1'''b'''", """
-        [stdin]:1:1: error: unexpected ,
+        SyntaxError: :1:1
         1'''b'''
-        ^
+        ▲ unexpected ,
     """
     assertErrorFormat '1"""b"""', '''
-        [stdin]:1:1: error: unexpected ,
+        SyntaxError: :1:1
         1"""b"""
-        ^
+        ▲ unexpected ,
     '''
     assertErrorFormat '1"#{b}"', '''
-        [stdin]:1:1: error: unexpected ,
+        SyntaxError: :1:1
         1"#{b}"
-        ^
+        ▲ unexpected ,
     '''
     assertErrorFormat '1"""#{b}"""', '''
-        [stdin]:1:1: error: unexpected ,
+        SyntaxError: :1:1
         1"""#{b}"""
-        ^
+        ▲ unexpected ,
     '''
     assertErrorFormat '"a"0x00Af2', '''
-        [stdin]:1:3: error: unexpected ,
+        SyntaxError: :1:3
         "a"0x00Af2
-          ^
+          ▲ unexpected ,
     '''
     
     assertErrorFormat '''
         'foo'bar
     ''', '''
-        [stdin]:1:5: error: unexpected ,
+        SyntaxError: :1:5
         'foo'bar
-            ^
+            ▲ unexpected ,
     '''
     assertErrorFormat '''
         "foo"bar
     ''', '''
-        [stdin]:1:5: error: unexpected ,
+        SyntaxError: :1:5
         "foo"bar
-            ^
+            ▲ unexpected ,
     '''
     
     

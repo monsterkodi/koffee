@@ -1,4 +1,4 @@
-// koffee 0.30.0
+// koffee 0.32.0
 
 /*
 000   000  00000000  000      00000000   00000000  00000000    0000000  
@@ -7,322 +7,339 @@
 000   000  000       000      000        000       000   000       000  
 000   000  00000000  0000000  000        00000000  000   000  0000000
  */
-var addLocationDataFn, arrayEgal, arrayEq, baseFileName, buildLocationData, colors, compact, count, del, egal, ends, eq, extend, flatten, initTest, isCoffee, locationDataToString, merge, pad, ref, repeat, some, starts, stringify, throwSyntaxError, toJS, updateSyntaxError;
 
-colors = function() {
-    var colorette, colornames, i, len1, name;
-    colorette = require('colorette');
-    colornames = ['dim', 'bold', 'red', 'redBright', 'gray', 'grayBright', 'yellow', 'yellowBright', 'green', 'greenBright', 'white', 'whiteBright', 'blue', 'blueBright', 'cyan', 'cyanBright', 'magenta', 'magentaBright'];
-    for (i = 0, len1 = colornames.length; i < len1; i++) {
-        name = colornames[i];
-        global[name] = colorette[name];
-    }
-    return global.colorette = colorette;
-};
+(function() {
+    var addLocationDataFn, arrayEgal, arrayEq, baseFileName, buildLocationData, colors, compact, count, del, egal, ends, eq, extend, flatten, initTest, isCoffee, locationDataToString, merge, pad, path, ref, repeat, some, starts, stringify, throwSyntaxError, toJS, updateSyntaxError;
 
-starts = function(string, literal, start) {
-    return literal === string.substr(start, literal.length);
-};
+    path = require('path');
 
-ends = function(string, literal, back) {
-    var len;
-    len = literal.length;
-    return literal === string.substr(string.length - len - (back || 0), len);
-};
-
-repeat = function(str, n) {
-    var res;
-    res = '';
-    while (n > 0) {
-        if (n & 1) {
-            res += str;
+    colors = function() {
+        var colorette, colornames, i, len1, name;
+        colorette = require('colorette');
+        colornames = ['dim', 'bold', 'red', 'redBright', 'gray', 'grayBright', 'yellow', 'yellowBright', 'green', 'greenBright', 'white', 'whiteBright', 'blue', 'blueBright', 'cyan', 'cyanBright', 'magenta', 'magentaBright'];
+        for (i = 0, len1 = colornames.length; i < len1; i++) {
+            name = colornames[i];
+            global[name] = colorette[name];
         }
-        n >>>= 1;
-        str += str;
-    }
-    return res;
-};
-
-pad = function(str, length) {
-    var spaces;
-    if (length == null) {
-        length = 24;
-    }
-    spaces = length - str.length;
-    spaces = spaces > 0 ? Array(spaces + 1).join(' ') : '';
-    return "" + str + spaces;
-};
-
-compact = function(array) {
-    var i, item, len1, results;
-    results = [];
-    for (i = 0, len1 = array.length; i < len1; i++) {
-        item = array[i];
-        if (item) {
-            results.push(item);
-        }
-    }
-    return results;
-};
-
-count = function(s, substr) {
-    var num, pos;
-    num = pos = 0;
-    if (!substr.length) {
-        return 1 / 0;
-    }
-    while (pos = 1 + s.indexOf(substr, pos)) {
-        num++;
-    }
-    return num;
-};
-
-extend = function(object, properties) {
-    var key, val;
-    for (key in properties) {
-        val = properties[key];
-        object[key] = val;
-    }
-    return object;
-};
-
-merge = function(options, overrides) {
-    return extend(extend({}, options), overrides);
-};
-
-flatten = function(array) {
-    var element, flattened, i, len1;
-    flattened = [];
-    for (i = 0, len1 = array.length; i < len1; i++) {
-        element = array[i];
-        if ('[object Array]' === Object.prototype.toString.call(element)) {
-            flattened = flattened.concat(flatten(element));
-        } else {
-            flattened.push(element);
-        }
-    }
-    return flattened;
-};
-
-del = function(obj, key) {
-    var val;
-    val = obj[key];
-    delete obj[key];
-    return val;
-};
-
-some = (ref = Array.prototype.some) != null ? ref : function(fn) {
-    var e, i, len1, ref1;
-    ref1 = this;
-    for (i = 0, len1 = ref1.length; i < len1; i++) {
-        e = ref1[i];
-        if (fn(e)) {
-            return true;
-        }
-    }
-    return false;
-};
-
-buildLocationData = function(first, last) {
-    if (!last) {
-        return first;
-    } else {
-        return {
-            first_line: first.first_line,
-            first_column: first.first_column,
-            last_line: last.last_line,
-            last_column: last.last_column
-        };
-    }
-};
-
-addLocationDataFn = function(first, last) {
-    return function(obj) {
-        if (((typeof obj) === 'object') && (!!obj['updateLocationDataIfMissing'])) {
-            obj.updateLocationDataIfMissing(buildLocationData(first, last));
-        }
-        return obj;
+        return global.colorette = colorette;
     };
-};
 
-locationDataToString = function(obj) {
-    var locationData;
-    if (("2" in obj) && ("first_line" in obj[2])) {
-        locationData = obj[2];
-    } else if ("first_line" in obj) {
-        locationData = obj;
-    }
-    if (locationData) {
-        return ((locationData.first_line + 1) + ":" + (locationData.first_column + 1) + "-") + ((locationData.last_line + 1) + ":" + (locationData.last_column + 1));
-    } else {
-        return "No location data";
-    }
-};
+    starts = function(string, literal, start) {
+        return literal === string.substr(start, literal.length);
+    };
 
-baseFileName = function(file, stripExt, useWinPathSep) {
-    var parts, pathSep;
-    if (stripExt == null) {
-        stripExt = false;
-    }
-    if (useWinPathSep == null) {
-        useWinPathSep = false;
-    }
-    pathSep = useWinPathSep ? /\\|\// : /\//;
-    parts = file.split(pathSep);
-    file = parts[parts.length - 1];
-    if (!(stripExt && file.indexOf('.') >= 0)) {
-        return file;
-    }
-    parts = file.split('.');
-    parts.pop();
-    if (/^[ck]offee$/.test(parts[parts.length - 1]) && parts.length > 1) {
-        parts.pop();
-    }
-    return parts.join('.');
-};
+    ends = function(string, literal, back) {
+        var len;
+        len = literal.length;
+        return literal === string.substr(string.length - len - (back || 0), len);
+    };
 
-isCoffee = function(file) {
-    return /\.[ck]offee$/.test(file);
-};
-
-throwSyntaxError = function(arg) {
-    var err, location, message, module, ref1, ref2, ref3;
-    module = (ref1 = arg.module) != null ? ref1 : null, message = (ref2 = arg.message) != null ? ref2 : null, location = (ref3 = arg.location) != null ? ref3 : null;
-    err = new SyntaxError((bold(yellowBright(message))) + " " + (dim(gray('#'))) + " " + (gray(module)));
-    err.location = location;
-    throw err;
-};
-
-updateSyntaxError = function(err, code, filename, options) {
-    var codeLine, colorize, end, fileLine, first_column, first_line, last_column, last_line, marker, ref1, ref2, ref3, start;
-    if (err.code != null) {
-        err.code;
-    } else {
-        err.code = code;
-    }
-    if (err.filename != null) {
-        err.filename;
-    } else {
-        err.filename = filename;
-    }
-    if (err.code && err.location) {
-        ref1 = err.location, first_line = ref1.first_line, first_column = ref1.first_column, last_line = ref1.last_line, last_column = ref1.last_column;
-        if (last_line != null) {
-            last_line;
-        } else {
-            last_line = first_line;
+    repeat = function(str, n) {
+        var res;
+        res = '';
+        while (n > 0) {
+            if (n & 1) {
+                res += str;
+            }
+            n >>>= 1;
+            str += str;
         }
-        if (last_column != null) {
-            last_column;
-        } else {
-            last_column = first_column;
-        }
-        codeLine = err.code.split('\n')[first_line];
-        start = first_column;
-        end = first_line === last_line ? last_column + 1 : codeLine.length;
-        marker = codeLine.slice(0, start).replace(/[^\s]/g, ' ') + repeat('▲', end - start);
-        if ((options != null ? (ref2 = options.feature) != null ? ref2.color : void 0 : void 0) !== false) {
-            colorize = function(str) {
-                return red(str);
-            };
-            codeLine = codeLine.slice(0, start) + colorize(codeLine.slice(start, end)) + codeLine.slice(end);
-            marker = colorize(marker);
-        }
-        fileLine = ((ref3 = err.filename) != null ? ref3 : '?') + ":" + (first_line + 1) + ":" + (first_column + 1);
-        err.message = fileLine + " " + codeLine + "\n" + (pad('', fileLine.length + 1) + marker) + " " + err.message;
-    } else {
-        err.message = Error.prototype.toString.call(err);
-    }
-    return err;
-};
+        return res;
+    };
 
-egal = function(a, b) {
-    if (a === b) {
-        return a !== 0 || 1 / a === 1 / b;
-    } else {
-        return a !== a && b !== b;
-    }
-};
-
-arrayEgal = function(a, b) {
-    var el, i, idx, len1;
-    if (egal(a, b)) {
-        return true;
-    } else if (a instanceof Array && b instanceof Array) {
-        if (a.length !== b.length) {
-            return false;
+    pad = function(str, length) {
+        var spaces;
+        if (length == null) {
+            length = 24;
         }
-        for (idx = i = 0, len1 = a.length; i < len1; idx = ++i) {
-            el = a[idx];
-            if (!arrayEgal(el, b[idx])) {
-                return false;
+        spaces = length - str.length;
+        spaces = spaces > 0 ? Array(spaces + 1).join(' ') : '';
+        return "" + str + spaces;
+    };
+
+    compact = function(array) {
+        var i, item, len1, results;
+        results = [];
+        for (i = 0, len1 = array.length; i < len1; i++) {
+            item = array[i];
+            if (item) {
+                results.push(item);
             }
         }
-        return true;
-    }
-};
+        return results;
+    };
 
-eq = function(a, b, msg) {
-    return ok(egal(a, b), msg || ("\x1B[0;90m\n <<< expected >>>\n\x1B[0;93m" + a + "\x1B[0;90m<<< to equal >>>\n\x1B[0;93m" + b + "\x1B[0;90m<<< expected >>>\n"));
-};
+    count = function(s, substr) {
+        var num, pos;
+        num = pos = 0;
+        if (!substr.length) {
+            return 1 / 0;
+        }
+        while (pos = 1 + s.indexOf(substr, pos)) {
+            num++;
+        }
+        return num;
+    };
 
-arrayEq = function(a, b, msg) {
-    return ok(arrayEgal(a, b), msg || ("\x1B[0;90m\n >>>\n\x1B[0;93m" + a + "\x1B[0;90m<<< to deep equal >>>\n\x1B[0;93m" + b + "\x1B[0;90m<<< expected >>>\n"));
-};
+    extend = function(object, properties) {
+        var key, val;
+        for (key in properties) {
+            val = properties[key];
+            object[key] = val;
+        }
+        return object;
+    };
 
-toJS = function(str) {
-    return Koffee.compile(str, {
-        bare: true
-    }).replace(/^\s+|\s+$/g, '');
-};
+    merge = function(options, overrides) {
+        return extend(extend({}, options), overrides);
+    };
 
-stringify = function(o) {
-    var noon;
-    noon = require('noon');
-    return noon.stringify(o, {
-        circular: true,
-        colors: true
-    });
-};
+    flatten = function(array) {
+        var element, flattened, i, len1;
+        flattened = [];
+        for (i = 0, len1 = array.length; i < len1; i++) {
+            element = array[i];
+            if ('[object Array]' === Object.prototype.toString.call(element)) {
+                flattened = flattened.concat(flatten(element));
+            } else {
+                flattened.push(element);
+            }
+        }
+        return flattened;
+    };
 
-initTest = function() {
-    extend(global, require('assert'));
-    global.Koffee = require('./koffee');
-    global._ = require('underscore');
-    extend(global, module.exports);
-    if (!global.test) {
-        return global.test = function(n, f) {
-            console.log(n);
-            return f();
+    del = function(obj, key) {
+        var val;
+        val = obj[key];
+        delete obj[key];
+        return val;
+    };
+
+    some = (ref = Array.prototype.some) != null ? ref : function(fn) {
+        var e, i, len1, ref1;
+        ref1 = this;
+        for (i = 0, len1 = ref1.length; i < len1; i++) {
+            e = ref1[i];
+            if (fn(e)) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    buildLocationData = function(first, last) {
+        if (!last) {
+            return first;
+        } else {
+            return {
+                first_line: first.first_line,
+                first_column: first.first_column,
+                last_line: last.last_line,
+                last_column: last.last_column
+            };
+        }
+    };
+
+    addLocationDataFn = function(first, last) {
+        return function(obj) {
+            if (((typeof obj) === 'object') && (!!obj['updateLocationDataIfMissing'])) {
+                obj.updateLocationDataIfMissing(buildLocationData(first, last));
+            }
+            return obj;
         };
-    }
-};
+    };
 
-module.exports = {
-    colors: colors,
-    starts: starts,
-    ends: ends,
-    repeat: repeat,
-    pad: pad,
-    compact: compact,
-    count: count,
-    merge: merge,
-    extend: extend,
-    flatten: flatten,
-    del: del,
-    some: some,
-    addLocationDataFn: addLocationDataFn,
-    locationDataToString: locationDataToString,
-    baseFileName: baseFileName,
-    isCoffee: isCoffee,
-    throwSyntaxError: throwSyntaxError,
-    updateSyntaxError: updateSyntaxError,
-    eq: eq,
-    arrayEq: arrayEq,
-    toJS: toJS,
-    stringify: stringify,
-    initTest: initTest
-};
+    locationDataToString = function(obj) {
+        var locationData;
+        if (("2" in obj) && ("first_line" in obj[2])) {
+            locationData = obj[2];
+        } else if ("first_line" in obj) {
+            locationData = obj;
+        }
+        if (locationData) {
+            return ((locationData.first_line + 1) + ":" + (locationData.first_column + 1) + "-") + ((locationData.last_line + 1) + ":" + (locationData.last_column + 1));
+        } else {
+            return "No location data";
+        }
+    };
 
-//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiaGVscGVycy5qcyIsInNvdXJjZVJvb3QiOiIuIiwic291cmNlcyI6WyIiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6Ijs7QUFBQTs7Ozs7OztBQUFBLElBQUE7O0FBYUEsTUFBQSxHQUFTLFNBQUE7QUFDTCxRQUFBO0lBQUEsU0FBQSxHQUFZLE9BQUEsQ0FBUSxXQUFSO0lBQ1osVUFBQSxHQUFjLENBQ1YsS0FEVSxFQUNBLE1BREEsRUFFVixLQUZVLEVBRUEsV0FGQSxFQUdWLE1BSFUsRUFHQSxZQUhBLEVBSVYsUUFKVSxFQUlBLGNBSkEsRUFLVixPQUxVLEVBS0EsYUFMQSxFQU1WLE9BTlUsRUFNQSxhQU5BLEVBT1YsTUFQVSxFQU9BLFlBUEEsRUFRVixNQVJVLEVBUUEsWUFSQSxFQVNWLFNBVFUsRUFTQSxlQVRBO0FBV2QsU0FBQSw4Q0FBQTs7UUFDSSxNQUFPLENBQUEsSUFBQSxDQUFQLEdBQWUsU0FBVSxDQUFBLElBQUE7QUFEN0I7V0FFQSxNQUFNLENBQUMsU0FBUCxHQUFtQjtBQWZkOztBQWlCVCxNQUFBLEdBQVMsU0FBQyxNQUFELEVBQVMsT0FBVCxFQUFrQixLQUFsQjtXQUNMLE9BQUEsS0FBVyxNQUFNLENBQUMsTUFBUCxDQUFjLEtBQWQsRUFBcUIsT0FBTyxDQUFDLE1BQTdCO0FBRE47O0FBS1QsSUFBQSxHQUFPLFNBQUMsTUFBRCxFQUFTLE9BQVQsRUFBa0IsSUFBbEI7QUFDSCxRQUFBO0lBQUEsR0FBQSxHQUFNLE9BQU8sQ0FBQztXQUNkLE9BQUEsS0FBVyxNQUFNLENBQUMsTUFBUCxDQUFjLE1BQU0sQ0FBQyxNQUFQLEdBQWdCLEdBQWhCLEdBQXNCLENBQUMsSUFBQSxJQUFRLENBQVQsQ0FBcEMsRUFBaUQsR0FBakQ7QUFGUjs7QUFNUCxNQUFBLEdBQVMsU0FBQyxHQUFELEVBQU0sQ0FBTjtBQUdMLFFBQUE7SUFBQSxHQUFBLEdBQU07QUFDTixXQUFNLENBQUEsR0FBSSxDQUFWO1FBQ0ksSUFBYyxDQUFBLEdBQUksQ0FBbEI7WUFBQSxHQUFBLElB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UUFBQSxFQUFVLElBQVY7UUFBZ0IsTUFBQSxFQUFRLElBQXhCO0tBQWxCO0FBRlE7O0FBT1osUUFBQSxHQUFXLFNBQUE7SUFDUCxNQUFBLENBQU8sTUFBUCxFQUFlLE9BQUEsQ0FBUSxRQUFSLENBQWY7SUFDQSxNQUFNLENBQUMsTUFBUCxHQUFnQixPQUFBLENBQVEsVUFBUjtJQUNoQixNQUFNLENBQUMsQ0FBUCxHQUFXLE9BQUEsQ0FBUSxZQUFSO0lBQ1gsTUFBQSxDQUFPLE1BQVAsRUFBZSxNQUFNLENBQUMsT0FBdEI7SUFDQSxJQUFHLENBQUksTUFBTSxDQUFDLElBQWQ7ZUFBd0IsTUFBTSxDQUFDLElBQVAsR0FBYyxTQUFDLENBQUQsRUFBRyxDQUFIO1lBQU8sT0FBQSxDQUFFLEdBQUYsQ0FBTSxDQUFOO21CQUFTLENBQUEsQ0FBQTtRQUFoQixFQUF0Qzs7QUFMTzs7QUFPWCxNQUFNLENBQUMsT0FBUCxHQUFpQjtJQUNiLFFBQUEsTUFEYTtJQUViLFFBQUEsTUFGYTtJQUdiLE1BQUEsSUFIYTtJQUliLFFBQUEsTUFKYTtJQUtiLEtBQUEsR0FMYTtJQU1iLFNBQUEsT0FOYTtJQU9iLE9BQUEsS0FQYTtJQVFiLE9BQUEsS0FSYTtJQVNiLFFBQUEsTUFUYTtJQVViLFNBQUEsT0FWYTtJQVdiLEtBQUEsR0FYYTtJQVliLE1BQUEsSUFaYTtJQWFiLG1CQUFBLGlCQWJhO0lBY2Isc0JBQUEsb0JBZGE7SUFlYixjQUFBLFlBZmE7SUFnQmIsVUFBQSxRQWhCYTtJQWlCYixrQkFBQSxnQkFqQmE7SUFrQmIsbUJBQUEsaUJBbEJhO0lBbUJiLElBQUEsRUFuQmE7SUFvQmIsU0FBQSxPQXBCYTtJQXFCYixNQUFBLElBckJhO0lBc0JiLFdBQUEsU0F0QmE7SUF1QmIsVUFBQSxRQXZCYSIsInNvdXJjZXNDb250ZW50IjpbIiMjI1xuMDAwICAgMDAwICAwMDAwMDAwMCAgMDAwICAgICAgMDAwMDAwMDAgICAwMDAwMDAwMCAgMDAwMDAwMDAgICAgMDAwMDAwMCAgXG4wMDAgICAwMDAgIDAwMCAgICAgICAwMDAgICAgICAwMDAgICAwMDAgIDAwMCAgICAgICAwMDAgICAwMDAgIDAwMCAgICAgICBcbjAwMDAwMDAwMCAgMDAwMDAwMCAgIDAwMCAgICAgIDAwMDAwMDAwICAgMDAwMDAwMCAgIDAwMDAwMDAgICAgMDAwMDAwMCAgIFxuMDAwICAgMDAwICAwMDAgICAgICAgMDAwICAgICAgMDAwICAgICAgICAwMDAgICAgICAgMDAwICAgMDAwICAgICAgIDAwMCAgXG4wMDAgICAwMDAgIDAwMDAwMDAwICAwMDAwMDAwICAwMDAgICAgICAgIDAwMDAwMDAwICAwMDAgICAwMDAgIDAwMDAwMDAgICBcbiMjI1xuXG4jIEZ1bmN0aW9ucyB0aGF0IHdlJ2QgbGlrZSB0byBzaGFyZSBhbW9uZyB0aGUgTGV4ZXIsIFJld3JpdGVyLCBhbmQgTm9kZXMuIFxuIyBNZXJnZSBvYmplY3RzLCBmbGF0dGVuIGFycmF5cywgY291bnQgY2hhcmFjdGVycywgdGhhdCBzb3J0IG9mIHRoaW5nLlxuXG4jIFBlZWsgYXQgdGhlIGJlZ2lubmluZyBvZiBhIGdpdmVuIHN0cmluZyB0byBzZWUgaWYgaXQgbWF0Y2hlcyBhIHNlcXVlbmNlLlxuXG5jb2xvcnMgPSAtPlxuICAgIGNvbG9yZXR0ZSA9IHJlcXVpcmUgJ2NvbG9yZXR0ZSdcbiAgICBjb2xvcm5hbWVzID0gIFtcbiAgICAgICAgJ2RpbScgICAgICdib2xkJ1xuICAgICAgICAncmVkJyAgICAgJ3JlZEJyaWdodCdcbiAgICAgICAgJ2dyYXknICAgICdncmF5QnJpZ2h0J1xuICAgICAgICAneWVsbG93JyAgJ3llbGxvd0JyaWdodCdcbiAgICAgICAgJ2dyZWVuJyAgICdncmVlbkJyaWdodCdcbiAgICAgICAgJ3doaXRlJyAgICd3aGl0ZUJyaWdodCdcbiAgICAgICAgJ2JsdWUnICAgICdibHVlQnJpZ2h0J1xuICAgICAgICAnY3lhbicgICAgJ2N5YW5CcmlnaHQnXG4gICAgICAgICdtYWdlbnRhJyAnbWFnZW50YUJyaWdodCdcbiAgICBdIFxuICAgIGZvciBuYW1lIGluIGNvbG9ybmFtZXNcbiAgICAgICAgZ2xvYmFsW25hbWVdID0gY29sb3JldHRlW25hbWVdXG4gICAgZ2xvYmFsLmNvbG9yZXR0ZSA9IGNvbG9yZXR0ZVxuXG5zdGFydHMgPSAoc3RyaW5nLCBsaXRlcmFsLCBzdGFydCkgLT5cbiAgICBsaXRlcmFsIGlzIHN0cmluZy5zdWJzdHIgc3RhcnQsIGxpdGVyYWwubGVuZ3RoXG5cbiMgUGVlayBhdCB0aGUgZW5kIG9mIGEgZ2l2ZW4gc3RyaW5nIHRvIHNlZSBpZiBpdCBtYXRjaGVzIGEgc2VxdWVuY2UuXG5cbmVuZHMgPSAoc3RyaW5nLCBsaXRlcmFsLCBiYWNrKSAtPlxuICAgIGxlbiA9IGxpdGVyYWwubGVuZ3RoXG4gICAgbGl0ZXJhbCBpcyBzdHJpbmcuc3Vic3RyIHN0cmluZy5sZW5ndGggLSBsZW4gLSAoYmFjayBvciAwKSwgbGVuXG5cbiMgUmVwZWF0IGEgc3RyaW5nIGBuYCB0aW1lcy5cblxucmVwZWF0ID0gKHN0ciwgbikgLT5cbiAgICBcbiAgICAjIFVzZSBjbGV2ZXIgYWxnb3JpdGhtIHRvIGhhdmUgTyhsb2cobikpIHN0cmluZyBjb25jYXRlbmF0aW9uIG9wZXJhdGlvbnMuXG4gICAgcmVzID0gJydcbiAgICB3aGlsZSBuID4gMFxuICAgICAgICByZXMgKz0gc3RyIGlmIG4gJiAxXG4gICAgICAgIG4gPj4+PSAxXG4gICAgICAgIHN0ciArPSBzdHJcbiAgICByZXNcblxucGFkID0gKHN0ciwgbGVuZ3RoPTI0KSAtPiAjIHN0ciBwYWRkZWQgd2l0aCBzcGFjZXMgdG8gbGVuZ3RoXG4gICAgXG4gICAgc3BhY2VzID0gbGVuZ3RoIC0gc3RyLmxlbmd0aFxuICAgIHNwYWNlcyA9IGlmIHNwYWNlcyA+IDAgdGhlbiBBcnJheShzcGFjZXMgKyAxKS5qb2luKCcgJykgZWxzZSAnJ1xuICAgIFwiI3tzdHJ9I3tzcGFjZXN9XCJcbiAgICBcbiMgVHJpbSBvdXQgYWxsIGZhbHN5IHZhbHVlcyBmcm9tIGFuIGFycmF5LlxuXG5jb21wYWN0ID0gKGFycmF5KSAtPlxuICAgIGl0ZW0gZm9yIGl0ZW0gaW4gYXJyYXkgd2hlbiBpdGVtXG5cbiMgQ291bnQgdGhlIG51bWJlciBvZiBvY2N1cnJlbmNlcyBvZiBhIHN0cmluZyBpbiBhIHN0cmluZy5cblxuY291bnQgPSAocywgc3Vic3RyKSAtPlxuICAgIG51bSA9IHBvcyA9IDBcbiAgICByZXR1cm4gMS8wIHVubGVzcyBzdWJzdHIubGVuZ3RoXG4gICAgbnVtKysgd2hpbGUgcG9zID0gMSArIHMuaW5kZXhPZiBzdWJzdHIsIHBvc1xuICAgIG51bVxuXG4jIDAwMDAwMDAwICAwMDAgICAwMDAgIDAwMDAwMDAwMCAgMDAwMDAwMDAgIDAwMCAgIDAwMCAgMDAwMDAwMCAgICBcbiMgMDAwICAgICAgICAwMDAgMDAwICAgICAgMDAwICAgICAwMDAgICAgICAgMDAwMCAgMDAwICAwMDAgICAwMDAgIFxuIyAwMDAwMDAwICAgICAwMDAwMCAgICAgICAwMDAgICAgIDAwMDAwMDAgICAwMDAgMCAwMDAgIDAwMCAgIDAwMCAgXG4jIDAwMCAgICAgICAgMDAwIDAwMCAgICAgIDAwMCAgICAgMDAwICAgICAgIDAwMCAgMDAwMCAgMDAwICAgMDAwICBcbiMgMDAwMDAwMDAgIDAwMCAgIDAwMCAgICAgMDAwICAgICAwMDAwMDAwMCAgMDAwICAgMDAwICAwMDAwMDAwICAgIFxuXG4jIEV4dGVuZCBhIHNvdXJjZSBvYmplY3Qgd2l0aCB0aGUgcHJvcGVydGllcyBvZiBhbm90aGVyIG9iamVjdCAoc2hhbGxvdyBjb3B5KS5cblxuZXh0ZW5kID0gKG9iamVjdCwgcHJvcGVydGllcykgLT5cbiAgICBmb3Iga2V5LCB2YWwgb2YgcHJvcGVydGllc1xuICAgICAgICBvYmplY3Rba2V5XSA9IHZhbFxuICAgIG9iamVjdFxuXG4jIE1lcmdlIG9iamVjdHMsIHJldHVybmluZyBhIGZyZXNoIGNvcHkgd2l0aCBhdHRyaWJ1dGVzIGZyb20gYm90aCBzaWRlcy5cbiMgVXNlZCBldmVyeSB0aW1lIGBCYXNlI2NvbXBpbGVgIGlzIGNhbGxlZCwgdG8gYWxsb3cgcHJvcGVydGllcyBpbiB0aGVcbiMgb3B0aW9ucyBoYXNoIHRvIHByb3BhZ2F0ZSBkb3duIHRoZSB0cmVlIHdpdGhvdXQgcG9sbHV0aW5nIG90aGVyIGJyYW5jaGVzLlxuXG5tZXJnZSA9IChvcHRpb25zLCBvdmVycmlkZXMpIC0+IGV4dGVuZCAoZXh0ZW5kIHt9LCBvcHRpb25zKSwgb3ZlcnJpZGVzXG5cbiMgUmV0dXJuIGEgZmxhdHRlbmVkIHZlcnNpb24gb2YgYW4gYXJyYXkuXG4jIEhhbmR5IGZvciBnZXR0aW5nIGEgbGlzdCBvZiBgY2hpbGRyZW5gIGZyb20gdGhlIG5vZGVzLlxuICAgIFxuZmxhdHRlbiA9IChhcnJheSkgLT5cbiAgICBmbGF0dGVuZWQgPSBbXVxuICAgIGZvciBlbGVtZW50IGluIGFycmF5XG4gICAgICAgIGlmICdbb2JqZWN0IEFycmF5XScgaXMgT2JqZWN0Ojp0b1N0cmluZy5jYWxsIGVsZW1lbnRcbiAgICAgICAgICAgIGZsYXR0ZW5lZCA9IGZsYXR0ZW5lZC5jb25jYXQgZmxhdHRlbiBlbGVtZW50XG4gICAgICAgIGVsc2VcbiAgICAgICAgICAgIGZsYXR0ZW5lZC5wdXNoIGVsZW1lbnRcbiAgICBmbGF0dGVuZWRcblxuIyBEZWxldGUgYSBrZXkgZnJvbSBhbiBvYmplY3QsIHJldHVybmluZyB0aGUgdmFsdWUuIFVzZWZ1bCB3aGVuIGEgbm9kZSBpc1xuIyBsb29raW5nIGZvciBhIHBhcnRpY3VsYXIgbWV0aG9kIGluIGFuIG9wdGlvbnMgaGFzaC5cbiAgICBcbmRlbCA9IChvYmosIGtleSkgLT5cbiAgICB2YWwgPSAgb2JqW2tleV1cbiAgICBkZWxldGUgb2JqW2tleV1cbiAgICB2YWxcblxuIyBUeXBpY2FsIEFycmF5Ojpzb21lXG5cbnNvbWUgPSBBcnJheTo6c29tZSA/IChmbikgLT5cbiAgICByZXR1cm4gdHJ1ZSBmb3IgZSBpbiB0aGlzIHdoZW4gZm4gZVxuICAgIGZhbHNlXG5cbiMgTWVyZ2UgdHdvIGppc29uLXN0eWxlIGxvY2F0aW9uIGRhdGEgb2JqZWN0cyB0b2dldGhlci5cbiMgSWYgYGxhc3RgIGlzIG5vdCBwcm92aWRlZCwgdGhpcyB3aWxsIHNpbXBseSByZXR1cm4gYGZpcnN0YC5cblxuYnVpbGRMb2NhdGlvbkRhdGEgPSAoZmlyc3QsIGxhc3QpIC0+XG4gICAgaWYgbm90IGxhc3RcbiAgICAgICAgZmlyc3RcbiAgICBlbHNlXG4gICAgICAgIGZpcnN0X2xpbmU6IGZpcnN0LmZpcnN0X2xpbmVcbiAgICAgICAgZmlyc3RfY29sdW1uOiBmaXJzdC5maXJzdF9jb2x1bW5cbiAgICAgICAgbGFzdF9saW5lOiBsYXN0Lmxhc3RfbGluZVxuICAgICAgICBsYXN0X2NvbHVtbjogbGFzdC5sYXN0X2NvbHVtblxuXG4jIFRoaXMgcmV0dXJucyBhIGZ1bmN0aW9uIHdoaWNoIHRha2VzIGFuIG9iamVjdCBhcyBhIHBhcmFtZXRlciwgYW5kIGlmIHRoYXRcbiMgb2JqZWN0IGlzIGFuIEFTVCBub2RlLCB1cGRhdGVzIHRoYXQgb2JqZWN0J3MgbG9jYXRpb25EYXRhLlxuIyBUaGUgb2JqZWN0IGlzIHJldHVybmVkIGVpdGhlciB3YXkuXG5cbmFkZExvY2F0aW9uRGF0YUZuID0gKGZpcnN0LCBsYXN0KSAtPlxuICAgIChvYmopIC0+XG4gICAgICAgIGlmICgodHlwZW9mIG9iaikgaXMgJ29iamVjdCcpIGFuZCAoISFvYmpbJ3VwZGF0ZUxvY2F0aW9uRGF0YUlmTWlzc2luZyddKVxuICAgICAgICAgICAgb2JqLnVwZGF0ZUxvY2F0aW9uRGF0YUlmTWlzc2luZyBidWlsZExvY2F0aW9uRGF0YShmaXJzdCwgbGFzdClcblxuICAgICAgICByZXR1cm4gb2JqXG5cbiMgQ29udmVydCBqaXNvbiBsb2NhdGlvbiBkYXRhIHRvIGEgc3RyaW5nLlxuIyBgb2JqYCBjYW4gYmUgYSB0b2tlbiwgb3IgYSBsb2NhdGlvbkRhdGEuXG5cbmxvY2F0aW9uRGF0YVRvU3RyaW5nID0gKG9iaikgLT5cbiAgICBpZiAoXCIyXCIgb2Ygb2JqKSBhbmQgKFwiZmlyc3RfbGluZVwiIG9mIG9ialsyXSkgdGhlbiBsb2NhdGlvbkRhdGEgPSBvYmpbMl1cbiAgICBlbHNlIGlmIFwiZmlyc3RfbGluZVwiIG9mIG9iaiB0aGVuIGxvY2F0aW9uRGF0YSA9IG9ialxuXG4gICAgaWYgbG9jYXRpb25EYXRhXG4gICAgICAgIFwiI3tsb2NhdGlvbkRhdGEuZmlyc3RfbGluZSArIDF9OiN7bG9jYXRpb25EYXRhLmZpcnN0X2NvbHVtbiArIDF9LVwiICtcbiAgICAgICAgXCIje2xvY2F0aW9uRGF0YS5sYXN0X2xpbmUgKyAxfToje2xvY2F0aW9uRGF0YS5sYXN0X2NvbHVtbiArIDF9XCJcbiAgICBlbHNlXG4gICAgICAgIFwiTm8gbG9jYXRpb24gZGF0YVwiXG5cbiMgQSBgLmNvZmZlZS5tZGAgY29tcGF0aWJsZSB2ZXJzaW9uIG9mIGBiYXNlbmFtZWAsIHRoYXQgcmV0dXJucyB0aGUgZmlsZSBzYW5zLWV4dGVuc2lvbi5cblxuYmFzZUZpbGVOYW1lID0gKGZpbGUsIHN0cmlwRXh0ID0gbm8sIHVzZVdpblBhdGhTZXAgPSBubykgLT5cbiAgICBwYXRoU2VwID0gaWYgdXNlV2luUGF0aFNlcCB0aGVuIC9cXFxcfFxcLy8gZWxzZSAvXFwvL1xuICAgIHBhcnRzID0gZmlsZS5zcGxpdChwYXRoU2VwKVxuICAgIGZpbGUgPSBwYXJ0c1twYXJ0cy5sZW5ndGggLSAxXVxuICAgIHJldHVybiBmaWxlIHVubGVzcyBzdHJpcEV4dCBhbmQgZmlsZS5pbmRleE9mKCcuJykgPj0gMFxuICAgIHBhcnRzID0gZmlsZS5zcGxpdCgnLicpXG4gICAgcGFydHMucG9wKClcbiAgICBwYXJ0cy5wb3AoKSBpZiAvXltja11vZmZlZSQvLnRlc3QocGFydHNbcGFydHMubGVuZ3RoLTFdKSBhbmQgcGFydHMubGVuZ3RoID4gMVxuICAgIHBhcnRzLmpvaW4oJy4nKVxuXG4jIERldGVybWluZSBpZiBhIGZpbGVuYW1lIHJlcHJlc2VudHMgYSBrb2ZmZWUgZmlsZS5cblxuaXNDb2ZmZWUgPSAoZmlsZSkgLT4gL1xcLltja11vZmZlZSQvLnRlc3QgZmlsZVxuXG4jICAwMDAwMDAwICAwMDAgICAwMDAgIDAwMCAgIDAwMCAgMDAwMDAwMDAwICAgMDAwMDAwMCAgIDAwMCAgIDAwMCAgMDAwMDAwMDAgIDAwMDAwMDAwICAgMDAwMDAwMDAgICAgMDAwMDAwMCAgIDAwMDAwMDAwICAgXG4jIDAwMCAgICAgICAgMDAwIDAwMCAgIDAwMDAgIDAwMCAgICAgMDAwICAgICAwMDAgICAwMDAgICAwMDAgMDAwICAgMDAwICAgICAgIDAwMCAgIDAwMCAgMDAwICAgMDAwICAwMDAgICAwMDAgIDAwMCAgIDAwMCAgXG4jIDAwMDAwMDAgICAgIDAwMDAwICAgIDAwMCAwIDAwMCAgICAgMDAwICAgICAwMDAwMDAwMDAgICAgMDAwMDAgICAgMDAwMDAwMCAgIDAwMDAwMDAgICAgMDAwMDAwMCAgICAwMDAgICAwMDAgIDAwMDAwMDAgICAgXG4jICAgICAgMDAwICAgICAwMDAgICAgIDAwMCAgMDAwMCAgICAgMDAwICAgICAwMDAgICAwMDAgICAwMDAgMDAwICAgMDAwICAgICAgIDAwMCAgIDAwMCAgMDAwICAgMDAwICAwMDAgICAwMDAgIDAwMCAgIDAwMCAgXG4jIDAwMDAwMDAgICAgICAwMDAgICAgIDAwMCAgIDAwMCAgICAgMDAwICAgICAwMDAgICAwMDAgIDAwMCAgIDAwMCAgMDAwMDAwMDAgIDAwMCAgIDAwMCAgMDAwICAgMDAwICAgMDAwMDAwMCAgIDAwMCAgIDAwMCAgXG5cbnRocm93U3ludGF4RXJyb3IgPSAobW9kdWxlOixtZXNzYWdlOixsb2NhdGlvbjopIC0+XG4gICAgXG4gICAgZXJyID0gbmV3IFN5bnRheEVycm9yIFwiI3tib2xkIHllbGxvd0JyaWdodCBtZXNzYWdlfSAje2RpbSBncmF5ICcjJ30gI3tncmF5IG1vZHVsZX1cIlxuICAgIGVyci5sb2NhdGlvbiA9IGxvY2F0aW9uXG4gICAgdGhyb3cgZXJyXG5cbnVwZGF0ZVN5bnRheEVycm9yID0gKGVyciwgY29kZSwgZmlsZW5hbWUsIG9wdGlvbnMpIC0+ICMgVXBkYXRlIGEgY29tcGlsZXIgU3ludGF4RXJyb3Igd2l0aCBzb3VyY2UgY29kZSBpbmZvcm1hdGlvblxuICAgIFxuICAgIGVyci5jb2RlICAgICA/PSBjb2RlXG4gICAgZXJyLmZpbGVuYW1lID89IGZpbGVuYW1lXG4gICAgXG4gICAgaWYgZXJyLmNvZGUgYW5kIGVyci5sb2NhdGlvbiAgICAgICAgXG5cbiAgICAgICAge2ZpcnN0X2xpbmUsIGZpcnN0X2NvbHVtbiwgbGFzdF9saW5lLCBsYXN0X2NvbHVtbn0gPSBlcnIubG9jYXRpb25cbiAgICAgICAgbGFzdF9saW5lID89IGZpcnN0X2xpbmVcbiAgICAgICAgbGFzdF9jb2x1bW4gPz0gZmlyc3RfY29sdW1uXG4gICAgXG4gICAgICAgIGNvZGVMaW5lID0gZXJyLmNvZGUuc3BsaXQoJ1xcbicpW2ZpcnN0X2xpbmVdXG4gICAgICAgIHN0YXJ0ICAgID0gZmlyc3RfY29sdW1uICAgICAgICBcbiAgICAgICAgZW5kICAgICAgPSBpZiBmaXJzdF9saW5lIGlzIGxhc3RfbGluZSB0aGVuIGxhc3RfY29sdW1uICsgMSBlbHNlIGNvZGVMaW5lLmxlbmd0aCAjIFNob3cgb25seSB0aGUgZmlyc3QgbGluZSBvbiBtdWx0aS1saW5lIGVycm9ycy5cbiAgICAgICAgbWFya2VyICAgPSBjb2RlTGluZVsuLi5zdGFydF0ucmVwbGFjZSgvW15cXHNdL2csICcgJykgKyByZXBlYXQoJ+KWsicsIGVuZCAtIHN0YXJ0KVxuICAgIFxuICAgICAgICBpZiBvcHRpb25zPy5mZWF0dXJlPy5jb2xvciAhPSBmYWxzZVxuICAgICAgICAgICAgY29sb3JpemUgPSAoc3RyKSAtPiByZWQgc3RyXG4gICAgICAgICAgICBjb2RlTGluZSA9IGNvZGVMaW5lWy4uLnN0YXJ0XSArIGNvbG9yaXplKGNvZGVMaW5lW3N0YXJ0Li4uZW5kXSkgKyBjb2RlTGluZVtlbmQuLl1cbiAgICAgICAgICAgIG1hcmtlciAgID0gY29sb3JpemUgbWFya2VyXG4gICAgICAgICAgICAgICAgXG4gICAgICAgIGZpbGVMaW5lID0gXCIje2Vyci5maWxlbmFtZSA/ICc/J306I3tmaXJzdF9saW5lICsgMX06I3tmaXJzdF9jb2x1bW4gKyAxfVwiXG4gICAgICAgICAgICBcbiAgICAgICAgZXJyLm1lc3NhZ2UgPSBcIlwiXCJcbiAgICAgICAgICAgICN7ZmlsZUxpbmV9ICN7Y29kZUxpbmV9XG4gICAgICAgICAgICAje3BhZCgnJywgZmlsZUxpbmUubGVuZ3RoKzEpICsgbWFya2VyfSAje2Vyci5tZXNzYWdlfVxuICAgICAgICAgICAgXCJcIlwiXG4gICAgZWxzZVxuICAgICAgICAjIOKWuGRiZyAnY29kZSBvciBsb2NhdGlvbj8nIGNvZGU6ZXJyLmNvZGU/LCBsb2NhdGlvbjplcnIubG9jYXRpb24/XG4gICAgICAgIGVyci5tZXNzYWdlID0gRXJyb3I6OnRvU3RyaW5nLmNhbGwgZXJyIFxuICAgICAgICBcbiAgICBlcnJcblxuIyAwMDAwMDAwMDAgIDAwMDAwMDAwICAgMDAwMDAwMCAgMDAwMDAwMDAwICBcbiMgICAgMDAwICAgICAwMDAgICAgICAgMDAwICAgICAgICAgIDAwMCAgICAgXG4jICAgIDAwMCAgICAgMDAwMDAwMCAgIDAwMDAwMDAgICAgICAwMDAgICAgIFxuIyAgICAwMDAgICAgIDAwMCAgICAgICAgICAgIDAwMCAgICAgMDAwICAgICBcbiMgICAgMDAwICAgICAwMDAwMDAwMCAgMDAwMDAwMCAgICAgIDAwMCAgICAgXG5cbmVnYWwgPSAoYSwgYikgLT5cbiAgaWYgYSBpcyBiXG4gICAgYSAhPSAwIG9yIDEvYSBpcyAxL2JcbiAgZWxzZVxuICAgIGEgIT0gYSBhbmQgYiAhPSBiXG4gICAgXG5hcnJheUVnYWwgPSAoYSwgYikgLT5cbiAgaWYgZWdhbCBhLCBiIHRoZW4geWVzXG4gIGVsc2UgaWYgYSBpbnN0YW5jZW9mIEFycmF5IGFuZCBiIGluc3RhbmNlb2YgQXJyYXlcbiAgICByZXR1cm4gbm8gaWYgYS5sZW5ndGggIT0gYi5sZW5ndGhcbiAgICByZXR1cm4gbm8gZm9yIGVsLCBpZHggaW4gYSB3aGVuIG5vdCBhcnJheUVnYWwgZWwsIGJbaWR4XVxuICAgIHllc1xuXG5lcSAgICAgID0gKGEsIGIsIG1zZykgLT4gb2sgZWdhbChhLCBiKSwgbXNnIG9yIFwiXFx4MUJbMDs5MG1cXG4gPDw8IGV4cGVjdGVkID4+PlxcblxceDFCWzA7OTNtI3thfVxceDFCWzA7OTBtPDw8IHRvIGVxdWFsID4+PlxcblxceDFCWzA7OTNtI3tifVxceDFCWzA7OTBtPDw8IGV4cGVjdGVkID4+PlxcblwiXG5hcnJheUVxID0gKGEsIGIsIG1zZykgLT4gb2sgYXJyYXlFZ2FsKGEsYiksIG1zZyBvciBcIlxceDFCWzA7OTBtXFxuID4+PlxcblxceDFCWzA7OTNtI3thfVxceDFCWzA7OTBtPDw8IHRvIGRlZXAgZXF1YWwgPj4+XFxuXFx4MUJbMDs5M20je2J9XFx4MUJbMDs5MG08PDwgZXhwZWN0ZWQgPj4+XFxuXCJcblxudG9KUyA9IChzdHIpIC0+XG4gIEtvZmZlZS5jb21waWxlIHN0ciwgYmFyZTogeWVzXG4gIC5yZXBsYWNlIC9eXFxzK3xcXHMrJC9nLCAnJyAjIFRyaW0gbGVhZGluZy90cmFpbGluZyB3aGl0ZXNwYWNlXG5cbnN0cmluZ2lmeSA9IChvKSAtPlxuICAgIG5vb24gPSByZXF1aXJlICdub29uJ1xuICAgIG5vb24uc3RyaW5naWZ5IG8sIGNpcmN1bGFyOiB0cnVlLCBjb2xvcnM6IHRydWVcbiAgICBcbiMgSW5pdGlhbGl6ZSBnbG9iYWwgdmFyaWFibGVzIHVzZWQgaW4gdGVzdCBzY3JpcHRzIFxuIyBTdXBwb3J0cyBydW5uaW5nIHNpbmdsZSB0ZXN0IHZpYSBga29mZmVlIHRlc3QvLi5gXG5cbmluaXRUZXN0ID0gLT5cbiAgICBleHRlbmQgZ2xvYmFsLCByZXF1aXJlICdhc3NlcnQnIFxuICAgIGdsb2JhbC5Lb2ZmZWUgPSByZXF1aXJlICcuL2tvZmZlZSdcbiAgICBnbG9iYWwuXyA9IHJlcXVpcmUgJ3VuZGVyc2NvcmUnXG4gICAgZXh0ZW5kIGdsb2JhbCwgbW9kdWxlLmV4cG9ydHNcbiAgICBpZiBub3QgZ2xvYmFsLnRlc3QgdGhlbiBnbG9iYWwudGVzdCA9IChuLGYpIC0+IGxvZyBuOyBmKClcbiAgICAgICAgXG5tb2R1bGUuZXhwb3J0cyA9IHtcbiAgICBjb2xvcnNcbiAgICBzdGFydHNcbiAgICBlbmRzXG4gICAgcmVwZWF0XG4gICAgcGFkXG4gICAgY29tcGFjdFxuICAgIGNvdW50XG4gICAgbWVyZ2VcbiAgICBleHRlbmRcbiAgICBmbGF0dGVuXG4gICAgZGVsXG4gICAgc29tZVxuICAgIGFkZExvY2F0aW9uRGF0YUZuXG4gICAgbG9jYXRpb25EYXRhVG9TdHJpbmdcbiAgICBiYXNlRmlsZU5hbWVcbiAgICBpc0NvZmZlZVxuICAgIHRocm93U3ludGF4RXJyb3JcbiAgICB1cGRhdGVTeW50YXhFcnJvclxuICAgIGVxXG4gICAgYXJyYXlFcVxuICAgIHRvSlNcbiAgICBzdHJpbmdpZnlcbiAgICBpbml0VGVzdFxufVxuICAgICJdfQ==
-//# sourceURL=../coffee/helpers.coffee
+    baseFileName = function(file, stripExt, useWinPathSep) {
+        var parts, pathSep;
+        if (stripExt == null) {
+            stripExt = false;
+        }
+        if (useWinPathSep == null) {
+            useWinPathSep = false;
+        }
+        pathSep = useWinPathSep ? /\\|\// : /\//;
+        parts = file.split(pathSep);
+        file = parts[parts.length - 1];
+        if (!(stripExt && file.indexOf('.') >= 0)) {
+            return file;
+        }
+        parts = file.split('.');
+        parts.pop();
+        if (/^[ck]offee$/.test(parts[parts.length - 1]) && parts.length > 1) {
+            parts.pop();
+        }
+        return parts.join('.');
+    };
+
+    isCoffee = function(file) {
+        return /\.[ck]offee$/.test(file);
+    };
+
+    throwSyntaxError = function(arg) {
+        var err, location, message, module, ref1, ref2, ref3;
+        module = (ref1 = arg.module) != null ? ref1 : null, message = (ref2 = arg.message) != null ? ref2 : null, location = (ref3 = arg.location) != null ? ref3 : null;
+        err = new SyntaxError(message);
+        err.location = location;
+        throw err;
+    };
+
+    updateSyntaxError = function(err, code, filename, options) {
+        var codeLine, colm, end, file, fileLine, first_column, first_line, last_column, last_line, line, markLine, message, ref1, ref2, ref3, ref4, sep, start;
+        if (err.code != null) {
+            err.code;
+        } else {
+            err.code = code;
+        }
+        if (err.filename != null) {
+            err.filename;
+        } else {
+            err.filename = filename;
+        }
+        if (err.markLine) {
+            return err;
+        }
+        if (err.code && err.location) {
+            ref1 = err.location, first_line = ref1.first_line, first_column = ref1.first_column, last_line = ref1.last_line, last_column = ref1.last_column;
+            if (last_line != null) {
+                last_line;
+            } else {
+                last_line = first_line;
+            }
+            if (last_column != null) {
+                last_column;
+            } else {
+                last_column = first_column;
+            }
+            codeLine = err.code.split('\n')[first_line];
+            start = first_column;
+            end = first_line === last_line ? last_column + 1 : codeLine.length;
+            markLine = codeLine.slice(0, start).replace(/[^\s]/g, ' ') + repeat('▲', end - start);
+            message = err.message;
+            err.line = first_line + 1;
+            err.column = first_column + 1;
+            if ((options != null ? (ref2 = options.feature) != null ? ref2.color : void 0 : void 0) !== false) {
+                codeLine = codeLine.slice(0, start) + red(codeLine.slice(start, end)) + codeLine.slice(end);
+                markLine = red(markLine);
+                message = yellowBright(message);
+                sep = dim(blue(':'));
+                line = blue("" + err.line);
+                colm = dim(blue("" + err.column));
+                file = path.parse((ref3 = err.filename) != null ? ref3 : '');
+                file = yellow(file.name) + dim(yellow(file.ext));
+                fileLine = "" + file + sep + line + sep + colm;
+            } else {
+                fileLine = ((ref4 = err.filename) != null ? ref4 : '?') + ":" + err.line + ":" + err.column;
+            }
+            err.fileLine = fileLine;
+            err.codeLine = codeLine;
+            err.markLine = markLine + ' ' + message;
+            err.message = err.fileLine + "\n" + err.codeLine + "\n" + err.markLine;
+        } else {
+            err.message = Error.prototype.toString.call(err);
+        }
+        return err;
+    };
+
+    egal = function(a, b) {
+        if (a === b) {
+            return a !== 0 || 1 / a === 1 / b;
+        } else {
+            return a !== a && b !== b;
+        }
+    };
+
+    arrayEgal = function(a, b) {
+        var el, i, idx, len1;
+        if (egal(a, b)) {
+            return true;
+        } else if (a instanceof Array && b instanceof Array) {
+            if (a.length !== b.length) {
+                return false;
+            }
+            for (idx = i = 0, len1 = a.length; i < len1; idx = ++i) {
+                el = a[idx];
+                if (!arrayEgal(el, b[idx])) {
+                    return false;
+                }
+            }
+            return true;
+        }
+    };
+
+    eq = function(a, b, msg) {
+        return ok(egal(a, b), msg || ("\x1B[0;90m\n <<< expected >>>\n\x1B[0;93m" + a + "\x1B[0;90m<<< to equal >>>\n\x1B[0;93m" + b + "\x1B[0;90m<<< expected >>>\n"));
+    };
+
+    arrayEq = function(a, b, msg) {
+        return ok(arrayEgal(a, b), msg || ("\x1B[0;90m\n >>>\n\x1B[0;93m" + a + "\x1B[0;90m<<< to deep equal >>>\n\x1B[0;93m" + b + "\x1B[0;90m<<< expected >>>\n"));
+    };
+
+    toJS = function(str) {
+        return Koffee.compile(str, {
+            bare: true
+        }).replace(/^\s+|\s+$/g, '');
+    };
+
+    stringify = function(o) {
+        var noon;
+        noon = require('noon');
+        return noon.stringify(o, {
+            circular: true,
+            colors: true
+        });
+    };
+
+    initTest = function() {
+        extend(global, require('assert'));
+        global.Koffee = require('./koffee');
+        global._ = require('underscore');
+        extend(global, module.exports);
+        if (!global.test) {
+            return global.test = function(n, f) {
+                console.log(n);
+                return f();
+            };
+        }
+    };
+
+    module.exports = {
+        colors: colors,
+        starts: starts,
+        ends: ends,
+        repeat: repeat,
+        pad: pad,
+        compact: compact,
+        count: count,
+        merge: merge,
+        extend: extend,
+        flatten: flatten,
+        del: del,
+        some: some,
+        addLocationDataFn: addLocationDataFn,
+        locationDataToString: locationDataToString,
+        baseFileName: baseFileName,
+        isCoffee: isCoffee,
+        throwSyntaxError: throwSyntaxError,
+        updateSyntaxError: updateSyntaxError,
+        eq: eq,
+        arrayEq: arrayEq,
+        toJS: toJS,
+        stringify: stringify,
+        initTest: initTest
+    };
+
+}).call(this);

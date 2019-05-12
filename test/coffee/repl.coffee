@@ -1,9 +1,9 @@
 
-os = require 'os'
-fs = require 'fs'
-path = require 'path'
+os     = require 'os'
+fs     = require 'fs'
+path   = require 'path'
 Stream = require 'stream'
-Repl = require '../../js/repl'
+Repl   = require '../../js/repl'
 
 class MockInputStream extends Stream
     @: ->
@@ -31,20 +31,25 @@ historyFile = path.join os.tmpdir(), '.coffee_history_test'
 fs.writeFileSync historyFile, '1 + 2\n'
 
 testRepl = (desc, fn) ->
+    
     input = new MockInputStream
     output = new MockOutputStream
     repl = Repl.start {input, output, historyFile}
-    test desc, -> fn input, output, repl
+    test desc, -> 
+        fn input, output, repl
 
-ctrlV = { ctrl: true, name: 'v'}
-
+ceq = (a,b) -> 
+    reg = new RegExp '[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:[a-zA-Z\\d]*(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?\\u0007)|(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-ntqry=><~]))', 'g'
+    eq a, b.replace reg, ''
+        
+escape = { name: 'escape'}
 
 testRepl 'reads history file', (input, output, repl) ->
     input.emitLine repl.rli.history[0]
     eq '3', output.lastWrite()
 
 testRepl "starts with prompt", (input, output) ->
-    eq '▶ ', output.lastWrite(0)
+    ceq '■▶ ', output.lastWrite(0)
 
 testRepl "writes eval to output", (input, output) ->
     input.emitLine '1+1'
@@ -63,30 +68,30 @@ testRepl "variables are saved", (input, output) ->
     input.emitLine 'foobar = "#{foo}bar"'
     eq "'foobar'", output.lastWrite()
 
-testRepl "empty command evaluates to undefined", (input, output) ->
+testRepl "empty command evaluates to nothing", (input, output) ->
     input.emitLine ''
-    eq 'undefined', output.lastWrite()
+    ceq '■▶ ', output.lastWrite()
 
-testRepl "ctrl-v toggles multiline prompt", (input, output) ->
-    input.emit 'keypress', null, ctrlV
-    eq '------> ', output.lastWrite(0)
-    input.emit 'keypress', null, ctrlV
-    eq '▶ ', output.lastWrite(0)
+testRepl "escape toggles multiline prompt", (input, output) ->
+    input.emit 'keypress', null, escape
+    ceq '◖▶ ', output.lastWrite(0)
+    input.emit 'keypress', null, escape
+    ceq '■▶ ', output.lastWrite(0)
 
 testRepl "multiline continuation changes prompt", (input, output) ->
-    input.emit 'keypress', null, ctrlV
+    input.emit 'keypress', null, escape
     input.emitLine ''
-    eq '....... ', output.lastWrite(0)
+    eq '   ', output.lastWrite(0)
 
 testRepl "evaluates multiline", (input, output) ->
     # Stubs. Could assert on their use.
     output.cursorTo = (pos) ->
     output.clearLine = ->
 
-    input.emit 'keypress', null, ctrlV
+    input.emit 'keypress', null, escape
     input.emitLine 'do ->'
     input.emitLine '    1 + 1'
-    input.emit 'keypress', null, ctrlV
+    input.emit 'keypress', null, escape
     eq '2', output.lastWrite()
 
 testRepl "variables in scope are preserved", (input, output) ->

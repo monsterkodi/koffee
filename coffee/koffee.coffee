@@ -78,9 +78,9 @@ compile = (code, options) ->
     # we need to recompile it to get a source map for `prepareStackTrace`.
         
     generateSourceMap = options.sourceMap or options.inlineMap or not options.filename?
-    filename = options.filename or '?'
+    filename = options.filename or ''
 
-    sources[filename] = code
+    sources[filename ? '?'] = code
     map = new SourceMap if generateSourceMap
 
     tokens = lexer.tokenize code, options
@@ -133,7 +133,7 @@ compile = (code, options) ->
 
     if generateSourceMap
         v3SourceMap = map.generate(options, code)
-        sourceMaps[filename] = map
+        sourceMaps[filename ? '?'] = map
 
     if options.inlineMap
         encoded = base64encode JSON.stringify v3SourceMap
@@ -184,7 +184,7 @@ run = (code, options={}) ->
     # Set the filename
     
     mainModule.filename = process.argv[1] =
-        if options.filename then fs.realpathSync(options.filename) else '?'
+        if options.filename then fs.realpathSync(options.filename) else ''
 
     mainModule.moduleCache and= {} # Clear the module cache.
 
@@ -203,8 +203,7 @@ run = (code, options={}) ->
         catch err
             # log 'koffee.run compile error', options.filename, mainModule.filename, err
             updateSyntaxError err, code, mainModule.filename, options
-            log err.message
-            return
+            throw err
         
         code = answer.js ? answer
 
@@ -337,8 +336,8 @@ getSourceMap = (filename) ->
         sourceMaps[filename]
     else if sourceMaps['?']?
         sourceMaps['?']
-    else if sources[filename]?
-        answer = compile sources[filename],
+    else if sources[filename ? '?']?
+        answer = compile sources[filename ? '?'],
             filename: filename
             sourceMap: yes
         answer.sourceMap

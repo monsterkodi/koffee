@@ -1,4 +1,4 @@
-// koffee 0.31.0
+// koffee 0.32.0
 
 /*
  0000000   0000000   00     00  00     00   0000000   000   000  0000000    
@@ -102,6 +102,9 @@
     run = function() {
         var eval, i, j, len, len1, literals, ref2, ref3, results, source;
         parseOptions();
+        if (opts.feature.color === false) {
+            colorette.options.enabled = false;
+        }
         if (opts.features) {
             return logFeatures();
         }
@@ -317,8 +320,8 @@
             if (Koffee.listeners('failure').length) {
                 return;
             }
-            message = (err != null ? err.stack : void 0) || ("" + err);
-            if (o.watch) {
+            message = err.message;
+            if (o.watch || o["eval"]) {
                 return printLine(message + '\x07');
             } else {
                 printWarn(message);

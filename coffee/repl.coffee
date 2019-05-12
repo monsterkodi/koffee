@@ -12,45 +12,13 @@ vm       = require 'vm'
 nodeREPL = require 'repl'
 Koffee   = require './koffee'
 
-{merge, updateSyntaxError} = require './helpers'
+{ pad, merge, updateSyntaxError } = require './helpers'
 
-# 0000000    00000000  00000000   0000000   000   000  000      000000000   0000000  
-# 000   000  000       000       000   000  000   000  000         000     000       
-# 000   000  0000000   000000    000000000  000   000  000         000     0000000   
-# 000   000  000       000       000   000  000   000  000         000          000  
-# 0000000    00000000  000       000   000   0000000   0000000     000     0000000   
-
-replDefaults =
-    
-    prompt: blue "■▶ ",
-    historyFile: path.join process.env.HOME, '.koffee_history' if process.env.HOME
-    historyMaxInputSize: 10240
-    
-    eval: (input, context, filename, cb) ->
-        
-        input = input.replace /\uFF00/g, '\n' # XXX: multiline hack.
-        input = input.replace /^\(([\s\S]*)\n\)$/m, '$1' # Node's REPL sends the input ending with a newline and then wrapped in parens. Unwrap all that.
-        input = input.replace /^\s*try\s*{([\s\S]*)}\s*catch.*$/m, '$1' # Node's REPL v6.9.1+ sends the input wrapped in a try/catch statement. Unwrap that too.
-
-        { Block, Assign, Value, Literal } = require './nodes'
-
-        try
-            tokens = Koffee.tokens input
-            referencedVars = ( token[1] for token in tokens when token[0] is 'IDENTIFIER' )
-            ast = Koffee.nodes tokens
-            js = ast.compile 
-                bare:           yes
-                locals:         Object.keys context
-                referencedVars: referencedVars
-            if js.trim().length
-                cb null, runInContext js, context, filename
-            else
-                cb null
-        catch err
-            # AST's `compile` does not add source code information to syntax errors.
-            updateSyntaxError err, input, '?'
-            log err.message
-            cb null
+# 00000000   000   000  000   000  
+# 000   000  000   000  0000  000  
+# 0000000    000   000  000 0 000  
+# 000   000  000   000  000  0000  
+# 000   000   0000000   000   000  
 
 runInContext = (js, context, filename) ->
     
@@ -58,6 +26,12 @@ runInContext = (js, context, filename) ->
         vm.runInThisContext js, filename
     else
         vm.runInContext js, context, filename
+
+# 00     00  000   000  000      000000000  000  000      000  000   000  00000000  
+# 000   000  000   000  000         000     000  000      000  0000  000  000       
+# 000000000  000   000  000         000     000  000      000  000 0 000  0000000   
+# 000 0 000  000   000  000         000     000  000      000  000  0000  000       
+# 000   000   0000000   0000000     000     000  0000000  000  000   000  00000000  
 
 addMultilineHandler = (repl) ->
     
@@ -110,6 +84,12 @@ addMultilineHandler = (repl) ->
                 rli.prompt true
         return
 
+# 000   000  000   0000000  000000000   0000000   00000000   000   000  
+# 000   000  000  000          000     000   000  000   000   000 000   
+# 000000000  000  0000000      000     000   000  0000000      00000    
+# 000   000  000       000     000     000   000  000   000     000     
+# 000   000  000  0000000      000      0000000   000   000     000     
+
 addHistory = (repl, filename, maxSize) ->
     
     lastLine = null
@@ -141,34 +121,90 @@ addHistory = (repl, filename, maxSize) ->
 
     repl.on 'exit', -> fs.closeSync fd
 
-    repl.commands[getCommandId(repl, 'history')] = # Add a command to show the history stack
+#  0000000  000000000   0000000   00000000   000000000  
+# 000          000     000   000  000   000     000     
+# 0000000      000     000000000  0000000       000     
+#      000     000     000   000  000   000     000     
+# 0000000      000     000   000  000   000     000     
+
+start = (opts={}) ->
+    
+    [major, minor, build] = process.versions.node.split('.').map (n) -> parseInt(n, 10)
+
+    if major < 10
+        console.warn "Node 10+ required for koffee REPL"
+        process.exit 1
+
+    Koffee.register()
+    process.argv = ['koffee'].concat process.argv[2..]
+    repl = null
+    
+    # 0000000    00000000  00000000   0000000   000   000  000      000000000   0000000  
+    # 000   000  000       000       000   000  000   000  000         000     000       
+    # 000   000  0000000   000000    000000000  000   000  000         000     0000000   
+    # 000   000  000       000       000   000  000   000  000         000          000  
+    # 0000000    00000000  000       000   000   0000000   0000000     000     0000000   
+    
+    replDefaults =
+        
+        prompt: blue "■▶ ",
+        historyFile: path.join process.env.HOME, '.koffee_history' if process.env.HOME
+        historyMaxInputSize: 10240
+        
+        eval: (input, context, filename, cb) ->
+            
+            input = input.replace /\uFF00/g, '\n' # XXX: multiline hack.
+            input = input.replace /^\(([\s\S]*)\n\)$/m, '$1' # Node's REPL sends the input ending with a newline and then wrapped in parens. Unwrap all that.
+            input = input.replace /^\s*try\s*{([\s\S]*)}\s*catch.*$/m, '$1' # Node's REPL v6.9.1+ sends the input wrapped in a try/catch statement. Unwrap that too.
+    
+            { Block, Assign, Value, Literal } = require './nodes'
+    
+            try
+                tokens = Koffee.tokens input
+                referencedVars = ( token[1] for token in tokens when token[0] is 'IDENTIFIER' )
+                ast = Koffee.nodes tokens
+                js = ast.compile 
+                    bare:           yes
+                    locals:         Object.keys context
+                    referencedVars: referencedVars
+                if js.trim().length
+                    cb null, runInContext js, context, filename
+                else
+                    cb null
+            catch err
+                # AST's `compile` does not add source code information to syntax errors.
+                updateSyntaxError err, input#, '?'
+                if err.markLine and err.codeLine
+                    ln_cl = '   '
+                    if err.line > 1 
+                        ln_cl = pad "#{err.line}:", 3
+                    if repl
+                        repl.outputStream.write ln_cl + err.codeLine + '\n'
+                        repl.outputStream.write pad('',ln_cl.length) + err.markLine + '\n'
+                    else
+                        log ln_cl + err.codeLine
+                        log pad('',ln_cl.length) + err.markLine
+                else
+                    if repl
+                        repl.outputStream.write err.message + '\n'
+                    else
+                        log err.message
+                cb null
+    
+    opts = merge replDefaults, opts
+    repl = nodeREPL.start opts
+
+    runInContext opts.prelude, repl.context, 'prelude' if opts.prelude
+    repl.on 'exit', -> repl.outputStream.write '\n' if not repl.rli.closed
+    addMultilineHandler repl
+    addHistory repl, opts.historyFile, opts.historyMaxInputSize if opts.historyFile
+
+    repl.commands['load'].help = 'Load code from a file into this REPL session'
+    repl.commands['history'] = # Add a command to show the history stack
         help: 'Show command history'
         action: ->
             repl.outputStream.write "#{repl.rli.history[..].reverse().join '\n'}\n"
             repl.displayPrompt()
+    repl
 
-getCommandId = (repl, commandName) ->
-
-    commandsHaveLeadingDot = repl.commands['.help']?
-    if commandsHaveLeadingDot then ".#{commandName}" else commandName
-
-module.exports =
-    
-    start: (opts = {}) ->
-        [major, minor, build] = process.versions.node.split('.').map (n) -> parseInt(n, 10)
-
-        if major < 10
-            console.warn "Node 10.0.0+ required for koffee REPL"
-            process.exit 1
-
-        Koffee.register()
-        process.argv = ['koffee'].concat process.argv[2..]
-        opts = merge replDefaults, opts
-        repl = nodeREPL.start opts
-        runInContext opts.prelude, repl.context, 'prelude' if opts.prelude
-        repl.on 'exit', -> repl.outputStream.write '\n' if not repl.rli.closed
-        addMultilineHandler repl
-        addHistory repl, opts.historyFile, opts.historyMaxInputSize if opts.historyFile
-        # Adapt help inherited from the node REPL
-        repl.commands[getCommandId(repl, 'load')].help = 'Load code from a file into this REPL session'
-        repl
+module.exports = {start}

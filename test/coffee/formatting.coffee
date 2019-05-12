@@ -258,24 +258,24 @@ test "#1195 Ignore trailing semicolons (before newlines or as the last char in a
     Koffee.run(preNewline(n), bare: true) for n in [1,2,3]
 
     lastChar = '-> lastChar;'
-    doesNotThrow -> Koffee.compile lastChar, bare: true
+    doesNotThrow -> Koffee.compile lastChar, bare:true, feature:color:false
 
 test "#1299: Disallow token misnesting", ->
     try
         Koffee.compile '''
             [{
                  ]}
-        '''
+        ''', feature:color:false
         ok no
     catch e
-        eq 'lexer -- unmatched ]', e.message
+        eq 'unmatched ]', e.message
 
 test "#2981: Enforce initial indentation", ->
     try
-        Koffee.compile '    a\nb-'
+        Koffee.compile '    a\nb-', feature:color:false
         ok no
     catch e
-        eq 'lexer -- missing indentation', e.message
+        eq e.message, 'missing indentation'
 
 test "'single-line' expression containing multiple lines", ->
     doesNotThrow -> Koffee.compile """

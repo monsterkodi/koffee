@@ -1,4 +1,4 @@
-// koffee 0.32.0
+// koffee 0.33.0
 
 /*
 000   000   0000000   00000000  00000000  00000000  00000000  
@@ -9,7 +9,7 @@
  */
 
 (function() {
-    var FILE_EXTENSIONS, Lexer, SourceMap, base64encode, compile, count, evaluate, fs, getSourceMap, hasFeature, helpers, injectFeature, injectMeta, isCoffee, lexer, nodes, parser, path, pkg, ref, run, sourceMaps, sources, stringify, throwSyntaxError, updateSyntaxError, vm,
+    var FILE_EXTENSIONS, Lexer, SourceMap, base64encode, compile, count, evaluate, formatSourcePosition, fs, getSourceMap, hasFeature, helpers, injectFeature, injectMeta, isCoffee, lexer, nodes, parser, path, pkg, ref, run, sourceMaps, sources, stringify, throwSyntaxError, updateSyntaxError, vm,
         hasProp = {}.hasOwnProperty;
 
     fs = require('fs');
@@ -314,6 +314,83 @@
             return answer.sourceMap;
         } else {
             return null;
+        }
+    };
+
+    Error.prepareStackTrace = function(err, stack) {
+        var frame, frames, getSourceMapping;
+        getSourceMapping = function(filename, line, column) {
+            var answer, sourceMap;
+            sourceMap = getSourceMap(filename);
+            if (sourceMap != null) {
+                answer = sourceMap.sourceLocation([line - 1, column - 1]);
+            }
+            if (answer != null) {
+                return [answer[0] + 1, answer[1] + 1];
+            } else {
+                return null;
+            }
+        };
+        frames = (function() {
+            var i, len, results;
+            results = [];
+            for (i = 0, len = stack.length; i < len; i++) {
+                frame = stack[i];
+                if (frame.getFunction() === exports.run) {
+                    break;
+                }
+                results.push("        at " + (formatSourcePosition(frame, getSourceMapping)));
+            }
+            return results;
+        })();
+        return (err.toString()) + "\n" + (frames.join('\n')) + "\n";
+    };
+
+    formatSourcePosition = function(frame, getSourceMapping) {
+        var as, column, fileLocation, filename, functionName, isConstructor, isMethodCall, line, methodName, source, tp, typeName;
+        filename = void 0;
+        fileLocation = '';
+        if (frame.isNative()) {
+            fileLocation = "native";
+        } else {
+            if (frame.isEval()) {
+                filename = frame.getScriptNameOrSourceURL();
+                if (!filename) {
+                    fileLocation = (frame.getEvalOrigin()) + ", ";
+                }
+            } else {
+                filename = frame.getFileName();
+            }
+            filename || (filename = '');
+            line = frame.getLineNumber();
+            column = frame.getColumnNumber();
+            source = getSourceMapping(filename, line, column);
+            fileLocation = source ? filename + ":" + source[0] + ":" + source[1] : filename + ":" + line + ":" + column;
+        }
+        functionName = frame.getFunctionName();
+        isConstructor = frame.isConstructor();
+        isMethodCall = !(frame.isToplevel() || isConstructor);
+        if (isMethodCall) {
+            methodName = frame.getMethodName();
+            typeName = frame.getTypeName();
+            if (functionName) {
+                tp = as = '';
+                if (typeName && functionName.indexOf(typeName)) {
+                    tp = typeName + ".";
+                }
+                if (methodName && functionName.indexOf("." + methodName) !== functionName.length - methodName.length - 1) {
+                    as = " [as " + methodName + "]";
+                }
+                return "" + tp + functionName + as + " (" + fileLocation + ")";
+            } else {
+                return typeName + "." + (methodName || '<anonymous>') + " (" + fileLocation + ")";
+            }
+        } else if (isConstructor) {
+            return "new " + (functionName || '<anonymous>') + " (" + fileLocation + ")";
+        } else if (functionName) {
+            return functionName + " (" + fileLocation + ")";
+        } else {
+            return fileLocation;
         }
     };
 

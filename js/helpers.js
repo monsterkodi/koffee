@@ -1,4 +1,4 @@
-// koffee 0.32.0
+// koffee 0.33.0
 
 /*
 000   000  00000000  000      00000000   00000000  00000000    0000000  
@@ -9,7 +9,7 @@
  */
 
 (function() {
-    var addLocationDataFn, arrayEgal, arrayEq, baseFileName, buildLocationData, colors, compact, count, del, egal, ends, eq, extend, flatten, initTest, isCoffee, locationDataToString, merge, pad, path, ref, repeat, some, starts, stringify, throwSyntaxError, toJS, updateSyntaxError;
+    var addLocationDataFn, arrayEgal, arrayEq, baseFileName, buildLocationData, ceq, colors, compact, count, del, egal, ends, eq, extend, flatten, initTest, isCoffee, locationDataToString, merge, pad, path, ref, repeat, some, starts, stringify, throwSyntaxError, toJS, updateSyntaxError;
 
     path = require('path');
 
@@ -288,6 +288,12 @@
         return ok(arrayEgal(a, b), msg || ("\x1B[0;90m\n >>>\n\x1B[0;93m" + a + "\x1B[0;90m<<< to deep equal >>>\n\x1B[0;93m" + b + "\x1B[0;90m<<< expected >>>\n"));
     };
 
+    ceq = function(a, b) {
+        var reg;
+        reg = new RegExp('[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:[a-zA-Z\\d]*(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?\\u0007)|(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-ntqry=><~]))', 'g');
+        return eq(a.replace(reg, ''), b.replace(reg, ''));
+    };
+
     toJS = function(str) {
         return Koffee.compile(str, {
             bare: true
@@ -336,6 +342,7 @@
         throwSyntaxError: throwSyntaxError,
         updateSyntaxError: updateSyntaxError,
         eq: eq,
+        ceq: ceq,
         arrayEq: arrayEq,
         toJS: toJS,
         stringify: stringify,

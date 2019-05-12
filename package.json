@@ -13,7 +13,7 @@
   "contributors": [
     "monsterkodi"
   ],
-  "version": "0.33.0",
+  "version": "0.34.0",
   "license": "MIT",
   "engines": {
     "node": ">=11.11.0"

@@ -9,8 +9,8 @@ test "optional commata", ->
         if -1 == js.indexOf p
             eq js, p
 
-    check "a = [ 1 2 3 ]", "a = [1, 2, 3];"
-    check "a = { a:1 b:2 }", """
+    check "a = [ 1 2 3 ]", "a = [1, 2, 3];" 
+    check "a = { a:1 b:2 }", """ 
         a = {
             a: 1,
             b: 2

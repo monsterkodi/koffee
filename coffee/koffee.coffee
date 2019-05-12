@@ -354,73 +354,73 @@ getSourceMap = (filename) ->
 # NodeJS / V8 have no support for transforming positions in stack traces using
 # sourceMap, so we must monkey-patch Error to display Koffee source positions.
 
-# Error.prepareStackTrace = (err, stack) ->
-#     
-    # getSourceMapping = (filename, line, column) ->
-        # sourceMap = getSourceMap filename
-        # answer = sourceMap.sourceLocation [line - 1, column - 1] if sourceMap?
-        # if answer? then [answer[0] + 1, answer[1] + 1] else null
+Error.prepareStackTrace = (err, stack) ->
+     
+    getSourceMapping = (filename, line, column) ->
+        sourceMap = getSourceMap filename
+        answer = sourceMap.sourceLocation [line - 1, column - 1] if sourceMap?
+        if answer? then [answer[0] + 1, answer[1] + 1] else null
 
-    # frames = for frame in stack
-        # break if frame.getFunction() is exports.run
-        # "        at #{formatSourcePosition frame, getSourceMapping}"
+    frames = for frame in stack
+        break if frame.getFunction() is exports.run
+        "        at #{formatSourcePosition frame, getSourceMapping}"
 
-    # "#{err.toString()}\n#{frames.join '\n'}\n"
+    "#{err.toString()}\n#{frames.join '\n'}\n"
     
 # Based on http://v8.googlecode.com/svn/branches/bleeding_edge/src/messages.js
 # Modified to handle sourceMap
 
-# formatSourcePosition = (frame, getSourceMapping) ->
-#     
-    # filename = undefined
-    # fileLocation = ''
+formatSourcePosition = (frame, getSourceMapping) ->
+     
+    filename = undefined
+    fileLocation = ''
 
-    # if frame.isNative()
-        # fileLocation = "native"
-    # else
-        # if frame.isEval()
-            # filename = frame.getScriptNameOrSourceURL()
-            # fileLocation = "#{frame.getEvalOrigin()}, " unless filename
-        # else
-            # filename = frame.getFileName()
+    if frame.isNative()
+        fileLocation = "native"
+    else
+        if frame.isEval()
+            filename = frame.getScriptNameOrSourceURL()
+            fileLocation = "#{frame.getEvalOrigin()}, " unless filename
+        else
+            filename = frame.getFileName()
 
-        # filename or= "<anonymous>"
+        filename or= ''
 
-        # line = frame.getLineNumber()
-        # column = frame.getColumnNumber()
+        line   = frame.getLineNumber()
+        column = frame.getColumnNumber()
 
-        # # Check for a sourceMap position
-        # source = getSourceMapping filename, line, column
-        # fileLocation =
-            # if source
-                # "#{filename}:#{source[0]}:#{source[1]}"
-            # else
-                # "#{filename}:#{line}:#{column}"
+        # Check for a sourceMap position
+        source = getSourceMapping filename, line, column
+        fileLocation =
+            if source
+                "#{filename}:#{source[0]}:#{source[1]}"
+            else
+                "#{filename}:#{line}:#{column}"
 
-    # functionName = frame.getFunctionName()
-    # isConstructor = frame.isConstructor()
-    # isMethodCall = not (frame.isToplevel() or isConstructor)
+    functionName = frame.getFunctionName()
+    isConstructor = frame.isConstructor()
+    isMethodCall = not (frame.isToplevel() or isConstructor)
 
-    # if isMethodCall
-        # methodName = frame.getMethodName()
-        # typeName = frame.getTypeName()
+    if isMethodCall
+        methodName = frame.getMethodName()
+        typeName = frame.getTypeName()
 
-        # if functionName
-            # tp = as = ''
-            # if typeName and functionName.indexOf typeName
-                # tp = "#{typeName}."
-            # if methodName and functionName.indexOf(".#{methodName}") != functionName.length - methodName.length - 1
-                # as = " [as #{methodName}]"
+        if functionName
+            tp = as = ''
+            if typeName and functionName.indexOf typeName
+                tp = "#{typeName}."
+            if methodName and functionName.indexOf(".#{methodName}") != functionName.length - methodName.length - 1
+                as = " [as #{methodName}]"
 
-            # "#{tp}#{functionName}#{as} (#{fileLocation})"
-        # else
-            # "#{typeName}.#{methodName or '<anonymous>'} (#{fileLocation})"
-    # else if isConstructor
-        # "new #{functionName or '<anonymous>'} (#{fileLocation})"
-    # else if functionName
-        # "#{functionName} (#{fileLocation})"
-    # else
-        # fileLocation
+            "#{tp}#{functionName}#{as} (#{fileLocation})"
+        else
+            "#{typeName}.#{methodName or '<anonymous>'} (#{fileLocation})"
+    else if isConstructor
+        "new #{functionName or '<anonymous>'} (#{fileLocation})"
+    else if functionName
+        "#{functionName} (#{fileLocation})"
+    else
+        fileLocation
     
 module.exports = 
     

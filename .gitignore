@@ -1,5 +1,6 @@
 /test.js
 /test.koffee
+/test.coffee
 /node_modules
 npm-debug.log*
 .vscode

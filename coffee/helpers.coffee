@@ -252,6 +252,9 @@ arrayEgal = (a, b) ->
 
 eq      = (a, b, msg) -> ok egal(a, b), msg or "\x1B[0;90m\n <<< expected >>>\n\x1B[0;93m#{a}\x1B[0;90m<<< to equal >>>\n\x1B[0;93m#{b}\x1B[0;90m<<< expected >>>\n"
 arrayEq = (a, b, msg) -> ok arrayEgal(a,b), msg or "\x1B[0;90m\n >>>\n\x1B[0;93m#{a}\x1B[0;90m<<< to deep equal >>>\n\x1B[0;93m#{b}\x1B[0;90m<<< expected >>>\n"
+ceq     = (a,b) -> 
+    reg = new RegExp '[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:[a-zA-Z\\d]*(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?\\u0007)|(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-ntqry=><~]))', 'g'
+    eq a.replace(reg, ''), b.replace(reg, '')
 
 toJS = (str) ->
   Koffee.compile str, bare: yes
@@ -291,6 +294,7 @@ module.exports = {
     throwSyntaxError
     updateSyntaxError
     eq
+    ceq
     arrayEq
     toJS
     stringify

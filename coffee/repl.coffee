@@ -45,6 +45,7 @@ addMultilineHandler = (repl) ->
 
     nodeLineListener = rli.listeners('line')[0]
     rli.removeListener 'line', nodeLineListener
+    
     rli.on 'line', (cmd) ->
         if multiline.enabled
             multiline.buffer += "#{cmd}\n"
@@ -150,6 +151,8 @@ start = (opts={}) ->
         prompt: blue "■▶ ",
         historyFile: path.join process.env.HOME, '.koffee_history' if process.env.HOME
         historyMaxInputSize: 10240
+        # escapeCodeTimeout: 20
+        removeHistoryDuplicates: true
         
         eval: (input, context, filename, cb) ->
             
@@ -190,10 +193,23 @@ start = (opts={}) ->
                     else
                         log err.message
                 cb null
-    
+                
     opts = merge replDefaults, opts
     repl = nodeREPL.start opts
 
+    completer = repl.rli.completer
+    repl.rli.completer = (line, callback) ->
+        completer line, (err, r) ->
+            if r[0].length > 1
+                callback null, r
+            else if r[0].length == 1 and r[0][0] == r[1]
+                repl.rli.write '.'         # suppress showing the single result as list       
+                callback null, [null,null] # TODO: check if we can figure out the object type
+            else
+                callback null, r
+    
+    # ▸dbg 'repl.rli' repl.rli
+    
     runInContext opts.prelude, repl.context, 'prelude' if opts.prelude
     repl.on 'exit', -> repl.outputStream.write '\n' if not repl.rli.closed
     addMultilineHandler repl

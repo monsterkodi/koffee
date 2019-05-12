@@ -145,7 +145,7 @@ f()                             # -> a 824μs
     myTest()                    # includes logs for each test block
 ```
 
-The unicode symbol `▸` can be substited by `~>`.
+The unicode symbol `▸` can be substituted by `~>`.
 
 ## Config arguments
 

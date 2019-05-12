@@ -52,7 +52,7 @@ SWITCHES = [
     ['-o' '--output DIR'        'set the output directory for compiled JavaScript'      String         ]
     ['-P' '--parse'             'print out the parse tree that the parser produces'     Boolean        ]
     ['-r' '--require MODULE'    'require the given module before eval or REPL'         [String, Array] ]
-    ['-R' '--rewriter'          'print out the code that the rewriter produces'         Boolean        ]
+    ['-C' '--coffee'            'print the token stream as CoffeeScript'                Boolean        ]
     ['-s' '--stdio'             'listen for and compile scripts over stdio'             Boolean        ]
     ['-t' '--test'              'compile and run the @test code'                        Boolean        ]
     ['-T' '--tokens'            'print out the tokens that the lexer/rewriter produce'  Boolean        ]
@@ -230,7 +230,7 @@ compileScript = (code, source=null) ->
         Koffee.emit 'compile', task
         if o.tokens
             printTokens Koffee.tokens t.code, t.options
-        else if o.rewriter
+        else if o.coffee
             printRewriter Koffee.tokens t.code, t.options
         else if o.parse
             printLine Koffee.nodes(t.code, t.options).toString().trim()

@@ -1,4 +1,4 @@
-// koffee 0.33.0
+// koffee 0.35.0
 
 /*
 000      00000000  000   000  00000000  00000000   
@@ -122,6 +122,7 @@
             if (tag === 'IDENTIFIER' && id[0] === '▸' && (ref8 = id.slice(1), indexOf.call(META_KEYWORDS, ref8) >= 0)) {
                 if (id === '▸elif') {
                     this.token('META_ELSE', 'else');
+                    this.tokens.slice(-1)[0].spaced = true;
                     tag = 'META_IF';
                     id = 'if';
                 } else if (id === '▸then') {

@@ -158,10 +158,9 @@ class Lexer
                 'IDENTIFIER'
 
         if tag is 'IDENTIFIER' and id[0] == '▸' and id[1..] in META_KEYWORDS
-            # log '▸META', id #, @tokens[-1..-1], @tokens[-1], @tokens.length
-            # @tokens.pop()
             if id == '▸elif'
                 @token 'META_ELSE', 'else'
+                @tokens[-1].spaced = true
                 tag = 'META_IF'
                 id  = 'if'
             else if id == '▸then'

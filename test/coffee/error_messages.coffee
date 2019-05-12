@@ -4,8 +4,6 @@
 
 require('../../js/helpers').initTest() if not global.test
 
-# test = -> # ALL TESTS HERE DISABLED!
-
 assertErrorFormat = (code, expectedError) ->
     throws (-> Koffee.run code, feature:color:false), (err) ->
         receivedError = "#{err}".split('\n')[1..].join('\n')

@@ -1,4 +1,4 @@
-// koffee 0.33.0
+// koffee 0.35.0
 
 /*
 00000000   00000000  000   000  00000000   000  000000000  00000000  00000000   
@@ -235,6 +235,35 @@
                     }
                 }
                 if (hasFeature(this.opts, 'meta')) {
+                    if (this.check(i, [
+                        {
+                            UNARY_MATH: '~'
+                        }
+                    ], i + 1, [
+                        {
+                            COMPARE: '>'
+                        }
+                    ], i + 2, ['IDENTIFIER', 'IF', 'THEN', 'ELSE'])) {
+                        if (this.tag(i + 2) === 'IDENTIFIER') {
+                            if (tokens[i + 2][1] === 'elif') {
+                                tokens.splice(i, 3, this.generate('META_ELSE', 'else'), this.generate('META_IF', 'if'));
+                                tokens[i].spaced = true;
+                                tokens[i + 1].spaced = true;
+                                return 0;
+                            } else {
+                                tokens[i + 2][1] = '▸' + tokens[i + 2][1];
+                                tokens[i + 2][0] = 'IDENTIFIER';
+                                tokens.splice(i, 2);
+                                return 0;
+                            }
+                        } else {
+                            if (tokens[i + 2][0] !== 'THEN') {
+                                tokens[i + 2][0] = 'META_' + tokens[i + 2][0];
+                            }
+                            tokens.splice(i, 2);
+                            return 0;
+                        }
+                    }
                     if (token[1][0] === '▸') {
                         if ((ref3 = this.tag(i - 1)) !== 'META_IF') {
                             if (ref4 = token[1], indexOf.call(Object.keys(this.opts.meta), ref4) >= 0) {

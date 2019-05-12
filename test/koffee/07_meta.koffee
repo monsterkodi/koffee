@@ -59,6 +59,54 @@ test "meta if", ->
         ▸else 
             'world'""", "345;;\n"
 
+test "meta if tilde", ->
+            
+    eq os?.platform, undefined
+    equal "~>if os.platform()=='win' then no ~>else yes", require('os').platform()=='win' and 'false;;\n' or 'true;;\n'
+    equal "~>if 0         then no ~>else yes", 'true;;\n'
+    equal "~>if null      then no ~>else yes", 'true;;\n'
+    equal "~>if undefined then no ~>else yes", 'true;;\n'
+    equal "~>if ''        then no ~>else yes", 'true;;\n'
+    equal "~>if {}        then no ~>else yes", 'true;;\n'
+    equal "~>if true      then yes ~>else no", 'true;;\n'
+    equal "~>if false     then yes ~>else no", 'false;;\n'
+     
+    equal "~>if 1         ~>then yes ~>else no", 'true;;\n'
+    equal "~>if true      ~>then yes ~>else no", 'true;;\n'
+    equal "~>if 'a'       ~>then yes ~>else no", 'true;;\n'
+    equal "~>if []        ~>then yes ~>else no", 'true;;\n'
+     
+    equal "~>if 0         ~>then 1 ~>else 2; ~>if 3 ~>then 4 ~>else 5", '2;\n4;;;\n'
+     
+    equal "2;4;5", '2;\n4;\n5;\n\n'
+     
+    equal """
+        ~>if 'a'
+            'hello'
+        ~>else 
+            'world'""", "'hello';;\n"
+    equal """
+        ~>if false
+            'hello'
+        ~>else 
+            'world'""", "'world';;\n"
+
+    equal """
+        ~>if false
+            'hello'
+        ~>else ~>if yes
+            123
+        ~>else 
+            'world'""", "123;;\n"
+
+    equal """
+        ~>if false
+            'hello'
+        ~>elif yes
+            345
+        ~>else 
+            'world'""", "345;;\n"
+            
 test "meta profile", ->
 
     check """

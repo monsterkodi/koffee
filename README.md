@@ -145,6 +145,8 @@ f()                             # -> a 824μs
     myTest()                    # includes logs for each test block
 ```
 
+The uncode symbol `▸` can be substited by `~>`.
+
 ## Config arguments
 
 Still here? Nice!

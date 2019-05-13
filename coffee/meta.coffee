@@ -117,7 +117,7 @@ META = [
     meta: (opts:,args:,node:) ->
         code:   "true"
         eval:   true
-        before: logSource opts:opts, args:args, node:node
+        before: logSource {opts, args, node}
         after:  ")"
         reduce: true
         block:  false
@@ -142,7 +142,7 @@ META = [
         text = node.fragmentsToText frag
         code = "!(#{text})"
         args = ['assertion failure!'] if not args.length
-        before: logSource opts:opts, args:args, node:node, close:true
+        before: logSource {opts, args, node, close:true}
         then:   true # should not be used with a block
         eval:   false
         reduce: false
@@ -159,7 +159,7 @@ META = [
     desc: '▸test [id] ...'
     meta: (opts:,args:,node:) ->
         dedent: true
-        before: opts.test and logSource opts:opts, args:args, node:node, close:true
+        before: opts.test and logSource {opts, args, node, close:true}
         skip:   not opts.test
         reduce: true
         body:   true
@@ -198,7 +198,7 @@ compileMetaIf = (node:,opts:) ->
         
         metaKey = node.condition.base.value
         if typeof opts.meta[metaKey] == 'function'
-            info = opts.meta[metaKey] opts:opts, node:node, args:[]
+            info = opts.meta[metaKey] {opts, node, args:[]}
             
     if node.condition.variable?.base?.value?.startsWith '▸'
         
@@ -207,7 +207,7 @@ compileMetaIf = (node:,opts:) ->
             args = node.condition.args.map (a) -> 
                 a.base?.value
             args = args.map (a) -> if a[0] in ['"', "'"] then a[1..-2] else a
-            info = opts.meta[metaKey] opts:opts, node:node, args:args
+            info = opts.meta[metaKey] {opts, node, args}
         
     if info.skip 
         if info.skip.with?

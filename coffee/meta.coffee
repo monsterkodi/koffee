@@ -23,7 +23,7 @@ META = [
         
         This is a slightly special macro, because it's first pass is hardcoded in the tokenizer.
         The body of the macro is wrapped in a skinny triple string before further tokenization.
-        It can contain anything except a skinny triple string.
+        It can contain anything except \'\'\'.
         
         In normal operation, it is reduced to the empty string. 
         But if **koffee** is called with the `--doc` argument, logs will be inserted instead.

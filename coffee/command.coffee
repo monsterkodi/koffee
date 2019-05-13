@@ -228,6 +228,7 @@ compileScript = (code, source=null) ->
     try
         t = task = {source, code, options}
         Koffee.emit 'compile', task
+        
         if o.tokens
             printTokens Koffee.tokens t.code, t.options
         else if o.coffee
@@ -262,12 +263,17 @@ compileScript = (code, source=null) ->
         
         Koffee.emit 'failure', err, task
         return if Koffee.listeners('failure').length
-        # message = err?.stack or "#{err}"
+
         message = err.message
-        if o.watch or o.eval
-            printLine message + '\x07'
+        
+        if err instanceof SyntaxError
+            printLine message
         else
-            printWarn message
+            printLine err.stack
+        
+        if o.watch or o.eval
+            print '\x07' # bell
+        else
             process.exit 1
 
 compileOptions = (source) -> # The compile-time options to pass to the compiler.
@@ -279,6 +285,7 @@ compileOptions = (source) -> # The compile-time options to pass to the compiler.
         feature:   opts.feature
         bare:      opts.bare
         test:      opts.test
+        doc:       opts.doc
         Debug:     opts.Debug
 
     if source

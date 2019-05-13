@@ -165,6 +165,21 @@ nodes = (code, options) ->
         parser.parse lexer.tokenize code, options
     else
         parser.parse code
+    
+# 000000000   0000000   000   000  00000000  000   000   0000000  
+#    000     000   000  000  000   000       0000  000  000       
+#    000     000   000  0000000    0000000   000 0 000  0000000   
+#    000     000   000  000  000   000       000  0000       000  
+#    000      0000000   000   000  00000000  000   000  0000000   
+
+tokens = (code, options) ->
+    
+    try
+        lexer.tokenize code, options
+    catch err
+        if err instanceof SyntaxError
+            updateSyntaxError err, code, options.source ? options.filename ? '', options
+        throw err
         
 # 00000000   000   000  000   000  
 # 000   000  000   000  0000  000  
@@ -431,7 +446,7 @@ module.exports =
     nodes:           nodes
     helpers:         helpers
     compile:         compile
-    tokens:          lexer.tokenize
+    tokens:          tokens
     register:        -> require './register'
     
     

@@ -59,18 +59,17 @@ class Lexer
         @importSpecifierList = no  # Used to identify when in an IMPORT {...} FROM? ...
         @exportSpecifierList = no  # Used to identify when in an EXPORT {...} FROM? ...
 
-        @chunkLine =
-            opts.line or 0         # The start line for the current @chunk.
-        @chunkColumn =
-            opts.column or 0       # The start column of the current @chunk.
-        code = @clean code         # The stripped, cleaned original source code.
+        @chunkLine   = opts.line or 0    # The start line for the current @chunk.
+        @chunkColumn = opts.column or 0  # The start column of the current @chunk.
+        @code = @clean code              # The stripped, cleaned original source code.
 
         # At every position, run through this list of attempted matches, short-circuiting if any of them succeed. 
         # Their order determines precedence: `@literalToken` is the fallback catch-all.
         
-        i = 0
-        while @chunk = code[i..]
+        @chunkIndex = 0
+        while @chunk = @code[@chunkIndex..]
             consumed = \
+                     @docToken()        or
                      @identifierToken() or
                      @commentToken()    or
                      @whitespaceToken() or
@@ -84,9 +83,9 @@ class Lexer
             # Update position
             [@chunkLine, @chunkColumn] = @getLineAndColumnFromChunk consumed
 
-            i += consumed
+            @chunkIndex += consumed
 
-            return {@tokens, index: i} if opts.untilBalanced and @ends.length is 0
+            return {@tokens, index: @chunkIndex} if opts.untilBalanced and @ends.length is 0
 
         @closeIndentation()
         @error "missing #{end.tag}", end.origin[2] if end = @ends.pop()
@@ -101,6 +100,7 @@ class Lexer
     # Preprocess the code to remove leading and trailing whitespace, carriage returns, etc. 
     
     clean: (code) ->
+        
         code = code.slice(1) if code.charCodeAt(0) is BOM
         code = code.replace(/\r/g, '').replace TRAILING_SPACES, ''
         if WHITESPACE.test code
@@ -108,6 +108,48 @@ class Lexer
             @chunkLine--
         code
 
+    # 0000000     0000000    0000000  
+    # 000   000  000   000  000       
+    # 000   000  000   000  000       
+    # 000   000  000   000  000       
+    # 0000000     0000000    0000000  
+    
+    docToken: ->
+
+        DOC = /^(▸|~>)(doc)(\s+([\"][^\n\"]*[\"]|[\'][^\n\']*[\']))?[^\n\S]*\n/
+        
+        return 0 if not match = @chunk.match DOC
+        
+        doc = match[0]
+        
+        # march through all following lines until same or smaller indent is found
+        
+        rest = @chunk[match[0].length..]
+        
+        numLines = 0
+        lines = rest.split '\n'
+        for line in lines
+            numLines++
+            match = WHITESPACE.exec line
+            if match
+                lineIndent = match?[0].length
+            else if line.length
+                lineIndent = 0 # line without indentation
+            else 
+                continue # ignore empty lines
+               
+            if lineIndent <= @indent
+                cmmt = repeat ' ', @indent+4
+                cmmt += "'''"
+                body = lines[...numLines-1]
+                after = lines[numLines-1..]
+                newCode = [doc, cmmt, body, cmmt, after].flat().join '\n'
+                @code = @code[...@chunkIndex] + newCode
+                return
+        
+        # ▸dbg 'head' match.input[..100]
+        
+        
     # 000  0000000    00000000  000   000  000000000  000  00000000  000  00000000  00000000 
     # 000  000   000  000       0000  000     000     000  000       000  000       000   000
     # 000  000   000  0000000   000 0 000     000     000  000000    000  0000000   0000000  
@@ -198,7 +240,7 @@ class Lexer
             @seenFor = no
 
         if tag is 'IDENTIFIER' and id in RESERVED
-            @error "reserved word '#{id}'", length: id.length
+            @error "reserved word '#{id}'", length:id.length
 
         unless tag is 'PROPERTY'
             if id in COFFEE_ALIASES
@@ -233,6 +275,7 @@ class Lexer
     # Be careful not to interfere with ranges-in-progress.
     
     numberToken: ->
+        
         return 0 unless match = NUMBER.exec @chunk
 
         number = match[0]
@@ -271,8 +314,9 @@ class Lexer
     # Matches strings, including multi-line strings, as well as heredocs, with or without interpolation.
     
     stringToken: ->
+        
         [quote] = STRING_START.exec(@chunk) || []
-        return 0 unless quote
+        return 0 if not quote
 
         # If the preceding token is `from` and this is an import or export statement, properly tag the `from`.
         
@@ -301,7 +345,7 @@ class Lexer
             @mergeInterpolationTokens tokens, {delimiter}, (value, i) =>
                 value = @formatString value, delimiter: quote
                 value = value.replace indentRegex, '\n' if indentRegex
-                value = value.replace LEADING_BLANK_LINE,    '' if i is 0
+                value = value.replace LEADING_BLANK_LINE,  '' if i is 0
                 value = value.replace TRAILING_BLANK_LINE, '' if i is $
                 value
         else
@@ -323,6 +367,7 @@ class Lexer
     #  0000000   0000000   000   000  000   000  00000000  000   000     000     
     
     commentToken: ->
+        
         return 0 unless match = @chunk.match COMMENT
         [comment, here] = match
         if here
@@ -333,7 +378,7 @@ class Lexer
                 here = here.replace /// \n #{repeat ' ', @indent} ///g, '\n'
             @token 'HERECOMMENT', here, 0, comment.length
         comment.length
-
+        
     #       000   0000000  
     #       000  000       
     #       000  0000000   
@@ -343,6 +388,7 @@ class Lexer
     # Matches JavaScript interpolated directly into the source via backticks.
     
     jsToken: ->
+        
         return 0 unless @chunk.charAt(0) is '`' and
             (match = HERE_JSTOKEN.exec(@chunk) or JSTOKEN.exec(@chunk))
         # Convert escaped backticks to backticks, and escaped backslashes
@@ -365,6 +411,7 @@ class Lexer
     # so we borrow some basic heuristics from JavaScript and Ruby.
     
     regexToken: ->
+        
         switch
             when match = REGEX_ILLEGAL.exec @chunk
                 @error "regular expressions cannot begin with #{match[2]}",
@@ -426,10 +473,11 @@ class Lexer
     # can close multiple indents, so we need to know how far in we happen to be.
     
     lineToken: ->
+        
         return 0 unless match = MULTI_DENT.exec @chunk
         indent = match[0]
 
-        @seenFor = no
+        @seenFor    = no
         @seenImport = no unless @importSpecifierList
         @seenExport = no unless @exportSpecifierList
 
@@ -471,6 +519,7 @@ class Lexer
     # inwards past several recorded indents. Sets new @indent value.
     
     outdentToken: (moveOut, noNewlines, outdentLength) ->
+        
         decreasedIndent = @indent - moveOut
         while moveOut > 0
             lastIndent = @indents[@indents.length - 1]
@@ -541,6 +590,7 @@ class Lexer
     # parentheses that indicate a method call from regular parentheses, and so on.
     
     literalToken: ->
+        
         if match = OPERATOR.exec @chunk
             [value] = match
             @tagParameters() if CODE.test value
@@ -617,6 +667,7 @@ class Lexer
     # parameters specially in order to make things easier for the parser.
         
     tagParameters: ->
+        
         return this if @tag() != ')'
         stack = []
         {tokens} = this
@@ -636,8 +687,7 @@ class Lexer
 
     # Close up all remaining open blocks at the end of the file.
     
-    closeIndentation: ->
-        @outdentToken @indent
+    closeIndentation: -> @outdentToken @indent
 
     # 00     00   0000000   000000000   0000000  000   000  
     # 000   000  000   000     000     000       000   000  
@@ -726,6 +776,7 @@ class Lexer
     # The value of 'NEOSTRING's are converted using `fn` and turned into strings using `options` first.
     
     mergeInterpolationTokens: (tokens, options, fn) ->
+        
         if tokens.length > 1
             lparen = @token 'STRING_START', '(', 0, 0
 
@@ -793,6 +844,7 @@ class Lexer
     # correctly balanced throughout the course of the token stream.
     
     pair: (tag) ->
+        
         [..., prev] = @ends
         unless tag is wanted = prev?.tag
             @error "unmatched #{tag}" unless 'OUTDENT' is wanted
@@ -816,6 +868,7 @@ class Lexer
     # `offset` is a number of characters into @chunk.
     
     getLineAndColumnFromChunk: (offset) ->
+        
         if offset is 0
             return [@chunkLine, @chunkColumn]
 
@@ -844,6 +897,7 @@ class Lexer
     # Same as "token", exception this just returns the token without adding it to the results.
     
     makeToken: (tag, value, offsetInChunk = 0, length = value.length) ->
+        
         locationData = {}
         [locationData.first_line, locationData.first_column] =
             @getLineAndColumnFromChunk offsetInChunk
@@ -871,27 +925,34 @@ class Lexer
         token
 
     tag: -> # Peek at the last tag in the token stream.
+        
         [..., token] = @tokens
         token?[0]
 
     value: -> # Peek at the last value in the token stream.
+        
         [..., token] = @tokens
         token?[1]
 
     unfinished: -> # Are we in the midst of an unfinished expression?
+        
         LINE_CONTINUER.test(@chunk) or
         @tag() in UNFINISHED
 
     formatString: (str, options) ->
+        
         @replaceUnicodeCodePointEscapes str.replace(STRING_OMIT, '$1'), options
 
     formatHeregex: (str) ->
+        
         @formatRegex str.replace(HEREGEX_OMIT, '$1$2'), delimiter: '///'
 
     formatRegex: (str, options) ->
+        
         @replaceUnicodeCodePointEscapes str, options
 
     unicodeCodePointToUnicodeEscapes: (codePoint) ->
+        
         toUnicodeEscape = (val) ->
             str = val.toString 16
             "\\u#{repeat '0', 4 - str.length}#{str}"
@@ -901,8 +962,8 @@ class Lexer
         low = (codePoint - 0x10000) % 0x400 + 0xDC00
         "#{toUnicodeEscape(high)}#{toUnicodeEscape(low)}"
 
-    # Replace \u{...} with \uxxxx[\uxxxx] in strings and regexes
-    replaceUnicodeCodePointEscapes: (str, options) ->
+    replaceUnicodeCodePointEscapes: (str, options) -> # Replace \u{...} with \uxxxx[\uxxxx] in strings and regexes
+        
         str.replace UNICODE_CODE_POINT_ESCAPE, (match, escapedBackslash, codePointHex, offset) =>
             return escapedBackslash if escapedBackslash
 
@@ -914,8 +975,8 @@ class Lexer
 
             @unicodeCodePointToUnicodeEscapes codePointDecimal
 
-    # Validates escapes in strings and regexes.
-    validateEscapes: (str, options = {}) ->
+    validateEscapes: (str, options = {}) -> # Validates escapes in strings and regexes.
+        
         invalidEscapeRegex =
             if options.isRegex
                 REGEX_INVALID_ESCAPE
@@ -934,8 +995,8 @@ class Lexer
             offset: (options.offsetInChunk ? 0) + match.index + before.length
             length: invalidEscape.length
 
-    # Constructs a string or regex by escaping certain characters.
-    makeDelimitedLiteral: (body, options = {}) ->
+    makeDelimitedLiteral: (body, options = {}) -> # Constructs a string or regex by escaping certain characters.
+        
         body = '(?:)' if body is '' and options.delimiter is '/'
         regex = ///
                 (\\\\)                             # escaped backslash
@@ -959,12 +1020,14 @@ class Lexer
     # Throws an error at either a given offset from the current chunk or at the location of a token (`token[2]`).
     
     error: (message, options={}) ->
+        
         location =
             if 'first_line' of options
                 options
             else
                 [first_line, first_column] = @getLineAndColumnFromChunk options.offset ? 0
                 {first_line, first_column, last_column: first_column + (options.length ? 1) - 1}
+                
         throwSyntaxError module:'lexer', message:message, location:location
 
 # 000   000  00000000  000      00000000   00000000  00000000   
@@ -974,6 +1037,7 @@ class Lexer
 # 000   000  00000000  0000000  000        00000000  000   000  
 
 isUnassignable = (name, displayName = name) -> switch
+    
     when name in [JS_KEYWORDS..., COFFEE_KEYWORDS...]
         "keyword '#{displayName}' can't be assigned"
     when name in STRICT_PROSCRIBED
@@ -988,6 +1052,7 @@ isUnassignable = (name, displayName = name) -> switch
 # Try to detect when `from` is a variable identifier and when it is this “sometimes” keyword.
 
 isForFrom = (prev) ->
+    
     if prev[0] is 'IDENTIFIER'
         # `for i from from`, `for from from iterable`
         if prev[1] is 'from'
@@ -1090,8 +1155,8 @@ CODE       = /^[-=]>/
 
 MULTI_DENT = /^(?:\n[^\n\S]*)+/
 
-JSTOKEN      = ///^ `(?!``) ((?: [^`\\] | \\[\s\S]               )*) `   ///
-HERE_JSTOKEN = ///^ ```         ((?: [^`\\] | \\[\s\S] | `(?!``) )*) ``` ///
+JSTOKEN      = ///^ `(?!``) ((?: [^`\\] | \\[\s\S]           )*) `   ///
+HERE_JSTOKEN = ///^ ```     ((?: [^`\\] | \\[\s\S] | `(?!``) )*) ``` ///
 
 # String-matching-regexes.
 
@@ -1099,7 +1164,7 @@ STRING_START   = /^(?:'''|"""|'|")/
 
 STRING_SINGLE  = /// ^(?: [^\\']  | \\[\s\S]                      )* ///
 STRING_DOUBLE  = /// ^(?: [^\\"#] | \\[\s\S] |           \#(?!\{) )* ///
-HEREDOC_SINGLE = /// ^(?: [^\\']    | \\[\s\S] | '(?!'')          )* ///
+HEREDOC_SINGLE = /// ^(?: [^\\']  | \\[\s\S] | '(?!'')            )* ///
 HEREDOC_DOUBLE = /// ^(?: [^\\"#] | \\[\s\S] | "(?!"") | \#(?!\{) )* ///
 
 STRING_OMIT    = ///

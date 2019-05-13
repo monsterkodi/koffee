@@ -133,8 +133,8 @@ The [default map](https://github.com/monsterkodi/koffee/blob/master/coffee/meta.
 ▸assert condition               # log file position and 'assertion failure!' if condition isn't truish
                                 
                                 # log execution times  
-▸profile 'sum'                  # -> 6_4 1ms          line_col prefix
-    ▸profile s1()               # -> 7_4 2ms          if not named
+▸profile 'sum'                  # -> 8_4 1ms          line_column prefix
+    ▸profile s1()               # -> 9_4 2ms          if not named
     ▸profile s2()               # -> sum 3ms
     
 ▸start 'a'                      # like ▸profile, but lets you control

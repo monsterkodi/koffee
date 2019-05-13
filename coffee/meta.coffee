@@ -12,7 +12,18 @@ helpers = require './helpers'
 helpers.colors()
 
 META = [
-    
+
+    key:  '▸doc'
+    desc: '▸doc [header] ...'
+    meta: (args:,node:,opts:) ->
+        header = args[0] and "'###{args[0]}', " or ""
+        before: opts.doc and "console.log(#{header}"
+        after:  ");"
+        skip:   not opts.doc
+        reduce: true
+        body:   true
+        block:  false
+,    
     # 00000000   00000000    0000000   00000000  000  000      00000000  
     # 000   000  000   000  000   000  000       000  000      000       
     # 00000000   0000000    000   000  000000    000  000      0000000   
@@ -113,6 +124,7 @@ META = [
     key:  '▸test'
     desc: '▸test [id] ...'
     meta: (opts:,args:,node:) ->
+        dedent: true
         before: opts.test and logSource opts:opts, args:args, node:node, close:true
         skip:   not opts.test
         reduce: true
@@ -189,7 +201,7 @@ compileMetaIf = (node:,opts:) ->
         bodyOpt = opts
 
     if info.before
-        frag.push node.makeCode (info.block != false and indent or '') + info.before
+        frag.push node.makeCode (info.block!=false and info.dedent!=true and indent or '') + info.before
         
     if info.body
         if info.block != false
@@ -236,7 +248,7 @@ logSource = (opts:,args:,node:,close:) ->
     before  = "console.log('#{source}#{dim blue ':'}#{blueBright "#{node.condition.locationData.first_line+1}"}'"
     before += ", '#{bold whiteBright args[0]}'" if args[0] 
     if (close)
-        before += ');'
+        before += ');\n'
     else
         before += ", "
     colorette.options.enabled = true

@@ -13,10 +13,16 @@ helpers.colors()
 
 META = [
 
+    # 0000000     0000000    0000000  
+    # 000   000  000   000  000       
+    # 000   000  000   000  000       
+    # 000   000  000   000  000       
+    # 0000000     0000000    0000000  
+    
     key:  '▸doc'
     desc: '▸doc [header] ...'
     meta: (args:,node:,opts:) ->
-        header = args[0] and "'###{args[0]}', " or ""
+        header = args[0] and "'## #{args[0]}\\n'+" or "''+"
         before: opts.doc and "console.log(#{header}"
         after:  ");"
         skip:   not opts.doc

@@ -13,7 +13,7 @@
   "contributors": [
     "monsterkodi"
   ],
-  "version": "0.38.0",
+  "version": "0.39.0",
   "license": "MIT",
   "engines": {
     "node": ">=11.11.0"
@@ -42,8 +42,7 @@
     "colorette": "^1.0.7",
     "nopt": "^4.0.1",
     "pretty-time": "^1.1.0",
-    "underscore": "^1.9.1",
-    "walkdir": "^0.3.2"
+    "underscore": "^1.9.1"
   },
   "devDependencies": {
     "jison": "~0.4.18",

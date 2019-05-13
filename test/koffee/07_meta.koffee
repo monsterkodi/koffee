@@ -10,7 +10,29 @@ check = (c,p) ->
 equal = (c,p) -> 
     js = compile(c)
     eq js, p
-     
+   
+out = ''
+run = (c) -> 
+    out = ''
+    Koffee.eval c, 
+        feature:color:false
+        source:'file.koffee'
+        sandbox:console:log:->out+=[].slice.apply(arguments).join(' ')+'\n' # wow!-)
+
+doc = (c) -> 
+    out = ''
+    Koffee.eval c, 
+        feature:color:false
+        doc:true
+        source:'file.koffee'
+        sandbox:console:log:->out+=[].slice.apply(arguments).join(' ')+'\n' # wow!-)
+        
+# 00     00  00000000  000000000   0000000         000  00000000  
+# 000   000  000          000     000   000        000  000       
+# 000000000  0000000      000     000000000        000  000000    
+# 000 0 000  000          000     000   000        000  000       
+# 000   000  00000000     000     000   000        000  000       
+
 test "meta if", ->
             
     eq os?.platform, undefined
@@ -58,6 +80,12 @@ test "meta if", ->
             345
         ▸else 
             'world'""", "345;;\n"
+
+# 000000000  000  000      0000000    00000000  
+#    000     000  000      000   000  000       
+#    000     000  000      000   000  0000000   
+#    000     000  000      000   000  000       
+#    000     000  0000000  0000000    00000000  
 
 test "meta if tilde", ->
             
@@ -107,6 +135,12 @@ test "meta if tilde", ->
         ~>else 
             'world'""", "345;;\n"
             
+# 00000000   00000000    0000000   00000000  000  000      00000000  
+# 000   000  000   000  000   000  000       000  000      000       
+# 00000000   0000000    000   000  000000    000  000      0000000   
+# 000        000   000  000   000  000       000  000      000       
+# 000        000   000   0000000   000       000  0000000  00000000  
+
 test "meta profile", ->
 
     check """
@@ -206,6 +240,12 @@ test "meta profile shortcut", ->
             sin(3);
             console.log('hello3'"""
      
+#  0000000  000000000   0000000   00000000   000000000        00000000  000   000  0000000    
+# 000          000     000   000  000   000     000           000       0000  000  000   000  
+# 0000000      000     000000000  0000000       000           0000000   000 0 000  000   000  
+#      000     000     000   000  000   000     000           000       000  0000  000   000  
+# 0000000      000     000   000  000   000     000           00000000  000   000  0000000    
+
 test "start end", ->
 
     check """
@@ -220,6 +260,12 @@ test "start end", ->
     };
     """
     
+# 0000000    0000000     0000000   
+# 000   000  000   000  000        
+# 000   000  0000000    000  0000  
+# 000   000  000   000  000   000  
+# 0000000    0000000     0000000   
+
 test "dbg", ->
     
     check """
@@ -230,36 +276,87 @@ test "dbg", ->
         b: 2
     });"""
     
+#  0000000    0000000   0000000  00000000  00000000   000000000  
+# 000   000  000       000       000       000   000     000     
+# 000000000  0000000   0000000   0000000   0000000       000     
+# 000   000       000       000  000       000   000     000     
+# 000   000  0000000   0000000   00000000  000   000     000     
+
 test "assert", ->
-    
-    out = ''
-    run = (c,p) -> 
-        out = ''
-        r = Koffee.eval c, 
-            feature:color:false
-            source:'file.koffee'
-            sandbox:console:log:->out+=[].slice.apply(arguments).join(' ')+'\n' # wow!-)
-        eq r,p
-    
+        
     run """
-    ▸if ▸assert '1' then 1==2/2
-    ▸assert '2' 3/3==4/4
-    ▸assert '3!' 1==2/2.001
-    ▸assert '4!' 1!=2/2
-    f = ->
-        ▸assert '5!' false
-        ▸assert '6' true
-    f()"""
-    eq out, """
-    file.koffee:3 3!
-    file.koffee:4 4!
-    file.koffee:6 5!\n"""
+        ▸if ▸assert '1' then 1==2/2
+        ▸assert '2' 3/3==4/4
+        ▸assert '3!' 1==2/2.001
+        ▸assert '4!' 1!=2/2
+        f = ->
+            ▸assert '5!' false
+            ▸assert '6' true
+        f()"""
     
+    eq out, """
+        file.koffee:3 3!
+        file.koffee:4 4!
+        file.koffee:6 5!\n"""
+    
+    # TODO: interpolation in assert arg should work!
+        
     # run """
     # a = 1
     # ▸assert "is #{a}==2?" a==2
     # """
     # eq out, """
     # file.koffee:2 is 1==2?\n"""
+    
+# 0000000     0000000    0000000  
+# 000   000  000   000  000       
+# 000   000  000   000  000       
+# 000   000  000   000  000       
+# 0000000     0000000    0000000  
+
+test "doc", ->
+                
+    doc """
+    ▸doc 'hello'
+        
+        world
+        
+        nice thing
+    1
+    """
+    eq out, """
+    ## hello
+    
+    world
+    
+    nice thing\n"""
+
+    doc """
+    ▸doc 'hello'
+        world
+        nice thing
+    """
+    eq out, """
+    ## hello
+    world
+    nice thing\n"""
+
+    doc """
+    ▸doc 'hello'
+    1+1
+    ▸doc 'world'
+                !!!
+    2+2
+    ▸doc
+        
+        nice
+    3+3
+    ▸doc
+        thing
+    """
+    
+    # log out.split('\n').join('<<\n')
+    # worry about these  vvvv spaces?
+    eq out, """## hello\n    \n## world\n!!!\n\nnice\nthing\n"""
     
     

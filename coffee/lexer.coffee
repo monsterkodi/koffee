@@ -139,13 +139,18 @@ class Lexer
                 continue # ignore empty lines
                
             if lineIndent <= @indent
-                cmmt = repeat ' ', @indent+4
-                cmmt += "'''"
-                body = lines[...numLines-1]
-                after = lines[numLines-1..]
-                newCode = [doc, cmmt, body, cmmt, after].flat().join '\n'
-                @code = @code[...@chunkIndex] + newCode
-                return
+                break
+                
+        if lineIndent > @indent then numLines++ # probably at end of input, include last line
+        
+        cmmt = repeat ' ', @indent+4
+        cmmt += "'''"
+        body = lines[...numLines-1]
+        after = lines[numLines-1..]
+        newCode = [doc, cmmt, body, cmmt, after].flat().join '\n'
+        @code = @code[...@chunkIndex] + newCode
+        # ▸dbg @code
+        return
         
         # ▸dbg 'head' match.input[..100]
         

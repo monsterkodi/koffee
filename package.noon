@@ -10,7 +10,7 @@ keywords
 author          Jeremy Ashkenas
 contributors
                 monsterkodi
-version         0.38.0
+version         0.39.0
 license         MIT
 engines
                 node  >=11.11.0
@@ -34,7 +34,6 @@ dependencies
                 nopt          ^4.0.1
                 pretty-time   ^1.1.0
                 underscore    ^1.9.1
-                walkdir       ^0.3.2
 devDependencies
                 jison   ~0.4.18
                 noon    ^2.0.2

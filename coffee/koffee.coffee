@@ -226,15 +226,15 @@ run = (code, options={}) ->
         
     mainModule._compile code, mainModule.filename
 
-# 00000000  000   000   0000000   000      
-# 000       000   000  000   000  000      
-# 0000000    000 000   000000000  000      
-# 000          000     000   000  000      
-# 00000000      0      000   000  0000000  
+# 00000000  000   000   0000000   000      000   000   0000000   000000000  00000000  
+# 000       000   000  000   000  000      000   000  000   000     000     000       
+# 0000000    000 000   000000000  000      000   000  000000000     000     0000000   
+# 000          000     000   000  000      000   000  000   000     000     000       
+# 00000000      0      000   000  0000000   0000000   000   000     000     00000000  
 
 # Compile and evaluate a string in a Node.js-like environment. The REPL uses this to run the input.
 
-evaluate = (code, options={}) ->
+evaluate = (code, options={}) -> # exported as eval
     
     return unless code = code.trim()
     

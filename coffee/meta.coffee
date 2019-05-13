@@ -24,8 +24,8 @@ META = [
     meta: (args:,node:,opts:) ->
         header = args[0] and "'## #{args[0]}\\n'+" or "''+"
         before: opts.doc and "console.log(#{header}"
-        after:  ");"
-        skip:   not opts.doc
+        after:  ")"
+        skip:   not opts.doc and with:"''"
         reduce: true
         body:   true
         block:  false
@@ -181,7 +181,10 @@ compileMetaIf = (node:,opts:) ->
             args = args.map (a) -> if a[0] in ['"', "'"] then a[1..-2] else a
             info = opts.meta[metaKey] opts:opts, node:node, args:args
         
-    if info.skip then return []
+    if info.skip 
+        if info.skip.with?
+            return node.makeCode info.skip.with
+        return []
     
     if info.eval
         

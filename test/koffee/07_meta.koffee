@@ -359,4 +359,35 @@ test "doc", ->
     # worry about these  vvvv spaces?
     eq out, """## hello\n    \n## world\n!!!\n\nnice\nthing\n"""
     
+test "doc as value", ->
+    
+    a = ▸doc 'is this possible?'
+        'seems it is'
+    eq a, ''
+
+    d = b: ▸doc 'is this possible?'
+        'seems it is'
+    eq d.b, ''
+
+    doc """
+        a = ▸doc 'ha'
+            'yes'
+        d = b: ▸doc 'hb'
+            'true'
+        {a,d}
+    """
+    eq out, """
+        ## ha
+        'yes'
+        ## hb
+        'true'\n
+    """
+    
+test "doesn't work", ->
+    
+    throws -> Koffee.compile "a = ▸doc 'is this possible?' ▸then 'seems not'"
+    throws -> Koffee.compile "▸doc 'is this possible?' ▸then 'seems not'"
+    throws -> Koffee.compile "▸doc 'is this possible?' then 'seems not'"
+    throws -> Koffee.compile "▸doc 'is this possible?' 'seems not'"
+
     

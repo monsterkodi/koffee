@@ -12,13 +12,41 @@ helpers = require './helpers'
 helpers.colors()
 
 META = [
+        
+    # 0000000     0000000    0000000  
+    # 000   000  000   000  000       
+    # 000   000  000   000  000       
+    # 000   000  000   000  000       
+    # 0000000     0000000    0000000  
 
-    # 0000000     0000000    0000000  
-    # 000   000  000   000  000       
-    # 000   000  000   000  000       
-    # 000   000  000   000  000       
-    # 0000000     0000000    0000000  
-    
+    doc: ▸doc '▸doc'
+        
+        This is a slightly special macro, because it's first pass is hardcoded in the tokenizer.
+        The body of the macro is wrapped in a skinny triple string before further tokenization.
+        It can contain anything except a skinny triple string.
+        
+        In normal operation, it is reduced to the empty string. 
+        But if **koffee** is called with the `--doc` argument, logs will be inserted instead.
+        
+        ```coffeescript
+        ▸doc 'title'
+            my documentation ...
+        log 'some code'
+        ▸doc
+            we are done.
+        ```
+        
+        `koffee --doc file` will output
+        
+        ```markdown
+        ## title
+        my documentation ...
+        some code
+        we are done
+        ```
+        
+        but `koffee file` will only print `some code`
+        
     key:  '▸doc'
     desc: '▸doc [header] ...'
     meta: (args:,node:,opts:) ->

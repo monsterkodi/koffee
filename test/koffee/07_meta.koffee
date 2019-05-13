@@ -383,11 +383,14 @@ test "doc as value", ->
         'true'\n
     """
     
+test 'single line', ->
+    
+    doesNotThrow -> Koffee.compile "▸doc 'is this possible?' 'yes'"
+    
 test "doesn't work", ->
     
-    throws -> Koffee.compile "a = ▸doc 'is this possible?' ▸then 'seems not'"
-    throws -> Koffee.compile "▸doc 'is this possible?' ▸then 'seems not'"
-    throws -> Koffee.compile "▸doc 'is this possible?' then 'seems not'"
-    throws -> Koffee.compile "▸doc 'is this possible?' 'seems not'"
+    throws -> Koffee.compile "a = ▸doc 'is this possible?' ▸then 'no!'"
+    throws -> Koffee.compile "▸doc 'is this possible?' ▸then 'no!'"
+    throws -> Koffee.compile "▸doc 'is this possible?' then 'nope!'"
 
     

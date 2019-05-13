@@ -1,4 +1,4 @@
-// koffee 0.38.0
+// koffee 0.41.0
 
 /*
 000   000   0000000   0000000    00000000   0000000  
@@ -407,7 +407,11 @@
                 } else if (top) {
                     node.front = true;
                     fragments = node.compileToFragments(o);
-                    if (!node.isStatement(o)) {
+                    if (!node.isStatement(o) && (fragments.unshift != null)) {
+                        if (!((fragments != null ? fragments.unshift : void 0) != null)) {
+                            console.log('[33m[93mnodes[33m[2m.[22m[2mcoffee[22m[39m[2m[34m:[39m[22m[94m337[39m', '[1m[97mno unshift?[39m[22m');
+
+                        };
                         fragments.unshift(this.makeCode("" + this.tab));
                         fragments.push(this.makeCode(";"));
                     }

@@ -333,7 +333,8 @@ exports.Block = class Block extends Base
             else if top
                 node.front = true
                 fragments = node.compileToFragments o
-                unless node.isStatement o
+                if not node.isStatement(o) and fragments.unshift?
+                    ▸assert 'no unshift?' fragments?.unshift?
                     fragments.unshift @makeCode "#{@tab}"
                     fragments.push @makeCode ";"
                 compiledNodes.push fragments

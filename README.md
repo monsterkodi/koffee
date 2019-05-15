@@ -170,7 +170,7 @@ log 'some code'
 ## title
 my documentation ...
 some code
-we are done
+we are done.
 ```
 
 but `koffee file` will only print `some code`

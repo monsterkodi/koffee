@@ -42,7 +42,7 @@ META = [
         ## title
         my documentation ...
         some code
-        we are done
+        we are done.
         ```
         
         but `koffee file` will only print `some code`
@@ -115,11 +115,12 @@ META = [
         then: true # should not be used with a block
         args: 1
     meta: (opts:,args:,node:) ->
-        code:   "true"
-        eval:   true
+        # code:   'true'
+        # eval:   true
         before: logSource {opts, args, node}
-        after:  ")"
+        after:  ')'
         reduce: true
+        body:   true
         block:  false
 ,        
     #  0000000    0000000   0000000  00000000  00000000   000000000  

@@ -539,7 +539,7 @@ printRewriter = (tokens) ->
             when 'NULL' 'UNDEFINED' 'FUNC_EXIST' '?' '?.' 'BIN?' then spaced red
             when 'REGEX'                             then spaced magenta
             when 'FOR' 'FORIN' 'TRY' 'CATCH' 'THROW' 'RELATION' 'EXTENDS' 'STATEMENT' 'OWN' 'FOROF' 'LOOP' \
-                 'IF' 'POST_IF' 'WHEN' 'THEN' 'ELSE' 'THIS' 'SUPER' 'SWITCH' 'LEADING_WHEN' \
+                 'IF' 'POST_IF' 'WHEN' 'THEN' 'ELSE' 'THIS' 'SUPER' 'SWITCH' 'LEADING_WHEN' 'WHILE' \
                  'BOOL' 'CLASS' 'RETURN'             then spaced blueBright
             when 'IDENTIFIER' 
                 switch value

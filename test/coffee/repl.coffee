@@ -41,7 +41,7 @@ testRepl = (desc, fn) ->
 escape = { name: 'escape'}
 
 testRepl 'reads history file', (input, output, repl) ->
-    input.emitLine repl.rli.history[0]
+    input.emitLine repl.history[0]
     eq '3', output.lastWrite()
 
 testRepl "starts with prompt", (input, output) ->

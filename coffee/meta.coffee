@@ -159,8 +159,11 @@ META = [
     key:  '▸test'
     desc: '▸test [id] ...'
     meta: (opts:,args:,node:) ->
+        before  = logSource {opts, args, node, close:true}
+        before += '\n    try {\n'
         dedent: true
-        before: opts.test and logSource {opts, args, node, close:true}
+        before: opts.test and before
+        after:  opts.test and '} catch(err) { console.error(err.message); }\n'
         skip:   not opts.test
         reduce: true
         body:   true

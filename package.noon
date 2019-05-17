@@ -10,7 +10,7 @@ keywords
 author          Jeremy Ashkenas
 contributors
                 monsterkodi
-version         0.43.0
+version         0.44.0
 license         MIT
 engines
                 node  >=11.11.0

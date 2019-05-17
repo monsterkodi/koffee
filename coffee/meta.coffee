@@ -51,7 +51,7 @@ META = [
     desc: '▸doc [header] ...'
     meta: (args:,node:,opts:) ->
         header = args[0] and "'## #{args[0]}\\n'+" or "''+"
-        before: opts.doc and "console.log(#{header}"
+        before: opts.doc and "#{metaLog(opts)}(#{header}"
         after:  ")"
         skip:   not opts.doc and with:"''"
         reduce: true
@@ -66,11 +66,11 @@ META = [
     
     key:  '▸profile'   
     desc: '▸profile [id] ...'
-    meta: (args:,node:) -> 
+    meta: (args:,node:,opts:) -> 
         
         id = "#{node.condition.locationData.first_line+1}_#{node.condition.locationData.first_column}"
         name = args[0] ? id
-        after:  "console.log('#{name}', require('pretty-time')(process.hrtime(koffee_#{id})));"
+        after:  "#{metaLog(opts)}('#{name}', require('pretty-time')(process.hrtime(koffee_#{id})));"
         code:   "koffee_#{id} = process.hrtime()"
         reduce: false
         body:   true
@@ -97,9 +97,9 @@ META = [
     info:
         then: true
         args: 1
-    meta: (args:) -> 
+    meta: (args:,opts:) -> 
         id = args[0] ? 'start_end'
-        before: "console.log('#{id}', require('pretty-time')(process.hrtime(koffee_#{id})))"
+        before: "#{metaLog(opts)}('#{id}', require('pretty-time')(process.hrtime(koffee_#{id})))"
         reduce: true
         body:   false
 ,        
@@ -115,8 +115,6 @@ META = [
         then: true # should not be used with a block
         args: 1
     meta: (opts:,args:,node:) ->
-        # code:   'true'
-        # eval:   true
         before: logSource {opts, args, node}
         after:  ')'
         reduce: true
@@ -141,14 +139,12 @@ META = [
             
         frag = body.compileToFragments opts
         text = node.fragmentsToText frag
-        code = "!(#{text})"
         args = ['assertion failure!'] if not args.length
         before: logSource {opts, args, node, close:true}
         then:   true # should not be used with a block
         eval:   false
         reduce: false
-        # block:  false
-        code:   code            
+        code:   "!(#{text})"
 ,    
     # 000000000  00000000   0000000  000000000  
     #    000     000       000          000     
@@ -163,7 +159,7 @@ META = [
         before += '\n    try {\n'
         dedent: true
         before: opts.test and before
-        after:  opts.test and '} catch(err) { console.error(err.message); }\n'
+        after:  opts.test and "} catch(err) { #{metaLog(opts)}(err.message); }\n"
         skip:   not opts.test
         reduce: true
         body:   true
@@ -278,6 +274,8 @@ compileMetaIf = (node:,opts:) ->
 # 000      000   000  000   000             000  000   000  000   000  000   000  000       000       
 # 0000000   0000000    0000000         0000000    0000000    0000000   000   000   0000000  00000000  
 
+metaLog = (opts) -> opts.metalog ? 'console.log'
+
 logSource = (opts:,args:,node:,close:) ->
     
     colorette.options.enabled = opts.feature.color
@@ -286,7 +284,7 @@ logSource = (opts:,args:,node:,close:) ->
     if source
         [source, ext...] = path.basename(source).split '.'
         source  = yellow [yellowBright(source), dim ext.join'.'].join dim '.'
-    before  = "console.log('#{source}#{dim blue ':'}#{blueBright "#{node.condition.locationData.first_line+1}"}'"
+    before  = "#{metaLog(opts)}('#{source}#{dim blue ':'}#{blueBright "#{node.condition.locationData.first_line+1}"}'"
     before += ", '#{bold whiteBright args[0]}'" if args[0] 
     if (close)
         before += ');\n'

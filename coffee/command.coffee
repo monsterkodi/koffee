@@ -41,6 +41,7 @@ hidden    = (file) -> /^\.|~$/.test file
 SWITCHES = [
     ['-b' '--bare'              'compile without a top-level function wrapper'          Boolean        ]
     ['-c' '--compile'           'compile to JavaScript and save as .js files'           Boolean        ]
+    ['-d' '--doc'               'log the ▸doc sections'                                 Boolean        ]
     ['-e' '--eval STRING'       'evaluate a string and print the result'               [String, Array] ]
     ['-f' '--features'          'list available features'                               Boolean        ]
     [''   '--no-`feature'       'disable a feature, e.g. --no-negative-index'           null           ]
@@ -48,6 +49,7 @@ SWITCHES = [
     ['-j' '--js'                'print out the compiled JavaScript'                     Boolean        ]
     ['-m' '--map'               'generate source map and save as .js.map files'         Boolean        ]
     ['-M' '--inline-map'        'generate source map and include it directly in output' Boolean        ]
+    [''   '--metalog'           'meta log (default: console.log)'                       String         ]
     ['-n' '--noop'              'does nothing, for debugging purposes'                  Boolean        ]
     ['-o' '--output DIR'        'set the output directory for compiled JavaScript'      String         ]
     ['-P' '--parse'             'print out the parse tree that the parser produces'     Boolean        ]
@@ -287,6 +289,7 @@ compileOptions = (source) -> # The compile-time options to pass to the compiler.
         test:      opts.test
         doc:       opts.doc
         Debug:     opts.Debug
+        metalog:   opts.metalog
 
     if source
         

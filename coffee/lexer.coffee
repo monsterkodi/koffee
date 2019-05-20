@@ -1154,8 +1154,6 @@ OPERATOR = /// ^ (
 
 WHITESPACE = /^[^\n\S]+/
 
-# COMMENT    = /^###([^#][\s\S]*?)(?:###[^\n\S]*|###$)|^(?:\s*#(?!##[^#]).*)+/ # moved to end
-
 CODE       = /^[-=]>/
 
 MULTI_DENT = /^(?:\n[^\n\S]*)+/
@@ -1164,8 +1162,6 @@ JSTOKEN      = ///^ `(?!``) ((?: [^`\\] | \\[\s\S]           )*) `   ///
 HERE_JSTOKEN = ///^ ```     ((?: [^`\\] | \\[\s\S] | `(?!``) )*) ``` ///
 
 # String-matching-regexes.
-
-STRING_START   = /^(?:'''|"""|'|")/
 
 STRING_SINGLE  = /// ^(?: [^\\']  | \\[\s\S]                      )* ///
 STRING_DOUBLE  = /// ^(?: [^\\"#] | \\[\s\S] |           \#(?!\{) )* ///
@@ -1278,7 +1274,8 @@ UNFINISHED = ['\\' '.' '?.' '?::' 'UNARY' 'MATH' 'UNARY_MATH' '+' '-'
               '**' 'SHIFT' 'RELATION' 'COMPARE' '&' '^' '|' '&&' '||'
               'BIN?' 'THROW' 'EXTENDS']
               
-COMMENT    = /^###([^#][\s\S]*?)(?:###[^\n\S]*|###$)|^(?:\s*#(?!##[^#]).*)+/              
+STRING_START = /^(?:'''|"""|'|")/
+COMMENT      = /^###([^#][\s\S]*?)(?:###[^\n\S]*|###$)|^(?:\s*#(?!##[^#]).*)+/              
 
 module.exports = 
     JS_FORBIDDEN:   JS_KEYWORDS.concat(RESERVED).concat(STRICT_PROSCRIBED)

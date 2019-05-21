@@ -323,8 +323,8 @@ parser.yy.parseError = (message, {token}) -> # Override Jison's default error ha
         when errorTag in ['IDENTIFIER' 'NUMBER' 'INFINITY' 'STRING' 'STRING_START' 'REGEX' 'REGEX_START']
             errorTag.replace(/_START$/, '').toLowerCase()
         else
-            switch errorText # nameWhitespaceCharacter
-                when ' ' then 'space'
+            switch errorText # name whitespace character
+                when ' '  then 'space'
                 when '\n' then 'newline'
                 when '\r' then 'carriage return'
                 when '\t' then 'tab'

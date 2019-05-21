@@ -494,7 +494,7 @@ printTokens = (tokens) ->
             print gray dim 'OUT '
         else if tag in ['CLASS' 'PARAM_START' 'PARAM_END' 'NULL']
             print "#{index}#{ctag} "
-        else if tag is value
+        else if tag == value
             print "#{index}#{cvalue} "
         else
             print "#{index}#{ctag}=#{cvalue} "

@@ -67,8 +67,25 @@ test "optional commata", ->
             }
         ];"""
         
-    check "undefined", "void 0" # wtf?
+    check "undefined", "void 0"
     check "a = ['a' 1 2.3 null undefined true false yes no on off]", "a = ['a', 1, 2.3, null, void 0, true, false, true, false, true, false]"
+        
+    check """
+        switch a
+            when 1 2 3 then
+            when 'a' 'b' 'c' then
+        ""","""
+        switch (a) {
+            case 1:
+            case 2:
+            case 3:
+                break;
+            case 'a':
+            case 'b':
+            case 'c':
+        }"""
+
+    check "describe 'test' ->", "describe('test', function() {});"
         
     throws -> compile "[[][]]"
     check "a = [ [] [] ]", "a = [[], []];"

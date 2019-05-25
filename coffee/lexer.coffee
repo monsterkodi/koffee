@@ -1163,10 +1163,13 @@ HERE_JSTOKEN = ///^ ```     ((?: [^`\\] | \\[\s\S] | `(?!``) )*) ``` ///
 
 # String-matching-regexes.
 
+STRING_START = /^(?:'''|"""|'|")/
 STRING_SINGLE  = /// ^(?: [^\\']  | \\[\s\S]                      )* ///
 STRING_DOUBLE  = /// ^(?: [^\\"#] | \\[\s\S] |           \#(?!\{) )* ///
 HEREDOC_SINGLE = /// ^(?: [^\\']  | \\[\s\S] | '(?!'')            )* ///
 HEREDOC_DOUBLE = /// ^(?: [^\\"#] | \\[\s\S] | "(?!"") | \#(?!\{) )* ///
+
+COMMENT      = /^###([^#][\s\S]*?)(?:###[^\n\S]*|###$)|^(?:\s*#(?!##[^#]).*)+/              
 
 STRING_OMIT    = ///
         ((?:\\\\)+)      # consume (and preserve) an even number of backslashes
@@ -1274,9 +1277,6 @@ UNFINISHED = ['\\' '.' '?.' '?::' 'UNARY' 'MATH' 'UNARY_MATH' '+' '-'
               '**' 'SHIFT' 'RELATION' 'COMPARE' '&' '^' '|' '&&' '||'
               'BIN?' 'THROW' 'EXTENDS']
               
-STRING_START = /^(?:'''|"""|'|")/
-COMMENT      = /^###([^#][\s\S]*?)(?:###[^\n\S]*|###$)|^(?:\s*#(?!##[^#]).*)+/              
-
 module.exports = 
     JS_FORBIDDEN:   JS_KEYWORDS.concat(RESERVED).concat(STRICT_PROSCRIBED)
     isUnassignable: isUnassignable

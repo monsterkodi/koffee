@@ -1,12 +1,6 @@
 # Formatting
 # ----------
 
-# TODO: maybe this file should be split up into their respective sections:
-#       operators -> operators
-#       array literals -> array literals
-#       string literals -> string literals
-#       function invocations -> function invocations
-
 doesNotThrow -> Koffee.compile "a = then b"
 
 test "multiple semicolon-separated statements in parentheticals", ->

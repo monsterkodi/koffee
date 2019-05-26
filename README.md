@@ -127,10 +127,10 @@ The [default map](https://github.com/monsterkodi/koffee/blob/master/coffee/meta.
 
 ```coffeescript
                                 # log file position and object
-▸dbg 'my object' a:1, b:2       # -> file:1 my object { a: 1, b: 2 }
+▸dbg 'my object' a:1 b:2        # -> file:1 my object { a: 1, b: 2 }
 
-▸assert 'message' condition     # log file position and message if condition isn't truish
-▸assert condition               # log file position and 'assertion failure!' if condition isn't truish
+▸assert 'message' condition     # log file position and message and exits if condition isn't truish
+▸assert condition               # similar, but with 'assertion failure!' as the message
                                 
                                 # log execution times  
 ▸profile 'sum'                  # -> 8_4 1ms          line_column prefix

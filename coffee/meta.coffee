@@ -141,6 +141,7 @@ META = [
         text = node.fragmentsToText frag
         args = ['assertion failure!'] if not args.length
         before: logSource {opts, args, node, close:true}
+        after:  'process.exit(666);'
         then:   true # should not be used with a block
         eval:   false
         reduce: false

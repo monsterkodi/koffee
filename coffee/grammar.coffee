@@ -232,7 +232,7 @@ grammar =
 
     OptComma: [
         o ''
-        o ' '
+        o ','
     ]
 
     # The list of parameters that a function accepts can be of any length.

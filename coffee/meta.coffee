@@ -70,9 +70,38 @@ META = [
         
         id = "#{node.condition.locationData.first_line+1}_#{node.condition.locationData.first_column}"
         name = args[0] ? id
-        after:  "#{metaLog(opts)}('#{name}', require('pretty-time')(process.hrtime(koffee_#{id})));"
-        code:   "koffee_#{id} = process.hrtime()"
+        code:   "koffee_#{id} = process.hrtime.bigint()"
+        after:  "#{metaLog(opts)}('#{name}', (function(b){ let f=1000n; for (let u of ['ns','μs','ms','s','m']) { if (u=='m' || b<f) { return ''+(1000n*b/f)+u; } f*=1000n; }})(process.hrtime.bigint()-koffee_#{id}));"
         reduce: false
+        body:   true
+,
+    #  0000000   000   000  00000000  00000000    0000000    0000000   00000000  
+    # 000   000  000   000  000       000   000  000   000  000        000       
+    # 000000000   000 000   0000000   0000000    000000000  000  0000  0000000   
+    # 000   000     000     000       000   000  000   000  000   000  000       
+    # 000   000      0      00000000  000   000  000   000   0000000   00000000  
+    
+    key:  '▸average'   
+    desc: '▸average num ...'
+    meta: (args:,node:,opts:) -> 
+        
+        id  = "#{node.condition.locationData.first_line+1}_#{node.condition.locationData.first_column}"
+        num = args[0] ? 100
+        before:  """
+            
+            koffee_#{id} = 0n;
+            for(i = 0; i < #{num}; i++) 
+            { 
+                koffee_#{id}_start = process.hrtime.bigint();
+            
+            """
+        after: """
+            koffee_#{id} += process.hrtime.bigint() - koffee_#{id}_start;
+            };
+            koffee_#{id} /= #{num}n;
+            #{metaLog(opts)}('#{id}', (function(b){ let f=1000n; for (let u of ['ns','μs','ms','s','m']) { if (u=='m' || b<f) { return ''+(1000n*b/f)+u; } f*=1000n; }})(koffee_#{id})); 
+            """
+        reduce: true
         body:   true
 ,
     #  0000000  000000000   0000000   00000000   000000000  
@@ -88,7 +117,7 @@ META = [
         args: 1
     meta: (args:) -> 
         id = args[0] ? 'start_end'
-        before: "koffee_#{id} = process.hrtime()"
+        before: "koffee_#{id} = process.hrtime.bigint()"
         reduce: true
         body:   false
 ,
@@ -99,7 +128,7 @@ META = [
         args: 1
     meta: (args:,opts:) -> 
         id = args[0] ? 'start_end'
-        before: "#{metaLog(opts)}('#{id}', require('pretty-time')(process.hrtime(koffee_#{id})))"
+        before: "#{metaLog(opts)}('#{id}', (function(b){ let f=1000n; for (let u of ['ns','μs','ms','s','m']) { if (u=='m' || b<f) { return ''+(1000n*b/f)+u; } f*=1000n; }})(process.hrtime.bigint()-koffee_#{id}));"
         reduce: true
         body:   false
 ,        

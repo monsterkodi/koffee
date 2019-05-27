@@ -136,6 +136,10 @@ The [default map](https://github.com/monsterkodi/koffee/blob/master/coffee/meta.
 ▸profile 'sum'                  # -> 8_4 1ms          line_column prefix
     ▸profile s1()               # -> 9_4 2ms          if not named
     ▸profile s2()               # -> sum 3ms
+
+▸average 123                    # execute f and g 123 times and report average time
+    f()                         # -> 11_0 321μs
+    g()
     
 ▸start 'a'                      # like ▸profile, but lets you control
 f = -> ▸end 'a'                 # when to start and stop timing

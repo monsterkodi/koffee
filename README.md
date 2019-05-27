@@ -52,6 +52,13 @@ koffee = require 'koffee'
 koffee.compile code, feature:console_shortcut:false
 ```
 
+## BigInt
+
+```coffeescript
+a = 12345678901234567890n 
+log a*a  # -> 152415787532388367501905199875019052100n
+```
+
 ## Optional commata
 
 Coffeescript has a very nice way of initializing arrays:

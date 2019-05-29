@@ -21,11 +21,9 @@ nopt             = require 'nopt'
 helpers          = require './helpers'
 Koffee           = require './koffee'
 { spawn, exec }  = require 'child_process'
-{ EventEmitter } = require 'events'
 
 useWinPathSep    = path.sep is '\\'
 
-helpers.extend Koffee, new EventEmitter # Allow emitting Node events
 helpers.colors()
 
 { FEATURES, logFeatures } = require './features'
@@ -229,7 +227,6 @@ compileScript = (code, source=null) ->
     
     try
         t = task = {source, code, options}
-        Koffee.emit 'compile', task
         
         if o.tokens
             printTokens Koffee.tokens t.code, t.options
@@ -251,8 +248,6 @@ compileScript = (code, source=null) ->
                 t.output = compiled.js
                 t.sourceMap = compiled.v3SourceMap
 
-            Koffee.emit 'success', task
-            
             if o.js
                 if opts.noop then log "noop js #{source}"
                 else 
@@ -263,9 +258,6 @@ compileScript = (code, source=null) ->
                     writeJs t.source, t.output, options.jsPath, t.sourceMap
     catch err
         
-        Koffee.emit 'failure', err, task
-        return if Koffee.listeners('failure').length
-
         message = err.message
         
         if err instanceof SyntaxError

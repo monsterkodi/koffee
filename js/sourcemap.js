@@ -1,4 +1,4 @@
-// koffee 0.53.0
+// koffee 0.54.0
 (function() {
     var LineMap, SourceMap;
 

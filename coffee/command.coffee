@@ -280,16 +280,9 @@ compileScript = (code, source=null) ->
 
 compileOptions = (source) -> # The compile-time options to pass to the compiler.
     
-    copts =         
-        source:    source
-        sourceMap: opts.map
-        inlineMap: opts['inline-map']
-        feature:   opts.feature
-        bare:      opts.bare
-        test:      opts.test
-        doc:       opts.doc
-        Debug:     opts.Debug
-        metalog:   opts.metalog
+    copts = Object.assign {}, opts
+    copts.sourceMap = opts.map
+    copts.inlineMap = opts['inline-map']
 
     if source
         

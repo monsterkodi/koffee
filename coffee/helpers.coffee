@@ -203,6 +203,7 @@ updateSyntaxError = (err, code, filename, options) -> # Update a compiler Syntax
         err.column = first_column+1
         
         if options?.feature?.color != false
+            colorette.options.enabled = true
             codeLine = codeLine[...start] + red(codeLine[start...end]) + codeLine[end..]
             markLine = red markLine
             message  = yellowBright message 
@@ -210,7 +211,7 @@ updateSyntaxError = (err, code, filename, options) -> # Update a compiler Syntax
             line = blue "#{err.line}"
             colm = dim blue "#{err.column}"
             file = path.parse err.filename ? ''
-            file = yellow(file.name) + dim yellow file.ext
+            file = yellow dim(file.dir + '/') + file.name + dim file.ext
             fileLine = "#{file}#{sep}#{line}#{sep}#{colm}"
         else
             fileLine = "#{err.filename ? '?'}:#{err.line}:#{err.column}"
@@ -224,9 +225,7 @@ updateSyntaxError = (err, code, filename, options) -> # Update a compiler Syntax
             #{err.codeLine}
             #{err.markLine}
             """
-        # ▸dbg 'err' message:err.message, markLine:err.markLine
     else
-        # ▸dbg 'code or location?' code:err.code?, location:err.location?
         err.message = Error::toString.call err 
         
     err

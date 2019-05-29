@@ -97,8 +97,13 @@ compile = (code, options) ->
                 options.bare = yes
                 break
 
-    fragments = parser.parse(tokens).compileToFragments options
-
+    try
+        fragments = parser.parse(tokens).compileToFragments options
+    catch err
+        if err instanceof SyntaxError
+            updateSyntaxError err, code, options.source ? options.filename ? '', options
+        throw err
+            
     currentLine = 0
     currentLine += 1 if hasFeature options, 'header'
     currentColumn = 0

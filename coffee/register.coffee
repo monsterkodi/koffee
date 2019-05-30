@@ -24,7 +24,7 @@ loadFile = (module, filename) ->
             sourceFiles: [filename]
         module._compile answer, filename
     catch err
-        throw updateSyntaxError err, code, filename
+        throw helpers.updateSyntaxError err, code, filename
 
 # If the installed version of Node supports `require.extensions`, register our extensions.
 

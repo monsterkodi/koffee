@@ -221,14 +221,11 @@ run = (code, options={}) ->
         try
             answer = compile code, options
         catch err
-            # log 'koffee.run compile error', options.filename, mainModule.filename, err
             updateSyntaxError err, code, mainModule.filename, options
             throw err
         
         code = answer.js ? answer
 
-    # log 'Koffee.run mainModule._compile', mainModule.filename, options if options.Debug
-        
     mainModule._compile code, mainModule.filename
 
 # 00000000  000   000   0000000   000      000   000   0000000   000000000  00000000  

@@ -238,7 +238,8 @@ compileScript = (code, source=null) ->
             Koffee.register()
             Koffee.eval opts.prelude, t.options if opts.prelude
             t.options.filename ?= options.source
-            if opts.noop then log "noop run #{source}"
+            if opts.noop 
+                log "noop run #{source}"
             else
                 Koffee.run t.code, t.options
         else
@@ -283,6 +284,7 @@ compileOptions = (source) -> # The compile-time options to pass to the compiler.
         jsDir = path.dirname jsPath
         copts = merge copts, {
             jsPath
+            source: source
             sourceRoot: path.relative jsDir, cwd
             sourceFiles: [path.relative cwd, source]
             generatedFile: baseFileName(jsPath, no, useWinPathSep)

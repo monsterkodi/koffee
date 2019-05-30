@@ -1,4 +1,4 @@
-// koffee 0.52.0
+// koffee 0.58.0
 
 /*
 00000000   00000000   0000000   000   0000000  000000000  00000000  00000000   
@@ -7,81 +7,82 @@
 000   000  000       000   000  000       000     000     000       000   000  
 000   000  00000000   0000000   000  0000000      000     00000000  000   000
  */
-var Koffee, Module, binary, child_process, ext, findExtension, fork, fs, helpers, i, len, loadFile, path, ref;
 
-Koffee = require('./koffee');
+(function() {
+    var Koffee, Module, binary, child_process, ext, findExtension, fork, fs, helpers, i, len, loadFile, path, ref;
 
-child_process = require('child_process');
+    Koffee = require('./koffee');
 
-helpers = require('./helpers');
+    child_process = require('child_process');
 
-path = require('path');
+    helpers = require('./helpers');
 
-fs = require('fs');
+    path = require('path');
 
-loadFile = function(module, filename) {
-    var answer, code, err;
-    code = fs.readFileSync(filename, 'utf8');
-    try {
-        answer = Koffee.compile(code, {
-            filename: filename,
-            sourceMap: false,
-            inlineMap: true,
-            sourceFiles: [filename]
-        });
-        return module._compile(answer, filename);
-    } catch (error) {
-        err = error;
-        throw helpers.updateSyntaxError(err, code, filename);
-    }
-};
+    fs = require('fs');
 
-if (require.extensions) {
-    ref = Koffee.FILE_EXTENSIONS;
-    for (i = 0, len = ref.length; i < len; i++) {
-        ext = ref[i];
-        require.extensions[ext] = loadFile;
-    }
-    Module = require('module');
-    findExtension = function(filename) {
-        var curExtension, extensions;
-        extensions = path.basename(filename).split('.');
-        if (extensions[0] === '') {
-            extensions.shift();
+    loadFile = function(module, filename) {
+        var answer, code, err;
+        code = fs.readFileSync(filename, 'utf8');
+        try {
+            answer = Koffee.compile(code, {
+                filename: filename,
+                sourceMap: false,
+                inlineMap: true,
+                sourceFiles: [filename]
+            });
+            return module._compile(answer, filename);
+        } catch (error) {
+            err = error;
+            throw helpers.updateSyntaxError(err, code, filename);
         }
-        while (extensions.shift()) {
-            curExtension = '.' + extensions.join('.');
-            if (Module._extensions[curExtension]) {
-                return curExtension;
+    };
+
+    if (require.extensions) {
+        ref = Koffee.FILE_EXTENSIONS;
+        for (i = 0, len = ref.length; i < len; i++) {
+            ext = ref[i];
+            require.extensions[ext] = loadFile;
+        }
+        Module = require('module');
+        findExtension = function(filename) {
+            var curExtension, extensions;
+            extensions = path.basename(filename).split('.');
+            if (extensions[0] === '') {
+                extensions.shift();
             }
-        }
-        return '.js';
-    };
-    Module.prototype.load = function(filename) {
-        var extension;
-        this.filename = filename;
-        this.paths = Module._nodeModulePaths(path.dirname(filename));
-        extension = findExtension(filename);
-        Module._extensions[extension](this, filename);
-        return this.loaded = true;
-    };
-}
-
-if (child_process) {
-    fork = child_process.fork;
-    binary = require.resolve('../bin/koffee');
-    child_process.fork = function(path, args, options) {
-        if (helpers.isCoffee(path)) {
-            if (!Array.isArray(args)) {
-                options = args || {};
-                args = [];
+            while (extensions.shift()) {
+                curExtension = '.' + extensions.join('.');
+                if (Module._extensions[curExtension]) {
+                    return curExtension;
+                }
             }
-            args = [path].concat(args);
-            path = binary;
-        }
-        return fork(path, args, options);
-    };
-}
+            return '.js';
+        };
+        Module.prototype.load = function(filename) {
+            var extension;
+            this.filename = filename;
+            this.paths = Module._nodeModulePaths(path.dirname(filename));
+            extension = findExtension(filename);
+            Module._extensions[extension](this, filename);
+            return this.loaded = true;
+        };
+    }
 
-//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoicmVnaXN0ZXIuanMiLCJzb3VyY2VSb290IjoiLiIsInNvdXJjZXMiOlsiIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7O0FBQUE7Ozs7Ozs7QUFBQSxJQUFBOztBQVFBLE1BQUEsR0FBZ0IsT0FBQSxDQUFRLFVBQVI7O0FBQ2hCLGFBQUEsR0FBZ0IsT0FBQSxDQUFRLGVBQVI7O0FBQ2hCLE9BQUEsR0FBZ0IsT0FBQSxDQUFRLFdBQVI7O0FBQ2hCLElBQUEsR0FBZ0IsT0FBQSxDQUFRLE1BQVI7O0FBQ2hCLEVBQUEsR0FBZ0IsT0FBQSxDQUFRLElBQVI7O0FBRWhCLFFBQUEsR0FBVyxTQUFDLE1BQUQsRUFBUyxRQUFUO0FBRVAsUUFBQTtJQUFBLElBQUEsR0FBTyxFQUFFLENBQUMsWUFBSCxDQUFnQixRQUFoQixFQUEwQixNQUExQjtBQUVQO1FBQ0ksTUFBQSxHQUFTLE1BQU0sQ0FBQyxPQUFQLENBQWUsSUFBZixFQUNMO1lBQUEsUUFBQSxFQUFXLFFBQVg7WUFDQSxTQUFBLEVBQVcsS0FEWDtZQUVBLFNBQUEsRUFBVyxJQUZYO1lBR0EsV0FBQSxFQUFhLENBQUMsUUFBRCxDQUhiO1NBREs7ZUFLVCxNQUFNLENBQUMsUUFBUCxDQUFnQixNQUFoQixFQUF3QixRQUF4QixFQU5KO0tBQUEsYUFBQTtRQU9NO0FBQ0YsY0FBTSxPQUFPLENBQUMsaUJBQVIsQ0FBMEIsR0FBMUIsRUFBK0IsSUFBL0IsRUFBcUMsUUFBckMsRUFSVjs7QUFKTzs7QUFnQlgsSUFBRyxPQUFPLENBQUMsVUFBWDtBQUNJO0FBQUEsU0FBQSxxQ0FBQTs7UUFDSSxPQUFPLENBQUMsVUFBVyxDQUFBLEdBQUEsQ0FBbkIsR0FBMEI7QUFEOUI7SUFNQSxNQUFBLEdBQVMsT0FBQSxDQUFRLFFBQVI7SUFFVCxhQUFBLEdBQWdCLFNBQUMsUUFBRDtBQUNaLFlBQUE7UUFBQSxVQUFBLEdBQWEsSUFBSSxDQUFDLFFBQUwsQ0FBYyxRQUFkLENBQXVCLENBQUMsS0FBeEIsQ0FBOEIsR0FBOUI7UUFFYixJQUFzQixVQUFXLENBQUEsQ0FBQSxDQUFYLEtBQWlCLEVBQXZDO1lBQUEsVUFBVSxDQUFDLEtBQVgsQ0FBQSxFQUFBOztBQUVBLGVBQU0sVUFBVSxDQUFDLEtBQVgsQ0FBQSxDQUFOO1lBQ0ksWUFBQSxHQUFlLEdBQUEsR0FBTSxVQUFVLENBQUMsSUFBWCxDQUFnQixHQUFoQjtZQUNyQixJQUF1QixNQUFNLENBQUMsV0FBWSxDQUFBLFlBQUEsQ0FBMUM7QUFBQSx1QkFBTyxhQUFQOztRQUZKO2VBR0E7SUFSWTtJQVVoQixNQUFNLENBQUEsU0FBRSxDQUFBLElBQVIsR0FBZSxTQUFDLFFBQUQ7QUFDWCxZQUFBO1FBQUEsSUFBQyxDQUFBLFFBQUQsR0FBWTtRQUNaLElBQUMsQ0FBQSxLQUFELEdBQVMsTUFBTSxDQUFDLGdCQUFQLENBQXdCLElBQUksQ0FBQyxPQUFMLENBQWEsUUFBYixDQUF4QjtRQUNULFNBQUEsR0FBWSxhQUFBLENBQWMsUUFBZDtRQUNaLE1BQU0sQ0FBQyxXQUFZLENBQUEsU0FBQSxDQUFuQixDQUE4QixJQUE5QixFQUFvQyxRQUFwQztlQUNBLElBQUMsQ0FBQSxNQUFELEdBQVU7SUFMQyxFQW5CbkI7OztBQTZCQSxJQUFHLGFBQUg7SUFFSyxPQUFRO0lBQ1QsTUFBQSxHQUFTLE9BQU8sQ0FBQyxPQUFSLENBQWdCLGVBQWhCO0lBRVQsYUFBYSxDQUFDLElBQWQsR0FBcUIsU0FBQyxJQUFELEVBQU8sSUFBUCxFQUFhLE9BQWI7UUFDakIsSUFBRyxPQUFPLENBQUMsUUFBUixDQUFpQixJQUFqQixDQUFIO1lBQ0ksSUFBQSxDQUFPLEtBQUssQ0FBQyxPQUFOLENBQWMsSUFBZCxDQUFQO2dCQUNJLE9BQUEsR0FBVSxJQUFBLElBQVE7Z0JBQ2xCLElBQUEsR0FBTyxHQUZYOztZQUdBLElBQUEsR0FBTyxDQUFDLElBQUQsQ0FBTSxDQUFDLE1BQVAsQ0FBYyxJQUFkO1lBQ1AsSUFBQSxHQUFPLE9BTFg7O2VBTUEsSUFBQSxDQUFLLElBQUwsRUFBVyxJQUFYLEVBQWlCLE9BQWpCO0lBUGlCLEVBTHpCIiwic291cmNlc0NvbnRlbnQiOlsiIyMjXG4wMDAwMDAwMCAgIDAwMDAwMDAwICAgMDAwMDAwMCAgIDAwMCAgIDAwMDAwMDAgIDAwMDAwMDAwMCAgMDAwMDAwMDAgIDAwMDAwMDAwICAgXG4wMDAgICAwMDAgIDAwMCAgICAgICAwMDAgICAgICAgIDAwMCAgMDAwICAgICAgICAgIDAwMCAgICAgMDAwICAgICAgIDAwMCAgIDAwMCAgXG4wMDAwMDAwICAgIDAwMDAwMDAgICAwMDAgIDAwMDAgIDAwMCAgMDAwMDAwMCAgICAgIDAwMCAgICAgMDAwMDAwMCAgIDAwMDAwMDAgICAgXG4wMDAgICAwMDAgIDAwMCAgICAgICAwMDAgICAwMDAgIDAwMCAgICAgICAwMDAgICAgIDAwMCAgICAgMDAwICAgICAgIDAwMCAgIDAwMCAgXG4wMDAgICAwMDAgIDAwMDAwMDAwICAgMDAwMDAwMCAgIDAwMCAgMDAwMDAwMCAgICAgIDAwMCAgICAgMDAwMDAwMDAgIDAwMCAgIDAwMCAgXG4jIyNcblxuS29mZmVlICAgICAgICA9IHJlcXVpcmUgJy4va29mZmVlJ1xuY2hpbGRfcHJvY2VzcyA9IHJlcXVpcmUgJ2NoaWxkX3Byb2Nlc3MnXG5oZWxwZXJzICAgICAgID0gcmVxdWlyZSAnLi9oZWxwZXJzJ1xucGF0aCAgICAgICAgICA9IHJlcXVpcmUgJ3BhdGgnXG5mcyAgICAgICAgICAgID0gcmVxdWlyZSAnZnMnXG5cbmxvYWRGaWxlID0gKG1vZHVsZSwgZmlsZW5hbWUpIC0+XG4gICAgXG4gICAgY29kZSA9IGZzLnJlYWRGaWxlU3luYyBmaWxlbmFtZSwgJ3V0ZjgnXG5cbiAgICB0cnlcbiAgICAgICAgYW5zd2VyID0gS29mZmVlLmNvbXBpbGUgY29kZSwgXG4gICAgICAgICAgICBmaWxlbmFtZTogIGZpbGVuYW1lXG4gICAgICAgICAgICBzb3VyY2VNYXA6IGZhbHNlXG4gICAgICAgICAgICBpbmxpbmVNYXA6IHRydWVcbiAgICAgICAgICAgIHNvdXJjZUZpbGVzOiBbZmlsZW5hbWVdXG4gICAgICAgIG1vZHVsZS5fY29tcGlsZSBhbnN3ZXIsIGZpbGVuYW1lXG4gICAgY2F0Y2ggZXJyXG4gICAgICAgIHRocm93IGhlbHBlcnMudXBkYXRlU3ludGF4RXJyb3IgZXJyLCBjb2RlLCBmaWxlbmFtZVxuXG4jIElmIHRoZSBpbnN0YWxsZWQgdmVyc2lvbiBvZiBOb2RlIHN1cHBvcnRzIGByZXF1aXJlLmV4dGVuc2lvbnNgLCByZWdpc3RlciBvdXIgZXh0ZW5zaW9ucy5cblxuaWYgcmVxdWlyZS5leHRlbnNpb25zXG4gICAgZm9yIGV4dCBpbiBLb2ZmZWUuRklMRV9FWFRFTlNJT05TXG4gICAgICAgIHJlcXVpcmUuZXh0ZW5zaW9uc1tleHRdID0gbG9hZEZpbGVcblxuICAgICMgUGF0Y2ggTm9kZSdzIG1vZHVsZSBsb2FkZXIgdG8gYmUgYWJsZSB0byBoYW5kbGUgbXVsdGktZG90IGV4dGVuc2lvbnMuXG4gICAgIyBUaGlzIGlzIGEgaG9ycmlibGUgdGhpbmcgdGhhdCBzaG91bGQgbm90IGJlIHJlcXVpcmVkLlxuICAgIFxuICAgIE1vZHVsZSA9IHJlcXVpcmUgJ21vZHVsZSdcblxuICAgIGZpbmRFeHRlbnNpb24gPSAoZmlsZW5hbWUpIC0+XG4gICAgICAgIGV4dGVuc2lvbnMgPSBwYXRoLmJhc2VuYW1lKGZpbGVuYW1lKS5zcGxpdCAnLidcbiAgICAgICAgIyBSZW1vdmUgdGhlIGluaXRpYWwgZG90IGZyb20gZG90ZmlsZXMuXG4gICAgICAgIGV4dGVuc2lvbnMuc2hpZnQoKSBpZiBleHRlbnNpb25zWzBdIGlzICcnXG4gICAgICAgICMgU3RhcnQgd2l0aCB0aGUgbG9uZ2VzdCBwb3NzaWJsZSBleHRlbnNpb24gYW5kIHdvcmsgb3VyIHdheSBzaG9ydHdhcmRzLlxuICAgICAgICB3aGlsZSBleHRlbnNpb25zLnNoaWZ0KClcbiAgICAgICAgICAgIGN1ckV4dGVuc2lvbiA9ICcuJyArIGV4dGVuc2lvbnMuam9pbiAnLidcbiAgICAgICAgICAgIHJldHVybiBjdXJFeHRlbnNpb24gaWYgTW9kdWxlLl9leHRlbnNpb25zW2N1ckV4dGVuc2lvbl1cbiAgICAgICAgJy5qcydcblxuICAgIE1vZHVsZTo6bG9hZCA9IChmaWxlbmFtZSkgLT5cbiAgICAgICAgQGZpbGVuYW1lID0gZmlsZW5hbWVcbiAgICAgICAgQHBhdGhzID0gTW9kdWxlLl9ub2RlTW9kdWxlUGF0aHMgcGF0aC5kaXJuYW1lIGZpbGVuYW1lXG4gICAgICAgIGV4dGVuc2lvbiA9IGZpbmRFeHRlbnNpb24gZmlsZW5hbWVcbiAgICAgICAgTW9kdWxlLl9leHRlbnNpb25zW2V4dGVuc2lvbl0odGhpcywgZmlsZW5hbWUpXG4gICAgICAgIEBsb2FkZWQgPSB0cnVlXG5cbiMgSWYgd2UncmUgb24gTm9kZSwgcGF0Y2ggYGNoaWxkX3Byb2Nlc3MuZm9ya2Agc28gdGhhdCBrb2ZmZWUgc2NyaXB0cyBhcmUgYWJsZVxuIyB0byBmb3JrIGJvdGgga29mZmVlIGFuZCBKYXZhU2NyaXB0IGZpbGVzLCBkaXJlY3RseS5cblxuaWYgY2hpbGRfcHJvY2Vzc1xuICAgIFxuICAgIHtmb3JrfSA9IGNoaWxkX3Byb2Nlc3NcbiAgICBiaW5hcnkgPSByZXF1aXJlLnJlc29sdmUgJy4uL2Jpbi9rb2ZmZWUnXG4gICAgXG4gICAgY2hpbGRfcHJvY2Vzcy5mb3JrID0gKHBhdGgsIGFyZ3MsIG9wdGlvbnMpIC0+XG4gICAgICAgIGlmIGhlbHBlcnMuaXNDb2ZmZWUgcGF0aFxuICAgICAgICAgICAgdW5sZXNzIEFycmF5LmlzQXJyYXkgYXJnc1xuICAgICAgICAgICAgICAgIG9wdGlvbnMgPSBhcmdzIG9yIHt9XG4gICAgICAgICAgICAgICAgYXJncyA9IFtdXG4gICAgICAgICAgICBhcmdzID0gW3BhdGhdLmNvbmNhdCBhcmdzXG4gICAgICAgICAgICBwYXRoID0gYmluYXJ5XG4gICAgICAgIGZvcmsgcGF0aCwgYXJncywgb3B0aW9uc1xuIl19
-//# sourceURL=../coffee/register.coffee
+    if (child_process) {
+        fork = child_process.fork;
+        binary = require.resolve('../bin/koffee');
+        child_process.fork = function(path, args, options) {
+            if (helpers.isCoffee(path)) {
+                if (!Array.isArray(args)) {
+                    options = args || {};
+                    args = [];
+                }
+                args = [path].concat(args);
+                path = binary;
+            }
+            return fork(path, args, options);
+        };
+    }
+
+}).call(this);

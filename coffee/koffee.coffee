@@ -109,8 +109,6 @@ compile = (code, options) ->
     currentColumn = 0
     js = ""
     
-    # log 'fragments', stringify fragments
-    
     for fragment in fragments
         # Update the sourcemap with data from each fragment.
         if generateSourceMap
@@ -120,17 +118,16 @@ compile = (code, options) ->
                     [fragment.locationData.first_line, fragment.locationData.first_column]
                     [currentLine, currentColumn]
                     {noReplace: true})
-            if not fragment.code?
-                log 'generateSourceMap', stringify fragment
+                                
             newLines = count fragment.code, "\n"
+            
             currentLine += newLines
             if newLines
                 currentColumn = fragment.code.length - (fragment.code.lastIndexOf("\n") + 1)
             else
                 currentColumn += fragment.code.length
 
-        # Copy the code from each fragment into the final JavaScript.
-        js += fragment.code
+        js += fragment.code # Copy the code from each fragment into the final JavaScript.
 
     if hasFeature options, 'header'
         header = "koffee #{@VERSION}"
@@ -186,6 +183,20 @@ tokens = (code, options) ->
             updateSyntaxError err, code, options.source ? options.filename ? '', options
         throw err
         
+# 00000000  00000000    0000000    0000000   00     00  00000000  000   000  000000000   0000000  
+# 000       000   000  000   000  000        000   000  000       0000  000     000     000       
+# 000000    0000000    000000000  000  0000  000000000  0000000   000 0 000     000     0000000   
+# 000       000   000  000   000  000   000  000 0 000  000       000  0000     000          000  
+# 000       000   000  000   000   0000000   000   000  00000000  000   000     000     0000000   
+
+fragments = (code, options) ->
+    
+    options = injectFeature options
+    options = injectMeta    options
+    
+    tokens = lexer.tokenize code, options
+    fragments = parser.parse(tokens).compileToFragments options
+        
 # 00000000   000   000  000   000  
 # 000   000  000   000  0000  000  
 # 0000000    000   000  000 0 000  
@@ -224,10 +235,14 @@ run = (code, options={}) ->
             updateSyntaxError err, code, mainModule.filename, options
             throw err
         
-        code = answer.js ? answer
+        jscode = answer.js ? answer
 
-    mainModule._compile code, mainModule.filename
-
+    try
+        mainModule._compile jscode, mainModule.filename
+    catch err
+        updateSyntaxError err, code, mainModule.filename, options
+        throw err
+            
 # 00000000  000   000   0000000   000      000   000   0000000   000000000  00000000  
 # 000       000   000  000   000  000      000   000  000   000     000     000       
 # 0000000    000 000   000000000  000      000   000  000000000     000     0000000   
@@ -239,6 +254,9 @@ run = (code, options={}) ->
 evaluate = (code, options={}) -> # exported as eval
     
     return unless code = code.trim()
+    
+    options = injectFeature options
+    options = injectMeta    options
     
     createContext = vm.createContext
 
@@ -268,15 +286,21 @@ evaluate = (code, options={}) -> # exported as eval
             # use the same hack node currently uses for their own REPL
             _require.paths = _module.paths = Module._nodeModulePaths process.cwd()
             _require.resolve = (request) -> Module._resolveFilename request, _module
-    o = {}
-    o[k] = v for own k, v of options
-    o.bare = yes # ensure return value
+            
+    o = Object.assign {}, options
+    o.bare = true 
+    
     js = compile code, o
-    if sandbox is global
-        vm.runInThisContext js
-    else
-        vm.runInContext js, sandbox
-
+    
+    try
+        if sandbox is global
+            vm.runInThisContext js
+        else
+            vm.runInContext js, sandbox
+    catch err
+        updateSyntaxError err, code, options.source ? options.filename ? '', options
+        throw err
+    
 # 000      00000000  000   000  00000000  00000000   
 # 000      000        000 000   000       000   000  
 # 000      0000000     00000    0000000   0000000    
@@ -371,18 +395,25 @@ getSourceMap = (filename) ->
 # NodeJS / V8 have no support for transforming positions in stack traces using
 # sourceMap, so we must monkey-patch Error to display Koffee source positions.
 
-Error.prepareStackTrace = (err, stack) ->
-     
-    getSourceMapping = (filename, line, column) ->
-        sourceMap = getSourceMap filename
-        answer = sourceMap.sourceLocation [line - 1, column - 1] if sourceMap?
-        if answer? then [answer[0] + 1, answer[1] + 1] else null
+# Error.prepareStackTrace = (err, stack) ->
+#       
+    # # log 'prepareStackTrace ---', err.stack 
+    # # log 'prepareStackTrace', stack[0].getFunction()
+    # # log 'prepareStackTrace', stack[0].getLineNumber()
+    # # log 'prepareStackTrace', stack[0].getColumnNumber()
+#       
+    # getSourceMapping = (filename, line, column) ->
+        # sourceMap = getSourceMap filename
+        # answer = sourceMap.sourceLocation [line - 1, column - 1] if sourceMap?
+        # if answer? then [answer[0] + 1, answer[1] + 1] else null
 
-    frames = for frame in stack
-        break if frame.getFunction() is exports.run
-        "        at #{formatSourcePosition frame, getSourceMapping}"
+    # frames = for frame in stack
+        # break if frame.getFunction() is exports.run
+        # "        at #{formatSourcePosition frame, getSourceMapping}"
 
-    "#{err.toString()}\n#{frames.join '\n'}\n"
+    # result = "#{err.toString()}\n#{frames.join '\n'}\n"
+    # # log 'prepareStackTrace result:', result    
+    # result
     
 # Based on http://v8.googlecode.com/svn/branches/bleeding_edge/src/messages.js
 # Modified to handle sourceMap
@@ -449,6 +480,7 @@ module.exports =
     helpers:         helpers
     compile:         compile
     tokens:          tokens
+    fragments:       fragments
     register:        -> require './register'
     
     

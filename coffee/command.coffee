@@ -44,18 +44,19 @@ SWITCHES = [
     ['-f' '--features'          'list available features'                               Boolean        ]
     [''   '--no-`feature'       'disable a feature, e.g. --no-negative-index'           null           ]
     ['-h' '--help'              'display this help message'                             Boolean        ]
-    ['-j' '--js'                'print out the compiled JavaScript'                     Boolean        ]
+    ['-j' '--js'                'print the compiled JavaScript'                         Boolean        ]
     ['-m' '--map'               'generate source map and save as .js.map files'         Boolean        ]
     ['-M' '--inline-map'        'generate source map and include it directly in output' Boolean        ]
     [''   '--metalog'           'meta log (default: console.log)'                       String         ]
     ['-n' '--noop'              'does nothing, for debugging purposes'                  Boolean        ]
     ['-o' '--output DIR'        'set the output directory for compiled JavaScript'      String         ]
-    ['-P' '--parse'             'print out the parse tree that the parser produces'     Boolean        ]
     ['-r' '--require MODULE'    'require the given module before eval or REPL'         [String, Array] ]
     ['-C' '--coffee'            'print the token stream as CoffeeScript'                Boolean        ]
     ['-s' '--stdio'             'listen for and compile scripts over stdio'             Boolean        ]
     ['-t' '--test'              'compile and run the @test code'                        Boolean        ]
-    ['-T' '--tokens'            'print out the tokens that the lexer/rewriter produce'  Boolean        ]
+    ['-T' '--tokens'            'print the tokens'                                      Boolean        ]
+    ['-F' '--fragments'         'print the fragments'                                   Boolean        ]
+    ['-P' '--parse'             'print the parse tree'                                  Boolean        ]
     ['-v' '--version'           'display the version number'                            Boolean        ]
     ['-w' '--watch'             'watch scripts for changes and rerun commands'          Boolean        ]
 ]
@@ -230,6 +231,8 @@ compileScript = (code, source=null) ->
         
         if o.tokens
             printTokens Koffee.tokens t.code, t.options
+        else if o.fragments
+            printFragments code, Koffee.fragments t.code, t.options
         else if o.coffee
             printRewriter Koffee.tokens t.code, t.options
         else if o.parse
@@ -485,7 +488,80 @@ printTokens = (tokens) ->
             print "#{index}#{cvalue} "
         else
             print "#{index}#{ctag}=#{cvalue} "
-        
+
+# 00000000  00000000    0000000    0000000   00     00  00000000  000   000  000000000   0000000  
+# 000       000   000  000   000  000        000   000  000       0000  000     000     000       
+# 000000    0000000    000000000  000  0000  000000000  0000000   000 0 000     000     0000000   
+# 000       000   000  000   000  000   000  000 0 000  000       000  0000     000          000  
+# 000       000   000  000   000   0000000   000   000  00000000  000   000     000     0000000   
+
+printFragments = (code, fragments) ->
+
+    log ''
+    for index in [0...fragments.length]
+        frag = fragments[index]
+        line = blueBright ''+frag.locationData.first_line 
+        if frag.locationData.last_line != frag.locationData.first_line 
+            line += dim blue '-'+frag.locationData.last_line
+        else line += '  '
+        column = blue ''+frag.locationData.first_column 
+        trimmed = frag.code.replace(/ /g, '')
+        if trimmed.length
+            if trimmed.replace(/\n/g, '').length == 0
+                log ''
+            else
+                log line + ' ' + column + ' ' +  (dim gray helpers.pad frag.type, 20) + yellowBright(frag.code)
+                    
+    map = Koffee.compile code, 
+            feature: header: true
+            filename: 'fragments'
+            sourceMap: yes
+            # inlineMap: yes
+
+    mapLineToString = (mapline, key='sourceLine') ->
+        s = ''
+        for column in mapline.columns
+            if column
+                s += column[key]%10
+            else
+                s += ' '
+        s
+            
+    log gray dim ' 123456789 123456789 123456789 123456789 123456789'
+    codeLines = code.split '\n'
+    for i in [0...codeLines.length]
+        if codeLines[i].trim().length
+            log gray(dim i+1) + greenBright codeLines[i]
+        else log ''
+            
+    log ''
+    log gray dim ' 123456789 123456789 123456789 123456789 123456789'
+    codeLines = map.js.split '\n'
+    for i in [0...codeLines.length]
+        if codeLines[i].trim().length
+            log gray(dim i+1) + redBright codeLines[i]
+        else log ''
+            
+    log gray dim ' 123456789 123456789 123456789 123456789 123456789'    
+    for i in [0...map.sourceMap.lines.length]
+        mapline = map.sourceMap.lines[i]
+        if mapline
+            log gray(dim i+1) + redBright mapLineToString mapline
+        else log ''
+
+    log gray dim ' 123456789 123456789 123456789 123456789 123456789'    
+    for i in [0...map.sourceMap.lines.length]
+        mapline = map.sourceMap.lines[i]
+        if mapline
+            log gray(dim i+1) + blueBright mapLineToString mapline, 'sourceColumn'
+        else log ''
+            
+# 00000000   00000000  000   000  00000000   000  000000000  00000000  
+# 000   000  000       000 0 000  000   000  000     000     000       
+# 0000000    0000000   000000000  0000000    000     000     0000000   
+# 000   000  000       000   000  000   000  000     000     000       
+# 000   000  00000000  00     00  000   000  000     000     00000000  
+
 printRewriter = (tokens) ->
 
     indent = 0

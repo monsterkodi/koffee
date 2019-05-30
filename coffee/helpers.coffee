@@ -183,12 +183,54 @@ updateSyntaxError = (err, code, filename, options) -> # Update a compiler Syntax
     
     err.code     ?= code
     err.filename ?= filename
-        
+            
     return err if err.markLine
     
-    if err.code and err.location        
+    if err.code
 
-        {first_line, first_column, last_line, last_column} = err.location
+        if err.location
+            {first_line, first_column, last_line, last_column} = err.location
+        else
+            first_line = first_column = 0
+            try
+                if err.stack?
+                    compiled = require('./koffee').compile(code,
+                        bare:            options?.bare
+                        feature: header: options?.feature?.header
+                        filename:        filename
+                        sourceFiles:     [filename]
+                        sourceMap:       true
+                    )
+                    
+                    sourceMap = compiled.sourceMap
+
+                    if sourceMap
+                        
+                        lines = err.stack.split '\n'
+
+                        for lineIndex in [0...lines.length]
+                            line = lines[lineIndex]
+                            if match = /:([0-9]+):?([0-9]+)?[)]?$/.exec line
+                                line = lines[lineIndex]
+                                lineNum = parseInt match[1]
+                                colNum  = parseInt match[2]
+                                if 1 <= lineNum < sourceMap.lines.length
+                                    c = colNum
+                                    if Number.isNaN(c) then c = 1
+                                    if sourceMap.lines[lineNum-1]
+                                        if mapped = sourceMap.lines[lineNum-1].sourceLocation(c-1)
+                                            [first_line, first_column] = mapped
+                                        else
+                                            for column in sourceMap.lines[lineNum-1].columns
+                                                if column
+                                                    first_line = column.sourceLine-1
+                                                    break
+                    else
+                        ▸dbg 'no source map!'
+            catch e
+                log 'updateSyntaxError -- but cant figure out source location', e
+                return err
+            
         last_line ?= first_line
         last_column ?= first_column
     
@@ -225,9 +267,7 @@ updateSyntaxError = (err, code, filename, options) -> # Update a compiler Syntax
             #{err.codeLine}
             #{err.markLine}
             """
-    else
-        err.message = Error::toString.call err 
-        
+        err.stack = err.message
     err
 
 # 000000000  00000000   0000000  000000000  

@@ -9,10 +9,10 @@ keywords
 author          Jeremy Ashkenas
 contributors
                 monsterkodi
-version         1.0.0
+version         1.1.0
 license         MIT
 engines
-                node >=11.11.0
+                node >=10.0.0
 directories
                 js  ./js
 main            ./js/koffee.js
@@ -25,7 +25,23 @@ files
 scripts
                 test  node ./bin/kake test
 bugs            https://github.com/monsterkodi/koffee/issues
-homepage        https://www.npmjs.com/packages/koffee
+homepage        https://www.npmjs.com/package/koffee
+coffeelintConfig
+                indentation
+                  level   error
+                  value   4
+                line_endings
+                  level   error
+                  value   unix
+                max_line_length
+                  level   warn
+                  value   120
+                no_trailing_whitespace
+                  level   ignore
+                  value   false
+                no_nested_string_interpolation
+                  level   ignore
+                  value   false
 repository
                 type  git
                 url   https://github.com/monsterkodi/koffee.git

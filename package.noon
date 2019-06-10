@@ -3,14 +3,13 @@ productName     koffee
 description     coffeescript clone
 keywords
                 javascript
-                language
                 coffeescript
                 compiler
                 koffee
 author          Jeremy Ashkenas
 contributors
                 monsterkodi
-version         0.58.0
+version         1.0.0
 license         MIT
 engines
                 node >=11.11.0
@@ -26,14 +25,15 @@ files
 scripts
                 test  node ./bin/kake test
 bugs            https://github.com/monsterkodi/koffee/issues
+homepage        https://www.npmjs.com/packages/koffee
 repository
                 type  git
                 url   https://github.com/monsterkodi/koffee.git
 dependencies
-                colorette   ^1.0.7
+                colorette   ^1.0.8
                 nopt        ^4.0.1
                 underscore  ^1.9.1
 devDependencies
                 jison   ~0.4.18
-                kxk     ^0.298.0
-                noon    ^2.5.0
+                kxk     >=0.311.0
+                noon    >=2.12.1

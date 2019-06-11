@@ -298,5 +298,5 @@ Some features have been changed or removed:
 [david-image]:https://david-dm.org/monsterkodi/koffee/status.svg
 [david-url]:https://david-dm.org/monsterkodi/koffee
 [downloads-image]:https://img.shields.io/npm/dm/koffee.svg
-[downloads-url]:http://npmjs.org/package/koffee
+[downloads-url]:https://www.npmtrends.com/koffee
 

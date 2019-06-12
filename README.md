@@ -83,7 +83,14 @@ a = { b:1 c:2 d:3 }
 a =   b:1 c:2 d:3
 a =   b:[ c:2 'd' 3 ]  
 a = [ [1 2] [d:3] ]
-log 'a:' a , 'd:' 3      
+
+log 'a:' a , 'd:' 3      # some commas make sense :-)
+
+describe 'something' ->
+    it 'should' ->
+    
+on 'event' ->
+on 'event' @myCallback
 ```
 
 We are probably reaching the limits of minimalism here :)

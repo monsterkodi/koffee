@@ -178,7 +178,7 @@ class Rewriter
                     return 3
                     
             if hasFeature @opts, 'optional_commata'
-                if @check i, ['NUMBER''STRING''NULL''UNDEFINED''BOOL''STRING_END''}'], i+1, ['NUMBER''STRING''NULL''UNDEFINED''BOOL''STRING_START''IDENTIFIER''PROPERTY''{''(''[''->''=>''@']
+                if @check i, ['NUMBER''STRING''NULL''UNDEFINED''BOOL''STRING_END''}'], i+1, ['NUMBER''STRING''NULL''UNDEFINED''BOOL''STRING_START''PARAM_START''IDENTIFIER''PROPERTY''{''(''[''->''=>''@']
                     tokens.splice i+1, 0, @generate ','','
                     return 2
                     

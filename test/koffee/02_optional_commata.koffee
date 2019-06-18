@@ -113,6 +113,8 @@ test "optional commata", ->
     check "@c", "this.c" 
     check "a.on 'b', @c", "a.on('b', this.c);" 
     check "a.on 'b' @c", "a.on('b', this.c);" 
+    check "f 'b', (a) ->", "f('b', function(a) {});" 
+    check "f 'b' (a) ->", "f('b', function(a) {});" 
     
 assertErrorFormat = (code, expectedErrorFormat) ->
     

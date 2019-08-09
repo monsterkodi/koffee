@@ -165,22 +165,22 @@ class Rewriter
 
             if hasFeature @opts, 'constructor_shortcut'
                 
-                if @check i-1, '@', i, ':', i+1, ['->' 'PARAM_START' 'IDENTIFIER']
+                if @check i-1 '@', i, ':', i+1 ['->' 'PARAM_START' 'IDENTIFIER']
                     tokens[i-1][0] = 'PROPERTY'
                     tokens[i-1][1] = 'constructor'
                     return 1
                    
             if hasFeature @opts, 'console_shortcut'
             
-                if @check i, [{IDENTIFIER:'log'} {IDENTIFIER:'warn'} {IDENTIFIER:'error'}], i+1, ['NUMBER' 'IDENTIFIER' 'PROPERTY' 'STRING' 'STRING_START' 'CALL_START' 'IF' 'META_IF' '[' '(' '{' '@']
+                if @check i, [{IDENTIFIER:'log'} {IDENTIFIER:'warn'} {IDENTIFIER:'error'}], i+1 ['NUMBER' 'IDENTIFIER' 'PROPERTY' 'STRING' 'STRING_START' 'CALL_START' 'IF' 'META_IF' '[' '(' '{' '@']
                     token[0] = 'PROPERTY'
-                    tokens.splice i, 0, @generate('IDENTIFIER''console' token), @generate('.''.' token)
+                    tokens.splice i, 0 @generate('IDENTIFIER''console' token), @generate('.''.' token)
                     return 3
                     
             if hasFeature @opts, 'optional_commata'
                 
-                if @check i, ['NUMBER''STRING''NULL''UNDEFINED''BOOL''STRING_END''}'], i+1, ['NUMBER''STRING''NULL''UNDEFINED''BOOL''STRING_START''PARAM_START''IDENTIFIER''PROPERTY''{''(''[''->''=>''@''UNARY']
-                    tokens.splice i+1, 0, @generate ','','
+                if @check i, ['NUMBER''STRING''NULL''UNDEFINED''BOOL''STRING_END''}'], i+1 ['NUMBER''STRING''NULL''UNDEFINED''BOOL''STRING_START''PARAM_START''IDENTIFIER''PROPERTY''{''(''[''->''=>''@''UNARY']
+                    tokens.splice i+1 0 @generate ','','
                     return 2
                     
                 if @tag(i) in [']'] and tokens[i].spaced and @tag(i+1) in ['NUMBER''STRING''STRING_START''IDENTIFIER''PROPERTY''{''(''[']  
@@ -188,15 +188,15 @@ class Rewriter
                     if match.index >= 0
                         # insert comma if matching bracket is not preceded by identifier or end of call
                         if match.index == 0 or @tag(match.index-1) not in ['IDENTIFIER''CALL_END'] 
-                            tokens.splice i+1, 0, @generate ','','
+                            tokens.splice i+1 0 @generate ','','
                             return 2
                             
             if hasFeature @opts, 'meta'
                                     
-                if @check i, [UNARY_MATH:'~'], i+1, [COMPARE:'>'], i+2, ['IDENTIFIER''IF''THEN''ELSE']
+                if @check i, [UNARY_MATH:'~'], i+1 [COMPARE:'>'], i+2 ['IDENTIFIER''IF''THEN''ELSE']
                     if @tag(i+2) == 'IDENTIFIER'
                         if tokens[i+2][1] == 'elif'
-                            tokens.splice i, 3, @generate('META_ELSE''else'), @generate('META_IF''if')
+                            tokens.splice i, 3 @generate('META_ELSE''else'), @generate('META_IF''if')
                             tokens[i].spaced = true
                             tokens[i+1].spaced = true
                             return 0
@@ -232,14 +232,14 @@ class Rewriter
                                             arg++ # string interpolation argument found
                                             adv+= match.index - i - 1 # can we advance over the whole interpolation? 
                                         else 
-                                            log 'match index', match, @tag(i+adv)
+                                            log 'match index' match, @tag(i+adv)
                                     else
                                         break
                                 if arg == 0
                                     tokens.splice i+adv, 0, @generate('CALL_START''('), @generate('CALL_END'')')
                                     adv += 2
                             if meta.info?.then or @tag(i+adv) not in ['TERMINATOR''INDENT''CALL_START']
-                                tokens.splice i+adv++, 0, @generate 'THEN''then'
+                                tokens.splice i+adv++, 0 @generate 'THEN''then'
                             return adv
                 
             1
@@ -248,10 +248,10 @@ class Rewriter
 
         @scanTokens (token, i, tokens) ->
             
-            if @check i-1, 'INDEX_START', i, '-', i+1, 'NUMBER', i+2, 'INDEX_END'
+            if @check i-1 'INDEX_START' i, '-' i+1 'NUMBER' i+2 'INDEX_END'
                 if @tag(i-2) in ['IDENTIFIER''PROPERTY''STRING''STRING_END'']'')']
-                    tokens.splice i+2, 0, @generate('..''..'), @generate(tokens[i][0], tokens[i][1]), @generate(tokens[i+1][0], tokens[i+1][1])
-                    tokens.splice i+6, 0, @generate('INDEX_START''['), @generate('NUMBER''0'), @generate('INDEX_END'']')
+                    tokens.splice i+2 0 @generate('..''..'), @generate(tokens[i][0], tokens[i][1]), @generate(tokens[i+1][0], tokens[i+1][1])
+                    tokens.splice i+6 0 @generate('INDEX_START''['), @generate('NUMBER''0'), @generate('INDEX_END'']')
                     return 7
                 else
                     log @tag(i-2)
@@ -279,7 +279,7 @@ class Rewriter
             
             if tag is '{'
                 
-                if prevTag == 'PARAM_START' or prevTag not in ['[', '{'] and @findMatchingTagBackwards('PARAM_END', i).index >= 0
+                if prevTag == 'PARAM_START' or prevTag not in ['[''{'] and @findMatchingTagBackwards('PARAM_END' i).index >= 0
                     if not dictParamStart
                         dictParamStart = i
                     else
@@ -296,12 +296,12 @@ class Rewriter
             else 
                 if isInside()
                     if tag == ':' and nextTag not in ['IDENTIFIER''@']
-                        open = @findMatchingTagBackwards '}', i
+                        open = @findMatchingTagBackwards '}' i
                         if open.index >= 0
                             if @tag(open.index-1) not in ['=']
-                                tokens.splice i, 1, @generate '=''=' 
-                                if nextTag in [',', '}']
-                                    tokens.splice i+1, 0, @generate 'NULL''null'
+                                tokens.splice i, 1 @generate '=''=' 
+                                if nextTag in [',''}']
+                                    tokens.splice i+1 0 @generate 'NULL''null'
                                     return 2
             1
                  
@@ -668,8 +668,8 @@ class Rewriter
         condition = (token, i) ->
             token[1] != ';' and token[0] in SINGLE_CLOSERS and
             not (token[0] is 'TERMINATOR' and @tag(i + 1) in EXPRESSION_CLOSE) and
-            not (token[0] in ['ELSE', 'META_ELSE'] and starter != 'THEN') and
-            not (token[0] in ['CATCH' 'FINALLY'] and starter in ['->', '=>']) or
+            not (token[0] in ['ELSE' 'META_ELSE'] and starter != 'THEN') and
+            not (token[0] in ['CATCH' 'FINALLY'] and starter in ['->' '=>']) or
             token[0] in CALL_CLOSERS and
             (@tokens[i - 1].newLine or @tokens[i - 1][0] is 'OUTDENT')
 
@@ -679,7 +679,7 @@ class Rewriter
         @scanTokens (token, i, tokens) ->
             [tag] = token
             if tag is 'TERMINATOR'
-                if @tag(i + 1) in ['ELSE', 'META_ELSE'] and @tag(i - 1) != 'OUTDENT'
+                if @tag(i + 1) in ['ELSE' 'META_ELSE'] and @tag(i - 1) != 'OUTDENT'
                     tokens.splice i, 1, @indentation()...
                     return 1
                 if @tag(i + 1) in EXPRESSION_CLOSE

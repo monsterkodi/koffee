@@ -22,7 +22,8 @@ test "call methods directly on numbers", ->
     eq 4, 4.valueOf()
     eq '11', 4.toString 3
 
-eq -1, 3 -4
+eq -1, 3 - 4
+eq -1, 3-4
 
 #764: Numbers should be indexable
 eq Number::toString, 42['toString']

@@ -182,9 +182,15 @@ class Rewriter
                 if @check i, ['NUMBER''STRING''NULL''UNDEFINED''BOOL''STRING_END''}'], i+1 ['NUMBER''STRING''NULL''UNDEFINED''BOOL''STRING_START''PARAM_START''IDENTIFIER''PROPERTY''{''(''[''->''=>''@''UNARY']
                     tokens.splice i+1 0 @generate ','','
                     return 2
+
+                if @check i, ['NUMBER''STRING''NULL''UNDEFINED''BOOL''STRING_END''}'], i+1 ['-''+'], i+2 ['NUMBER']
+                    # log 'minus' tokens[i][2].last_column, tokens[i+1][2].last_column, tokens[i+2][2].first_column
+                    if tokens[i][2].last_column+1 < tokens[i+1][2].last_column == tokens[i+2][2].first_column-1
+                        tokens.splice i+1 0 @generate ','','
+                        return 2
                     
                 if @tag(i) in [']'] and tokens[i].spaced and @tag(i+1) in ['NUMBER''STRING''STRING_START''IDENTIFIER''PROPERTY''{''(''[']  
-                    match = @findMatchingTagBackwards @tag(i), i, (tag) -> tag in ['NUMBER''STRING''PROPERTY'':'',']
+                    match = @findMatchingTagBackwards @tag(i), i, (tag) -> tag in ['NUMBER''STRING''PROPERTY'':'',''-''+']
                     if match.index >= 0
                         # insert comma if matching bracket is not preceded by identifier or end of call
                         if match.index == 0 or @tag(match.index-1) not in ['IDENTIFIER''CALL_END'] 

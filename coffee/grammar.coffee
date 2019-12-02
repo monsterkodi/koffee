@@ -653,7 +653,8 @@ grammar =
 
     # Arithmetic and logical operators, working on one or more operands.
     # Here they are grouped by order of precedence. The actual precedence rules are defined at the bottom of the page. 
-    # It would be shorter if we could combine most of these rules into a single generic *Operand OpSymbol Operand*-type rule, but in order to make the precedence binding possible, separate rules are necessary.
+    # It would be shorter if we could combine most of these rules into a single generic *Operand OpSymbol Operand*-type rule, 
+    # but in order to make the precedence binding possible, separate rules are necessary.
     
     Operation: [
         o 'UNARY Expression'                                                               -> new Op $1 , $2

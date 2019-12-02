@@ -183,8 +183,7 @@ class Rewriter
                     tokens.splice i+1 0 @generate ','','
                     return 2
 
-                if @check i, ['NUMBER''STRING''NULL''UNDEFINED''BOOL''STRING_END''}'], i+1 ['-''+'], i+2 ['NUMBER']
-                    # log 'minus' tokens[i][2].last_column, tokens[i+1][2].last_column, tokens[i+2][2].first_column
+                if @check i, ['NUMBER''STRING''NULL''UNDEFINED''BOOL''STRING_END''}'], i+1 ['-''+'], i+2 ['NUMBER''IDENTIFIER']
                     if tokens[i][2].last_column+1 < tokens[i+1][2].last_column == tokens[i+2][2].first_column-1
                         tokens.splice i+1 0 @generate ','','
                         return 2

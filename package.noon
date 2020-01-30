@@ -1,5 +1,4 @@
 name            koffee
-productName     koffee
 description     coffeescript clone
 keywords
                 javascript
@@ -9,7 +8,7 @@ keywords
 author          Jeremy Ashkenas
 contributors
                 monsterkodi
-version         1.6.0
+version         1.7.0
 license         MIT
 engines
                 node >=10.0.0
@@ -47,9 +46,10 @@ repository
                 url   https://github.com/monsterkodi/koffee.git
 dependencies
                 colorette   ^1.1.0
+                kslash      >=1.29.0
                 nopt        ^4.0.1
-                underscore  ^1.9.1
+                underscore  ^1.9.2
 devDependencies
                 jison   ~0.4.18
-                kxk     >=0.329.0
-                noon    >=2.14.1
+                kxk     >=0.375.0
+                noon    >=3.0.0

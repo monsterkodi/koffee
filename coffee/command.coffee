@@ -16,13 +16,13 @@
 #   - launch a REPL
 
 fs               = require 'fs'
-path             = require 'path'
+slash            = require 'kslash'
 nopt             = require 'nopt'
 helpers          = require './helpers'
 Koffee           = require './koffee'
 { spawn, exec }  = require 'child_process'
 
-useWinPathSep    = path.sep is '\\'
+useWinPathSep    = slash.sep is '\\'
 
 helpers.colors()
 
@@ -120,14 +120,14 @@ run = ->
     process.argv = process.argv[0..1].concat literals
     process.argv[0] = 'koffee'
 
-    opts.output = path.resolve opts.output if opts.output
+    opts.output = slash.resolve opts.output if opts.output
     for source in opts.arguments
-        source = path.resolve source
+        source = slash.resolve source
         
         if opts.watch
             watchPath source
         else     
-            compilePath source, topLevel:yes
+            compilePath source:source, topLevel:yes
 
 exports.run = run
         
@@ -157,7 +157,7 @@ makePrelude = (requires) ->
 
 # Compile a script or a directory. If a directory is passed, recursively compile all '.coffee' and '.koffee' files.
 
-compilePath = (source, topLevel:topLevel=no) ->
+compilePath = (source:, topLevel:no) ->
 
     return if not topLevel and hidden source
               
@@ -171,11 +171,11 @@ compilePath = (source, topLevel:topLevel=no) ->
         
     if stats.isDirectory()
         
-        if path.basename(source) in ['node_modules' '.git']
+        if slash.basename(source) in ['node_modules' '.git']
             return
             
         if opts.run
-            compilePath findDirectoryIndex(source), topLevel:topLevel
+            compilePath source:findDirectoryIndex(source), topLevel:topLevel
             return
                  
         log 'Command.compilePath dir:', source if opts.Debug
@@ -187,7 +187,7 @@ compilePath = (source, topLevel:topLevel=no) ->
             throw err
             
         for file in files
-            compilePath path.join source, file
+            compilePath source:slash.join source, file
             
     else if topLevel or isCoffee source
         
@@ -204,7 +204,7 @@ compilePath = (source, topLevel:topLevel=no) ->
 findDirectoryIndex = (source) ->
 
     for ext in Koffee.FILE_EXTENSIONS
-        index = path.join source, "index#{ext}"
+        index = slash.join source, "index#{ext}"
         try
             return index if (fs.statSync index).isFile()
         catch err
@@ -219,7 +219,7 @@ findDirectoryIndex = (source) ->
 #  0000000   0000000   000   000  000        000  0000000  00000000  0000000    0000000  000   000  000  000           000     
 
 # Compile a single source script, containing the given code, according to the requested options. 
-# If evaluating the script directly sets `__filename`, `__dirname` and `module.filename` to be correct relative to the script's path.
+# If evaluating the script directly sets `__filename`, `__dirname` and `module.filename` to be correct relative to the script's slash.
 
 compileScript = (code, source=null) ->
     
@@ -284,12 +284,12 @@ compileOptions = (source) -> # The compile-time options to pass to the compiler.
         
         cwd = process.cwd()
         jsPath = outputPath source, '.js'
-        jsDir = path.dirname jsPath
+        jsDir = slash.dirname jsPath
         copts = merge copts, {
             jsPath
             source: source
-            sourceRoot: path.relative jsDir, cwd
-            sourceFiles: [path.relative cwd, source]
+            sourceRoot: slash.relative jsDir, cwd
+            sourceFiles: [slash.relative cwd, source]
             generatedFile: baseFileName(jsPath, no, useWinPathSep)
         }
     copts
@@ -382,7 +382,7 @@ watchDir = (source) ->
         for file in files
             continue if file[0] == '.'
             continue if file in ['node_modules']
-            watchPath path.join source, file
+            watchPath slash.join source, file
         
         watcher = fs.watch source
         .on 'error', (err) ->
@@ -390,8 +390,8 @@ watchDir = (source) ->
             watcher.close()
         .on 'change', (change, p) ->
             if change == 'rename'
-                log 'Command.watchDir', change, path.join source, p if opts.Debug
-                watchPath path.join source, p
+                log 'Command.watchDir', change, slash.join source, p if opts.Debug
+                watchPath slash.join source, p
             
     try
         startWatcher()
@@ -407,8 +407,8 @@ outputPath = (source, extension) ->
     if opts.output
         dir = opts.output
     else
-        dir = path.dirname source
-    path.join dir, basename + extension
+        dir = slash.dirname source
+    slash.join dir, basename + extension
 
 # Recursively mkdir, like `mkdir -p`.
 
@@ -420,7 +420,7 @@ mkdirp = (dir, fn) ->
             if exists
                 fn()
             else
-                mkdirs path.dirname(p), ->
+                mkdirs slash.dirname(p), ->
                     fs.mkdir p, mode, (err) ->
                         return fn err if err
                         fn()
@@ -438,7 +438,7 @@ mkdirp = (dir, fn) ->
 writeJs = (source, js, jsPath, generatedSourceMap = null) ->
     
     sourceMapPath = outputPath source, '.js.map'
-    jsDir = path.dirname jsPath
+    jsDir = slash.dirname jsPath
     compile = ->
         if opts.compile
             js = ' ' if js.length <= 0

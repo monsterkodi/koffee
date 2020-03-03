@@ -84,6 +84,10 @@ parseOptions = ->
     o.run        = not (o.compile or o.js or o.map or o.tokens or o.parse)
     o.js         = !!(o.js or o.eval or o.stdio and o.compile) # js output is passed to eval and stdio compile
     
+    o.sourceMap  = o.map
+    o.inlineMap  = o['inline-map']
+    o.generatedFile = o.output
+    
     o.feature = {}
     FEATURES.map (f) -> o.feature[f.key] = o[f.flag] ? true; delete o[f.flag]
     
@@ -224,7 +228,7 @@ findDirectoryIndex = (source) ->
 compileScript = (code, source=null) ->
     
     o = opts
-    options = compileOptions source
+    options = Koffee.compileOptions source, opts
     
     try
         t = task = {source, code, options}
@@ -273,29 +277,6 @@ compileScript = (code, source=null) ->
             print '\x07' # bell
         else
             process.exit 1
-
-compileOptions = (source) -> # The compile-time options to pass to the compiler.
-    
-    copts = Object.assign {}, opts
-    copts.sourceMap = opts.map
-    copts.inlineMap = opts['inline-map']
-
-    if source
-        
-        cwd = process.cwd()
-        jsPath = outputPath source, '.js'
-        jsDir = slash.dirname jsPath
-        srcRoot = slash.relative slash.dir(source), jsDir
-        copts = merge copts, {
-            jsPath
-            source: source
-            sourceRoot: srcRoot
-            sourceFiles: [slash.relative source, slash.join cwd, srcRoot]
-            generatedFile: slash.file jsPath
-        }
-        
-    # log 'compileOptions' copts
-    copts
             
 # Attach the appropriate listeners to compile scripts incoming over **stdin**, and write them back to **stdout**.
 

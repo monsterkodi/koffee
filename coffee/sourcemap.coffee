@@ -127,7 +127,6 @@ class SourceMap
             mappings:   buffer
 
         v3.sourcesContent = [code] if options.inlineMap
-        
         v3
 
     # 00000000  000   000   0000000   0000000   0000000    00000000  

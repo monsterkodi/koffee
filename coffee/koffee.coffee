@@ -11,6 +11,7 @@
 fs        = require 'fs'
 vm        = require 'vm'
 path      = require 'path'
+slash     = require 'kslash'
 { Lexer } = require './lexer'
 { parser } = require './parser'
 helpers   = require './helpers'
@@ -66,20 +67,41 @@ sourceMaps = {}
 #
 # This returns a javascript string, unless `options.sourceMap` is passed, in which case it returns a `{js, v3SourceMap, sourceMap}` object
 
+compileOptions = (source, opts) ->
+    
+    copts = Object.assign {}, opts
+
+    if source
+        
+        cwd     = process.cwd()
+        jsPath  = opts.generatedFile ? slash.swapExt source, 'js'
+        jsDir   = slash.isAbsolute(jsPath) and slash.dirname(jsPath) or cwd
+        srcRoot = slash.relative slash.dir(source), jsDir
+        copts = helpers.merge copts, {
+            jsPath
+            source:        source
+            sourceRoot:    srcRoot
+            sourceFiles:   [slash.relative source, slash.join jsDir, srcRoot]
+            generatedFile: slash.file jsPath
+        }
+        
+    copts
+
 compile = (code, options) ->
     
-    { merge, extend } = helpers
-    
-    options = injectFeature options
-    options = injectMeta    options
+    options = injectFeature  options
+    options = injectMeta     options
+    options = compileOptions options.source, options
         
+    # require('kxk').klog options
+    
     # Always generate a source map if no filename is passed in, since without a
     # a filename we have no way to retrieve this source later in the event that
     # we need to recompile it to get a source map for `prepareStackTrace`.
         
     generateSourceMap = options.sourceMap or options.inlineMap or not options.filename?
     filename = options.filename or ''
-
+    
     sources[filename ? '?'] = code
     map = new SourceMap if generateSourceMap
 
@@ -479,6 +501,7 @@ module.exports =
     nodes:           nodes
     helpers:         helpers
     compile:         compile
+    compileOptions:  compileOptions
     tokens:          tokens
     fragments:       fragments
     register:        -> require './register'

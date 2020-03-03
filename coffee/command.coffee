@@ -285,13 +285,16 @@ compileOptions = (source) -> # The compile-time options to pass to the compiler.
         cwd = process.cwd()
         jsPath = outputPath source, '.js'
         jsDir = slash.dirname jsPath
+        srcRoot = slash.relative slash.dir(source), jsDir
         copts = merge copts, {
             jsPath
             source: source
-            sourceRoot: slash.relative jsDir, cwd
-            sourceFiles: [slash.relative cwd, source]
-            generatedFile: baseFileName(jsPath, no, useWinPathSep)
+            sourceRoot: srcRoot
+            sourceFiles: [slash.relative source, slash.join cwd, srcRoot]
+            generatedFile: slash.file jsPath
         }
+        
+    # log 'compileOptions' copts
     copts
             
 # Attach the appropriate listeners to compile scripts incoming over **stdin**, and write them back to **stdout**.

@@ -11,14 +11,14 @@
 fs        = require 'fs'
 vm        = require 'vm'
 path      = require 'path'
-{Lexer}   = require './lexer'
-{parser}  = require './parser'
+{ Lexer } = require './lexer'
+{ parser } = require './parser'
 helpers   = require './helpers'
 SourceMap = require './sourcemap'
 pkg       = require '../package.json'
 
 { injectMeta } = require './meta'
-{ injectFeature, hasFeature } = require './features'
+{ hasFeature, injectFeature } = require './features'
 { updateSyntaxError, throwSyntaxError, isCoffee, count, stringify } = helpers
 
 FILE_EXTENSIONS = ['.coffee' '.koffee']

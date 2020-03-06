@@ -71,7 +71,7 @@ META = [
         id = "#{node.condition.locationData.first_line+1}_#{node.condition.locationData.first_column}"
         name = args[0] ? id
         code:   "koffee_#{id} = process.hrtime.bigint()"
-        after:  "#{metaLog(opts)}('#{name}', (function(b){ let f=1000n; for (let u of ['ns','μs','ms','s']) { if (u=='s' || b<f) { return ''+(1000n*b/f)+u; } f*=1000n; }})(process.hrtime.bigint()-koffee_#{id}));"
+        after:  "#{metaLog(opts)}('#{name}', (function(b){ let f=1000n; for (let u of ['ns','μs','ms','s']) { if (u=='s' || b<f) { return ''+(1000n*b/f)+' '+u; } f*=1000n; }})(process.hrtime.bigint()-koffee_#{id}));"
         reduce: false
         body:   true
 ,
@@ -99,7 +99,7 @@ META = [
             koffee_#{id} += process.hrtime.bigint() - koffee_#{id}_start;
             };
             koffee_#{id} /= #{num}n;
-            #{metaLog(opts)}('#{id}', (function(b){ let f=1000n; for (let u of ['ns','μs','ms','s']) { if (u=='s' || b<f) { return ''+(1000n*b/f)+u; } f*=1000n; }})(koffee_#{id})); 
+            #{metaLog(opts)}('#{id}', (function(b){ let f=1000n; for (let u of ['ns','μs','ms','s']) { if (u=='s' || b<f) { return ''+(1000n*b/f)+' '+u; } f*=1000n; }})(koffee_#{id})); 
             """
         reduce: true
         body:   true
@@ -128,7 +128,7 @@ META = [
         args: 1
     meta: (args:,opts:) -> 
         id = args[0] ? 'start_end'
-        before: "#{metaLog(opts)}('#{id}', (function(b){ let f=1000n; for (let u of ['ns','μs','ms','s']) { if (u=='s' || b<f) { return ''+(1000n*b/f)+u; } f*=1000n; }})(process.hrtime.bigint()-koffee_#{id}));"
+        before: "#{metaLog(opts)}('#{id}', (function(b){ let f=1000n; for (let u of ['ns','μs','ms','s']) { if (u=='s' || b<f) { return ''+(1000n*b/f)+' '+u; } f*=1000n; }})(process.hrtime.bigint()-koffee_#{id}));"
         reduce: true
         body:   false
 ,        
@@ -160,7 +160,7 @@ META = [
     desc: '▸assert [msg] ...'
     meta: (opts:,args:,node:) ->
         
-        { Block } = require './nodes' 
+        { Block, extend } = require './nodes'
         if node.body instanceof Block
             body = node.body.expressions[0]
         else
@@ -220,7 +220,7 @@ TAB = '    '
 compileMetaIf = (node:,opts:) ->
 
     { Block, Assign, Value, Literal } = require './nodes'
-    { merge } = require './helpers'
+    { extend, merge } = require './helpers'
         
     info = reduce:true, eval:true
     

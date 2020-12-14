@@ -86,7 +86,7 @@ parseOptions = ->
     
     o.sourceMap  = o.map
     o.inlineMap  = o['inline-map']
-    o.generatedFile = o.output
+    # o.generatedFile = o.output
     
     o.feature = {}
     FEATURES.map (f) -> o.feature[f.key] = o[f.flag] ? true; delete o[f.flag]
@@ -263,7 +263,10 @@ compileScript = (code, source=null) ->
             else if o.compile or o.map
                 if opts.noop then log "noop write #{options.jsPath}"
                 else
-                    writeJs t.source, t.output, options.jsPath, t.sourceMap
+                    jsPath = options.jsPath
+                    if o.output
+                        jsPath = outputPath t.source, '.js'
+                    writeJs t.source, t.output, jsPath, t.sourceMap
     catch err
         
         message = err.message
@@ -420,7 +423,7 @@ mkdirp = (dir, fn) ->
 # If `generatedSourceMap` is provided, this will write a `.js.map` file into the same directory as the `.js` file.
 
 writeJs = (source, js, jsPath, generatedSourceMap = null) ->
-    
+    # log source, jsPath
     sourceMapPath = outputPath source, '.js.map'
     jsDir = slash.dirname jsPath
     compile = ->

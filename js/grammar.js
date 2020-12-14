@@ -1,4 +1,4 @@
-// koffee 1.10.0
+// koffee 1.13.0
 
 /*
  0000000   00000000    0000000   00     00  00     00   0000000   00000000   
@@ -484,6 +484,11 @@
                 return new Range(null, null, $1);
             })
         ],
+        ForSlice: [
+            o('Expression RangeDots Expression', function() {
+                return new Range($1, $3, $2);
+            })
+        ],
         ArgList: [
             o('Arg', function() {
                 return [$1];
@@ -673,6 +678,10 @@
                     source: $2,
                     guard: $4,
                     from: true
+                };
+            }), o('FORIN ForSlice', function() {
+                return {
+                    source: $2
                 };
             })
         ],

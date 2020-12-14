@@ -44,7 +44,7 @@ buildCompiler = (callback) ->
     log blueBright 'compiler' 
     files = fs.readdirSync 'coffee'
     files = ('coffee/' + file for file in files when file.match(/\.[ck]offee$/))
-    run ['-co' 'js'].concat(files), callback
+    run ['--output' './js' '-c'].concat(files), callback
     
 build = (callback) ->
     
@@ -120,7 +120,7 @@ task 'watch', 'rebuild and/or test on file changes', ->
 task 'bench', 'benchmark of compilation time', ->
     
     { injectFeature } = require './js/features'
-    { injectMeta }    = require './js/meta'
+    { injectMeta } = require './js/meta'
     
     opts = injectMeta injectFeature {}
     

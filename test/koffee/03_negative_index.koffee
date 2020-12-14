@@ -52,4 +52,9 @@ test "negative index", ->
         deepEqual @t[-1], [2]
     new A [[1] [2]]
     
+test "for in slice", ->   
+    
+    eq (a for a in 0..10)[-1], 10
+    eq (a for a in 0...10)[-1], 9
+    eq (a for a in 1+2..8)[2], 5
     

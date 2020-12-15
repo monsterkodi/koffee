@@ -33,6 +33,17 @@ s[a]         # -> undefined
 `v[-n]` is a shortcut for `v[-n..-n][0]` for number literals `n`. 
 Passing variables with negative values still returns *undefined*.
 
+## for ... in
+
+```coffeescript
+
+for i in 0..5
+    (a for a in 1+2...8) 
+
+```
+
+Square brackets around ranges in for ... in loops are optional.
+
 ## Console shortcuts
 
 ```coffeescript

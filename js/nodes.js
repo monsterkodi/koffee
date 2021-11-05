@@ -10,8 +10,8 @@
 
 (function() {
     var Access, Arr, Assign, Base, Block, BooleanLiteral, Call, Class, Code, CodeFragment, Comment, Existence, Expansion, ExportAllDeclaration, ExportDeclaration, ExportDefaultDeclaration, ExportNamedDeclaration, ExportSpecifier, ExportSpecifierList, Extends, For, IdentifierLiteral, If, ImportClause, ImportDeclaration, ImportDefaultSpecifier, ImportNamespaceSpecifier, ImportSpecifier, ImportSpecifierList, In, Index, InfinityLiteral, JS_FORBIDDEN, LEVEL_ACCESS, LEVEL_COND, LEVEL_LIST, LEVEL_OP, LEVEL_PAREN, LEVEL_TOP, Literal, MetaIf, ModuleDeclaration, ModuleSpecifier, ModuleSpecifierList, NEGATE, NO, NaNLiteral, NullLiteral, NumberLiteral, Obj, Op, Param, Parens, PassthroughLiteral, PropertyName, Range, RegexLiteral, RegexWithInterpolations, Return, SIMPLENUM, Scope, Slice, Splat, StatementLiteral, StringLiteral, StringWithInterpolations, SuperCall, Switch, TAB, THIS, TaggedTemplateCall, ThisLiteral, Throw, Try, UTILITIES, UndefinedLiteral, Value, While, YES, YieldReturn, addLocationDataFn, compact, compileMetaIf, del, ends, extend, flatten, hasFeature, injectFeature, injectMeta, isComplexOrAssignable, isLiteralArguments, isLiteralThis, isUnassignable, locationDataToString, merge, multident, ref1, ref2, ref3, some, starts, stringify, throwSyntaxError, unfoldSoak, utility,
-        extend1 = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-        hasProp = {}.hasOwnProperty,
+        extend1 = function(child, parent) { for (var key in parent) { if (hasProp(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+        hasProp = Object.hasOwn,
         indexOf = [].indexOf,
         slice = [].slice;
 
@@ -3650,7 +3650,7 @@
             if (this.object) {
                 forPartFragments = [this.makeCode(kvar + " in " + svar)];
                 if (this.own) {
-                    guardPart = "\n" + idt1 + "if (!" + (utility('hasProp', o)) + ".call(" + svar + ", " + kvar + ")) continue;";
+                    guardPart = "\n" + idt1 + "if (!" + (utility('hasProp', o)) + "(" + svar + ", " + kvar + ")) continue;";
                 }
             } else if (this.from) {
                 forPartFragments = [this.makeCode(kvar + " of " + svar)];
@@ -3967,7 +3967,7 @@
 
     UTILITIES = {
         extend: function(o) {
-            return "function(child, parent) { for (var key in parent) { if (" + (utility('hasProp', o)) + ".call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; }";
+            return "function(child, parent) { for (var key in parent) { if (" + (utility('hasProp', o)) + "(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; }";
         },
         bind: function() {
             return 'function(fn, me){ return function(){ return fn.apply(me, arguments); }; }';
@@ -3979,7 +3979,7 @@
             return "function(a, b) { return (+a % (b = +b) + b) % b; }";
         },
         hasProp: function() {
-            return '{}.hasOwnProperty';
+            return 'Object.hasOwn';
         },
         slice: function() {
             return '[].slice';

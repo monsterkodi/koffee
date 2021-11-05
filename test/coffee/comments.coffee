@@ -17,9 +17,9 @@ test "comments in objects", ->
             # comment
     }
 
-    ok Object::hasOwnProperty.call(obj1,'one')
+    ok Object.hasOwn(obj1,'one')
     eq obj1.one, 1
-    ok Object::hasOwnProperty.call(obj1,'two')
+    ok Object.hasOwn(obj1,'two')
     eq obj1.two, 2
 
 test "comments in YAML-style objects", ->
@@ -32,9 +32,9 @@ test "comments in YAML-style objects", ->
         four: 4
             # comment
 
-    ok Object::hasOwnProperty.call(obj2,'three')
+    ok Object.hasOwn(obj2,'three')
     eq obj2.three, 3
-    ok Object::hasOwnProperty.call(obj2,'four')
+    ok Object.hasOwn(obj2,'four')
     eq obj2.four, 4
 
 test "comments following operators that continue lines", ->

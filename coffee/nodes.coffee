@@ -2736,7 +2736,7 @@ exports.For = class For extends While
         varPart = "\n#{idt1}#{namePart};" if namePart
         if @object
             forPartFragments = [@makeCode("#{kvar} in #{svar}")]
-            guardPart = "\n#{idt1}if (!#{utility 'hasProp', o}.call(#{svar}, #{kvar})) continue;" if @own
+            guardPart = "\n#{idt1}if (!#{utility 'hasProp', o}(#{svar}, #{kvar})) continue;" if @own
         else if @from
             forPartFragments = [@makeCode("#{kvar} of #{svar}")]
         bodyFragments = body.compileToFragments merge(o, indent: idt1), LEVEL_TOP
@@ -2964,7 +2964,7 @@ UTILITIES =
     extend: (o) -> "
         function(child, parent) {
             for (var key in parent) {
-                if (#{utility 'hasProp', o}.call(parent, key)) child[key] = parent[key];
+                if (#{utility 'hasProp', o}(parent, key)) child[key] = parent[key];
             }
             function ctor() {
                 this.constructor = child;
@@ -3001,7 +3001,7 @@ UTILITIES =
     """
 
     # Shortcuts to speed up the lookup time for native functions.
-    hasProp: -> '{}.hasOwnProperty'
+    hasProp: -> 'Object.hasOwn'
     slice: -> '[].slice' # e.g. [[a]...]
 
 # Levels indicate a node's position in the AST. Useful for knowing if

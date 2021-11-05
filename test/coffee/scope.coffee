@@ -15,7 +15,6 @@ test "reference `arguments` inside of functions", ->
     eq 10, sumOfArgs(0, 1, 2, 3, 4)
 
 test "assignment to an Object.prototype-named variable should not leak to outer scope", ->
-    # FIXME: fails on IE
     (->
         constructor = 'word'
     )()
@@ -44,15 +43,6 @@ test "loop variable should be accessible after for-in loop", ->
 test "loop variable should be accessible after for-from loop", ->
     d = (x for x from [1,2])
     eq x, 2
-
-class Array then slice: fail # needs to be global
-class Object then hasOwnProperty: fail
-test "#1973: redefining Array/Object constructors shouldn't confuse __X helpers", ->
-    arr = [1..4]
-    arrayEq [3, 4], arr[2..]
-    obj = {arr}
-    for own k of obj
-        eq arr, obj[k]
 
 test "#2255: global leak with splatted @-params", ->
     ok not x?

@@ -10,7 +10,7 @@
 
 (function() {
     var FILE_EXTENSIONS, Lexer, SourceMap, base64encode, compile, compileOptions, count, evaluate, formatSourcePosition, fragments, fs, getSourceMap, hasFeature, helpers, injectFeature, injectMeta, isCoffee, lexer, nodes, parser, path, pkg, ref, run, slash, sourceMaps, sources, stringify, throwSyntaxError, tokens, updateSyntaxError, vm,
-        hasProp = {}.hasOwnProperty;
+        hasProp = Object.hasOwn;
 
     fs = require('fs');
 
@@ -246,7 +246,7 @@
                     sandbox = createContext();
                     ref2 = options.sandbox;
                     for (k in ref2) {
-                        if (!hasProp.call(ref2, k)) continue;
+                        if (!hasProp(ref2, k)) continue;
                         v = ref2[k];
                         sandbox[k] = v;
                     }

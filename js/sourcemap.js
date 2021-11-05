@@ -1,4 +1,4 @@
-// koffee 1.15.0
+// koffee 1.16.0
 (function() {
     var LineMap, SourceMap;
 
@@ -14,8 +14,11 @@
             if (options == null) {
                 options = {};
             }
-            if (this.columns[column] && options.noReplace) {
-                return;
+            if (this.columns[column]) {
+                console.log("LineMap has column " + column, sourceLine, sourceColumn, options);
+                if (options.noReplace) {
+                    return;
+                }
             }
             return this.columns[column] = {
                 line: this.line,

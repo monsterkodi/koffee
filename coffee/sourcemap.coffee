@@ -18,7 +18,10 @@ class LineMap
         @columns = []
 
     add: (column, [sourceLine, sourceColumn], options={}) ->
-        return if @columns[column] and options.noReplace
+        if @columns[column] 
+            log "LineMap has column #{column}" sourceLine, sourceColumn, options
+            if options.noReplace
+                return
         @columns[column] = {line: @line, column, sourceLine, sourceColumn}
 
     sourceLocation: (column) ->

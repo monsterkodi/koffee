@@ -1,4 +1,4 @@
-// koffee 1.13.0
+// koffee 1.15.0
 
 /*
 000   000   0000000   0000000    00000000   0000000  
@@ -212,8 +212,10 @@
                     ref5 = flatten([this[attr]]);
                     for (k = 0, len2 = ref5.length; k < len2; k++) {
                         child = ref5[k];
-                        if (func(child) === false) {
-                            return this;
+                        if (child) {
+                            if (func(child) === false) {
+                                return this;
+                            }
                         }
                     }
                 }
@@ -409,7 +411,7 @@
                     fragments = node.compileToFragments(o);
                     if (!node.isStatement(o) && (fragments.unshift != null)) {
                         if (!((fragments != null ? fragments.unshift : void 0) != null)) {
-                            console.log('[33m[93mnodes[33m[2m.[22m[2mcoffee[22m[39m[2m[34m:[39m[22m[94m337[39m', '[1m[97mno unshift?[39m[22m');
+                            console.log('[33m[93mnodes[33m[2m.[22m[2mcoffee[22m[39m[2m[34m:[39m[22m[94m338[39m', '[1m[97mno unshift?[39m[22m');
 
                             process.exit(666);
                         };

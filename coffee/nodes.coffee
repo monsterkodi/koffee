@@ -185,7 +185,8 @@ exports.Base = class Base
         return this unless @children
         for attr in @children when @[attr]
             for child in flatten [@[attr]]
-                return this if func(child) is false
+                if child
+                    return this if func(child) is false
         this
 
     traverseChildren: (crossScope, func) ->

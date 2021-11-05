@@ -1,4 +1,4 @@
-// koffee 1.13.0
+// koffee 1.15.0
 
 /*
 000   000  00000000  000      00000000   00000000  00000000    0000000  
@@ -9,19 +9,26 @@
  */
 
 (function() {
-    var addLocationDataFn, arrayEgal, arrayEq, baseFileName, buildLocationData, ceq, colors, compact, count, del, egal, ends, eq, extend, flatten, initTest, isCoffee, locationDataToString, merge, pad, path, ref, repeat, some, starts, stringify, throwSyntaxError, toJS, updateSyntaxError;
+    var addLocationDataFn, arrayEgal, arrayEq, baseFileName, buildLocationData, ceq, colors, compact, count, del, egal, ends, eq, extend, flatten, initTest, isCoffee, locationDataToString, merge, pad, path, repeat, some, starts, stringify, throwSyntaxError, toJS, updateSyntaxError;
 
     path = require('path');
 
-    colors = function() {
-        var colorette, colornames, i, len1, name;
+    colors = function(enabled) {
+        var colorette, colornames, i, len1, name, results;
+        if (enabled == null) {
+            enabled = true;
+        }
         colorette = require('colorette');
         colornames = ['dim', 'bold', 'red', 'redBright', 'gray', 'grayBright', 'yellow', 'yellowBright', 'green', 'greenBright', 'white', 'whiteBright', 'blue', 'blueBright', 'cyan', 'cyanBright', 'magenta', 'magentaBright'];
+        colors = colorette.createColors({
+            useColor: enabled
+        });
+        results = [];
         for (i = 0, len1 = colornames.length; i < len1; i++) {
             name = colornames[i];
-            global[name] = colorette[name];
+            results.push(global[name] = colors[name]);
         }
-        return global.colorette = colorette;
+        return results;
     };
 
     starts = function(string, literal, start) {
@@ -94,15 +101,15 @@
         return extend(extend({}, options), overrides);
     };
 
-    flatten = function(array) {
-        var element, flattened, i, len1;
+    flatten = function(arry) {
+        var elem, flattened, i, len1;
         flattened = [];
-        for (i = 0, len1 = array.length; i < len1; i++) {
-            element = array[i];
-            if ('[object Array]' === Object.prototype.toString.call(element)) {
-                flattened = flattened.concat(flatten(element));
+        for (i = 0, len1 = arry.length; i < len1; i++) {
+            elem = arry[i];
+            if (typeof elem === 'object' && elem.constructor.name === 'Array') {
+                flattened = flattened.concat(flatten(elem));
             } else {
-                flattened.push(element);
+                flattened.push(elem);
             }
         }
         return flattened;
@@ -115,17 +122,7 @@
         return val;
     };
 
-    some = (ref = Array.prototype.some) != null ? ref : function(fn) {
-        var e, i, len1, ref1;
-        ref1 = this;
-        for (i = 0, len1 = ref1.length; i < len1; i++) {
-            e = ref1[i];
-            if (fn(e)) {
-                return true;
-            }
-        }
-        return false;
-    };
+    some = Array.prototype.some;
 
     buildLocationData = function(first, last) {
         if (!last) {
@@ -190,15 +187,15 @@
     };
 
     throwSyntaxError = function(arg) {
-        var err, location, message, module, ref1, ref2, ref3;
-        module = (ref1 = arg.module) != null ? ref1 : null, message = (ref2 = arg.message) != null ? ref2 : null, location = (ref3 = arg.location) != null ? ref3 : null;
+        var err, location, message, module, ref, ref1, ref2;
+        module = (ref = arg.module) != null ? ref : null, message = (ref1 = arg.message) != null ? ref1 : null, location = (ref2 = arg.location) != null ? ref2 : null;
         err = new SyntaxError(message);
         err.location = location;
         throw err;
     };
 
     updateSyntaxError = function(err, code, filename, options) {
-        var c, codeLine, colNum, colm, column, compiled, e, end, file, fileLine, first_column, first_line, i, j, last_column, last_line, len1, line, lineIndex, lineNum, lines, mapped, markLine, match, message, ref1, ref2, ref3, ref4, ref5, ref6, ref7, sep, sourceMap, start;
+        var c, codeLine, colNum, colm, column, compiled, e, end, file, fileLine, first_column, first_line, i, j, last_column, last_line, len1, line, lineIndex, lineNum, lines, mapped, markLine, match, message, ref, ref1, ref2, ref3, ref4, ref5, ref6, sep, sourceMap, start;
         if (err.code != null) {
             err.code;
         } else {
@@ -214,7 +211,7 @@
         }
         if (err.code) {
             if (err.location) {
-                ref1 = err.location, first_line = ref1.first_line, first_column = ref1.first_column, last_line = ref1.last_line, last_column = ref1.last_column;
+                ref = err.location, first_line = ref.first_line, first_column = ref.first_column, last_line = ref.last_line, last_column = ref.last_column;
             } else {
                 first_line = first_column = 0;
                 try {
@@ -222,7 +219,7 @@
                         compiled = require('./koffee').compile(code, {
                             bare: options != null ? options.bare : void 0,
                             feature: {
-                                header: options != null ? (ref2 = options.feature) != null ? ref2.header : void 0 : void 0
+                                header: options != null ? (ref1 = options.feature) != null ? ref1.header : void 0 : void 0
                             },
                             filename: filename,
                             sourceFiles: [filename],
@@ -231,7 +228,7 @@
                         sourceMap = compiled.sourceMap;
                         if (sourceMap) {
                             lines = err.stack.split('\n');
-                            for (lineIndex = i = 0, ref3 = lines.length; 0 <= ref3 ? i < ref3 : i > ref3; lineIndex = 0 <= ref3 ? ++i : --i) {
+                            for (lineIndex = i = 0, ref2 = lines.length; 0 <= ref2 ? i < ref2 : i > ref2; lineIndex = 0 <= ref2 ? ++i : --i) {
                                 line = lines[lineIndex];
                                 if (match = /:([0-9]+):?([0-9]+)?[)]?$/.exec(line)) {
                                     line = lines[lineIndex];
@@ -246,9 +243,9 @@
                                             if (mapped = sourceMap.lines[lineNum - 1].sourceLocation(c - 1)) {
                                                 first_line = mapped[0], first_column = mapped[1];
                                             } else {
-                                                ref4 = sourceMap.lines[lineNum - 1].columns;
-                                                for (j = 0, len1 = ref4.length; j < len1; j++) {
-                                                    column = ref4[j];
+                                                ref3 = sourceMap.lines[lineNum - 1].columns;
+                                                for (j = 0, len1 = ref3.length; j < len1; j++) {
+                                                    column = ref3[j];
                                                     if (column) {
                                                         first_line = column.sourceLine - 1;
                                                         break;
@@ -260,7 +257,7 @@
                                 }
                             }
                         } else {
-                            console.log('[33m[93mhelpers[33m[2m.[22m[2mcoffee[22m[39m[2m[34m:[39m[22m[94m229[39m', '[1m[97mno source map![39m[22m', '');
+                            console.log('[33m[93mhelpers[33m[2m.[22m[2mcoffee[22m[39m[2m[34m:[39m[22m[94m225[39m', '[1m[97mno source map![39m[22m', '');
                         }
                     }
                 } catch (error) {
@@ -286,19 +283,18 @@
             message = err.message;
             err.line = first_line + 1;
             err.column = first_column + 1;
-            if ((options != null ? (ref5 = options.feature) != null ? ref5.color : void 0 : void 0) !== false) {
-                colorette.options.enabled = true;
+            if ((options != null ? (ref4 = options.feature) != null ? ref4.color : void 0 : void 0) !== false) {
                 codeLine = codeLine.slice(0, start) + red(codeLine.slice(start, end)) + codeLine.slice(end);
                 markLine = red(markLine);
                 message = yellowBright(message);
                 sep = dim(blue(':'));
                 line = blue("" + err.line);
                 colm = dim(blue("" + err.column));
-                file = path.parse((ref6 = err.filename) != null ? ref6 : '');
+                file = path.parse((ref5 = err.filename) != null ? ref5 : '');
                 file = yellow(dim(file.dir + '/') + file.name + dim(file.ext));
                 fileLine = "" + file + sep + line + sep + colm;
             } else {
-                fileLine = ((ref7 = err.filename) != null ? ref7 : '?') + ":" + err.line + ":" + err.column;
+                fileLine = ((ref6 = err.filename) != null ? ref6 : '?') + ":" + err.line + ":" + err.column;
             }
             err.fileLine = fileLine;
             err.codeLine = codeLine;

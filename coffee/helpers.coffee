@@ -13,7 +13,7 @@ path = require 'path'
 
 # Peek at the beginning of a given string to see if it matches a sequence.
 
-colors = ->
+colors = (enabled=true) ->
     colorette = require 'colorette'
     colornames =  [
         'dim'     'bold'
@@ -25,10 +25,11 @@ colors = ->
         'blue'    'blueBright'
         'cyan'    'cyanBright'
         'magenta' 'magentaBright'
-    ] 
+    ]
+    colors = colorette.createColors useColor:enabled 
     for name in colornames
-        global[name] = colorette[name]
-    global.colorette = colorette
+        global[name] = colors[name]
+    #global.colorette = colorette
 
 starts = (string, literal, start) ->
     literal is string.substr start, literal.length
@@ -39,7 +40,7 @@ ends = (string, literal, back) ->
     len = literal.length
     literal is string.substr string.length - len - (back or 0), len
 
-# Repeat a string `n` times.
+# Repeat a string n times.
 
 repeat = (str, n) ->
     
@@ -89,16 +90,15 @@ extend = (object, properties) ->
 
 merge = (options, overrides) -> extend (extend {}, options), overrides
 
-# Return a flattened version of an array.
-# Handy for getting a list of `children` from the nodes.
-    
-flatten = (array) ->
+# flatten = (arry) -> arry.flat()
+
+flatten = (arry) ->
     flattened = []
-    for element in array
-        if '[object Array]' is Object::toString.call element
-            flattened = flattened.concat flatten element
+    for elem in arry
+        if typeof(elem) == 'object' and elem.constructor.name == 'Array'
+            flattened = flattened.concat flatten elem
         else
-            flattened.push element
+            flattened.push elem
     flattened
 
 # Delete a key from an object, returning the value. Useful when a node is
@@ -109,11 +109,7 @@ del = (obj, key) ->
     delete obj[key]
     val
 
-# Typical Array::some
-
-some = Array::some ? (fn) ->
-    return true for e in this when fn e
-    false
+some = Array.prototype.some
 
 # Merge two jison-style location data objects together.
 # If `last` is not provided, this will simply return `first`.
@@ -245,7 +241,6 @@ updateSyntaxError = (err, code, filename, options) -> # Update a compiler Syntax
         err.column = first_column+1
         
         if options?.feature?.color != false
-            colorette.options.enabled = true
             codeLine = codeLine[...start] + red(codeLine[start...end]) + codeLine[end..]
             markLine = red markLine
             message  = yellowBright message 

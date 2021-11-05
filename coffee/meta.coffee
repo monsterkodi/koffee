@@ -307,8 +307,8 @@ compileMetaIf = (node:,opts:) ->
 metaLog = (opts) -> opts.metalog ? 'console.log'
 
 logSource = (opts:,args:,node:,close:) ->
-    
-    colorette.options.enabled = opts.feature.color
+    colorette = require 'colorette'
+    { yellow, blue, yellowBright, blueBright, whiteBright, dim, bold, gray } = colorette.createColors({ useColor: opts.feature.color })
     source = opts.source ? opts.filename ? ''
     ext = ''
     if source
@@ -320,7 +320,7 @@ logSource = (opts:,args:,node:,close:) ->
         before += ');\n'
     else
         before += ", "
-    colorette.options.enabled = true
+
     before
         
 # 000  000   000        000  00000000   0000000  000000000  

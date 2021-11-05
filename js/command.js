@@ -1,4 +1,4 @@
-// koffee 1.13.0
+// koffee 1.15.0
 
 /*
  0000000   0000000   00     00  00     00   0000000   000   000  0000000    
@@ -101,7 +101,7 @@
         var eval, j, k, len, len1, literals, ref2, ref3, results, source;
         parseOptions();
         if (opts.feature.color === false) {
-            colorette.options.enabled = false;
+            helpers.colors(false);
         }
         if (opts.features) {
             return logFeatures();

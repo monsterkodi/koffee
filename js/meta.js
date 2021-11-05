@@ -1,4 +1,4 @@
-// koffee 1.13.0
+// koffee 1.15.0
 
 /*
 00     00  00000000  000000000   0000000   
@@ -309,13 +309,16 @@
     };
 
     logSource = function(arg) {
-        var args, before, close, ext, node, opts, ref, ref1, ref2, ref3, ref4, ref5, ref6, source;
+        var args, before, blue, blueBright, bold, close, colorette, dim, ext, gray, node, opts, ref, ref1, ref2, ref3, ref4, ref5, ref6, ref7, source, whiteBright, yellow, yellowBright;
         opts = (ref = arg.opts) != null ? ref : null, args = (ref1 = arg.args) != null ? ref1 : null, node = (ref2 = arg.node) != null ? ref2 : null, close = (ref3 = arg.close) != null ? ref3 : null;
-        colorette.options.enabled = opts.feature.color;
-        source = (ref4 = (ref5 = opts.source) != null ? ref5 : opts.filename) != null ? ref4 : '';
+        colorette = require('colorette');
+        ref4 = colorette.createColors({
+            useColor: opts.feature.color
+        }), yellow = ref4.yellow, blue = ref4.blue, yellowBright = ref4.yellowBright, blueBright = ref4.blueBright, whiteBright = ref4.whiteBright, dim = ref4.dim, bold = ref4.bold, gray = ref4.gray;
+        source = (ref5 = (ref6 = opts.source) != null ? ref6 : opts.filename) != null ? ref5 : '';
         ext = '';
         if (source) {
-            ref6 = path.basename(source).split('.'), source = ref6[0], ext = 2 <= ref6.length ? slice.call(ref6, 1) : [];
+            ref7 = path.basename(source).split('.'), source = ref7[0], ext = 2 <= ref7.length ? slice.call(ref7, 1) : [];
             source = yellow([yellowBright(source), dim(ext.join`.`)].join(dim('.')));
         }
         before = (metaLog(opts)) + "('" + source + (dim(blue(':'))) + (blueBright("" + (node.condition.locationData.first_line + 1))) + "'";
@@ -327,7 +330,6 @@
         } else {
             before += ", ";
         }
-        colorette.options.enabled = true;
         return before;
     };
 

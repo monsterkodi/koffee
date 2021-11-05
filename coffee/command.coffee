@@ -106,7 +106,7 @@ run = ->
     parseOptions()
     
     if opts.feature.color == false
-        colorette.options.enabled = false
+        helpers.colors false
         
     return logFeatures()  if opts.features
     return usage()        if opts.help

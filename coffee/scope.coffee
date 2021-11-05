@@ -31,7 +31,7 @@ class Scope
 
     add: (name, type, immediate) ->
         return @parent.add name, type, immediate if @shared and not immediate
-        if Object::hasOwnProperty.call @positions, name
+        if Object.hasOwn @positions, name
             @variables[@positions[name]].type = type
         else
             @positions[name] = @variables.push({name, type}) - 1

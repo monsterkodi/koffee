@@ -1628,8 +1628,7 @@ exports.Assign = class Assign extends Base
         o?.level is LEVEL_TOP and @context? and (@moduleDeclaration or "?" in @context)
 
     checkAssignability: (o, varBase) ->
-        if Object::hasOwnProperty.call(o.scope.positions, varBase.value) and
-             o.scope.variables[o.scope.positions[varBase.value]].type is 'import'
+        if Object.hasOwn(o.scope.positions, varBase.value) and o.scope.variables[o.scope.positions[varBase.value]].type == 'import'
             varBase.error "'#{varBase.value}' is read-only"
 
     assigns: (name) ->

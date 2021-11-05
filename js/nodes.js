@@ -2249,7 +2249,7 @@
         };
 
         Assign.prototype.checkAssignability = function(o, varBase) {
-            if (Object.prototype.hasOwnProperty.call(o.scope.positions, varBase.value) && o.scope.variables[o.scope.positions[varBase.value]].type === 'import') {
+            if (Object.hasOwn(o.scope.positions, varBase.value) && o.scope.variables[o.scope.positions[varBase.value]].type === 'import') {
                 return varBase.error("'" + varBase.value + "' is read-only");
             }
         };

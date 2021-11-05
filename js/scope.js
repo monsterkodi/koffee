@@ -36,7 +36,7 @@
             if (this.shared && !immediate) {
                 return this.parent.add(name, type, immediate);
             }
-            if (Object.prototype.hasOwnProperty.call(this.positions, name)) {
+            if (Object.hasOwn(this.positions, name)) {
                 return this.variables[this.positions[name]].type = type;
             } else {
                 return this.positions[name] = this.variables.push({

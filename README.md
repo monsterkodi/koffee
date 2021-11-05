@@ -307,14 +307,11 @@ Some features have been changed or removed:
 [![npm package][npm-image]][npm-url] 
 [![Build Status][travis-image]][travis-url] 
 [![downloads][downloads-image]][downloads-url] 
-[![Dependencies Status][david-image]][david-url]
 
 [npm-image]:https://img.shields.io/npm/v/koffee.svg
 [npm-url]:http://npmjs.org/package/koffee
 [travis-image]:https://travis-ci.org/monsterkodi/koffee.svg?branch=master
 [travis-url]:https://travis-ci.org/monsterkodi/koffee
-[david-image]:https://david-dm.org/monsterkodi/koffee/status.svg
-[david-url]:https://david-dm.org/monsterkodi/koffee
 [downloads-image]:https://img.shields.io/npm/dm/koffee.svg
 [downloads-url]:https://www.npmtrends.com/koffee
 

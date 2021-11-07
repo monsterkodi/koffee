@@ -30,15 +30,7 @@ META = [
             NumberLiteral, IdentifierLiteral, 
             PropertyName } = nodes
         
-        noon = require 'noon'
-        kstr = require 'kstr'
-        # log '▸vec node' node, noon.stringify node
-        
         identifiers = node.condition.args.map (arg) -> arg.base.value
-
-        # log identifiers
-        
-        # log '▸vec node.body.expressions' node.body.expressions #, noon.stringify exps
         
         for exp in node.body.expressions
             
@@ -63,15 +55,11 @@ META = [
                                                     
                         if firstIsVec and secondIsVec
     
-                                # log '▸vec dot' node.first.base.value, node.second.base.value 
-    
                                 nodeInfos[nodeIndex].vecOp = 'dot'
                                 nodeInfos[nodeIndex].type  = 'num'
                                 
                         else if firstIsVec
                             
-                                # log '▸vec times' node.first.base.value
-    
                                 nodeInfos[nodeIndex].side  = 'left'
     
                                 if secondIsValue and node.second.base instanceof NumberLiteral or node.second.base instanceof IdentifierLiteral
@@ -79,12 +67,9 @@ META = [
                                     nodeInfos[nodeIndex].type  = 'vec'
                                 else
                                     nodeInfos[nodeIndex].vecOp = 'timesOrDot'
-                                    # nodeInfos[nodeIndex].type  = '???'
                                 
                         else if secondIsVec
                             
-                                # log '▸vec ltimes' node.second.base.value
-    
                                 nodeInfos[nodeIndex].side  = 'right'
     
                                 if firstIsValue and node.first.base instanceof NumberLiteral or node.first.base instanceof IdentifierLiteral
@@ -92,7 +77,6 @@ META = [
                                     nodeInfos[nodeIndex].type  = 'vec'
                                 else
                                     nodeInfos[nodeIndex].vecOp = 'timesOrDot'
-                                    # nodeInfos[nodeIndex].type  = '???'
                         else 
                             nodeInfos[nodeIndex].operator  = '*'
                                 
@@ -102,8 +86,6 @@ META = [
                                                     
                         if firstIsVec and secondIsVec
     
-                                # log '▸vec plus' node.first.base.value, node.second.base.value 
-                                
                                 nodeInfos[nodeIndex].vecOp = 'plus'
                                 nodeInfos[nodeIndex].type  = 'vec'
                                 
@@ -126,8 +108,6 @@ META = [
                         
                         if firstIsVec and secondIsVec
     
-                                # log '▸vec minus' node.first.base.value, node.second.base.value 
-    
                                 nodeInfos[nodeIndex].vecOp = 'minus'
                                 nodeInfos[nodeIndex].type  = 'vec'
     
@@ -144,25 +124,35 @@ META = [
                         else 
                             nodeInfos[nodeIndex].operator  = '-'
                             
-                else
-                    if node.constructor.name == 'Value'
-                        nodeInfos[++nodeIndex] = {node}
-                        # log node
-                        if not node.base.value
-                            nodeInfos[nodeIndex].body = node.base.body?.expressions?[0]?.constructor.name
-                        else       
-                            nodeInfos[nodeIndex].value = node.base.value
-                            
-                        if node.base.value in identifiers
-                            nodeInfos[nodeIndex].type = 'vec'
-            
+                else if node.constructor.name == 'Value'
+                    
+                    nodeInfos[++nodeIndex] = {node}
+                    
+                    if not node.base.value
+                        nodeInfos[nodeIndex].body = node.base.body?.expressions?[0]?.constructor.name
+                    else       
+                        nodeInfos[nodeIndex].value = node.base.value
+                        
+                    if node.base.value in identifiers
+                        nodeInfos[nodeIndex].type = 'vec'
+                        
+                else if node.constructor.name == 'Call'
+                    
+                    nodeInfos[++nodeIndex] = {node}
+                    nodeInfos[nodeIndex].call = node.variable?.base?.value ? true
+                    nodeInfos[nodeIndex].type = 'num'
+
+                else if node.constructor.name == 'Assign'
+                    
+                    nodeInfos[++nodeIndex] = {node}
+                    nodeInfos[nodeIndex].call = "#{node.variable?.base?.value ? '?'}="
+                    nodeInfos[nodeIndex].type = 'num'
+                    
             preParse exp
             exp.traverseChildren true, preParse
                         
             nodeArray = nodeInfos.map (i) -> n = i.node; delete i.node; n
     
-            # log noon.stringify nodeInfos
-            
             for index in nodeInfos.length-1..0
                 
                 info = nodeInfos[index]
@@ -191,8 +181,6 @@ META = [
                             info.vecOp = 'dot'
                             info.type  = 'num' 
                             
-                    # log kstr.lpad(index, 3), info.type, "#{vecNode.base.value}.#{info.vecOp}(#{otherIndex})"
-                    
                 else if info.operator
                     
                     firstIndex  = nodeArray.indexOf nd.first
@@ -223,25 +211,16 @@ META = [
                         info.side = 'right'
                     else if firstType == 'num' == secondType
                         info.type = 'num'
-                    
-                    # if info.vecOp
-                        # if info.side != 'right'
-                            # log kstr.lpad(index, 3), info.type, firstIndex, info.vecOp, secondIndex #, info
-                        # else 
-                            # log kstr.lpad(index, 3), info.type, secondIndex, info.vecOp, firstIndex #, info
-                    # else
-                        # log kstr.lpad(index, 3), info.type, firstIndex, info.operator, secondIndex #, info
-                    
+                                        
                 else 
-                
                     if info.value and not info.type
                         
-                        if nd.base instanceof IdentifierLiteral then info.type = 'num'
-                        if nd.base instanceof NumberLiteral     then info.type = 'num'
+                        if      nd.base instanceof IdentifierLiteral then info.type = 'num'
+                        else if nd.base instanceof NumberLiteral     then info.type = 'num'
+                        else log 'nd.base' nd
       
                     if info.type in ['num' 'vec']
                         true
-                        # log kstr.lpad(index, 3), info.type, nd.base.value
                         
                     else if info.body == 'Op'
                         
@@ -249,46 +228,11 @@ META = [
                         
                         if type = nodeInfos[bodyIndex]?.type
                             info.type = type
-                        
-                        # log kstr.lpad(index, 3), info.type, bodyIndex
-                    # else
-                        # log kstr.lpad(index, 3), info.type, info#, nd
-    
-            # log noon.stringify nodeInfos
-            # log noon.stringify nodeArray
-            
-            resolve = (nodeIndex) ->
-    
-                info = nodeInfos[nodeIndex]
-                nd = nodeArray[nodeIndex]
-                
-                # log nodeIndex, info#, nd
-                
-                if not info
-                    return
-                else if info.vecOp
-                    vn = if info.side == 'right' then nd.second else nd.first
-                    pn = if info.side == 'right' then nd.first else nd.second
-                    oi = nodeArray.indexOf pn
-                    op = info.vecOp
-                    "#{vn.base?.value ? resolve nodeArray.indexOf vn}.#{op}(#{resolve oi})"
-                else if info.operator
-                    i1 = nodeArray.indexOf nd.first
-                    i2 = nodeArray.indexOf nd.second
-                    op = info.operator
-                    "#{resolve i1} #{op} #{resolve i2}"
-                else
-                    nd?.base?.value ? resolve nodeArray.indexOf nd.base.body.expressions[0]
-                
-            log resolve 0
-            log nodeInfos
-                            
+
             convert = (nd) ->
                 
                 index = nodeArray.indexOf nd
                 info = nodeInfos[index]
-                
-                log index, info
                 
                 if info?.vecOp
                     vn = if info.side == 'right' then nd.second else nd.first
@@ -299,23 +243,15 @@ META = [
                         vn = convert vn
                     al = [convert pn]
                     nn = new Call (new Value vn, [new Access new PropertyName op]), al
+                else if info?.call
+                    if nd.args?.length
+                        nd.args = nd.args.map (nda) -> convert nda
+                    else if nd.value
+                        nd.value = convert nd.value
+                    nd
                 else
                     nd
-                    
-            # convertChildren = (nd) ->
-#                 
-                # ni = nodeArray.indexOf nd
-                # log ni, nd.children
-                # if 'first' in nd.children and 'second' in nd.children
-                    # log '1st' nodeArray.indexOf nd.first
-                    # log '2nd' nodeArray.indexOf nd.second
-                    # nd.first = convert nd.first
-                    # nd.second = convert nd.second
-            
-            # node.traverseChildren true, convertChildren                    
-                    
-            # node.body.expressions[node.body.expressions.indexOf exp] = nodeArray[0]
-            
+                 
             for info,index in nodeInfos
                 if info.vecOp
                     nd = nodeArray[index]
@@ -327,12 +263,9 @@ META = [
                             tn.second = cn
                         else if tn.expressions? and nd in tn.expressions
                             tn.expressions[tn.expressions.indexOf nd] = cn
+                else if info.call
+                    convert nodeArray[index]
             
-        # frag = node.body.compileToFragments opts
-        # log '▸vec frag' frag
-        # text = node.fragmentsToText frag
-        # log '▸vec' text
-        
         dedent: true
         reduce: true
         body:   true

@@ -77,7 +77,7 @@ META = [
                                     nodeInfos[nodeIndex].type  = 'vec'
                                 else
                                     nodeInfos[nodeIndex].vecOp = 'timesOrDot'
-                                    nodeInfos[nodeIndex].type  = '???'
+                                    # nodeInfos[nodeIndex].type  = '???'
                                 
                         else if secondIsVec
                             
@@ -90,7 +90,7 @@ META = [
                                     nodeInfos[nodeIndex].type  = 'vec'
                                 else
                                     nodeInfos[nodeIndex].vecOp = 'timesOrDot'
-                                    nodeInfos[nodeIndex].type  = '???'
+                                    # nodeInfos[nodeIndex].type  = '???'
                         else 
                             nodeInfos[nodeIndex].operator  = '*'
                                 
@@ -119,7 +119,7 @@ META = [
                                 
                         else 
                             nodeInfos[nodeIndex].operator  = '+'
-                            nodeInfos[nodeIndex].type      = '???'
+                            # nodeInfos[nodeIndex].type      = '???'
     
                     if node.operator == '-'
                                 
@@ -146,7 +146,7 @@ META = [
                                 
                         else 
                             nodeInfos[nodeIndex].operator  = '-'
-                            nodeInfos[nodeIndex].type      = '???'
+                            # nodeInfos[nodeIndex].type      = '???'
                             
                 else
                     if node.constructor.name == 'Value'
@@ -159,8 +159,8 @@ META = [
                             
                         if node.base.value in identifiers
                             nodeInfos[nodeIndex].type = 'vec'
-                        else
-                            nodeInfos[nodeIndex].type = '???'
+                        # else
+                            # nodeInfos[nodeIndex].type = '???'
                                                 
                         # log 'node?' node.constructor.name
             
@@ -226,7 +226,8 @@ META = [
                     
                 else 
                 
-                    if info.value and (not info.type or info.type == '???')
+                    # if info.value and (not info.type or info.type == '???')
+                    if info.value and not info.type
                         
                         if nd.base instanceof IdentifierLiteral then info.type = 'num'
                         if nd.base instanceof NumberLiteral     then info.type = 'num'
@@ -240,8 +241,8 @@ META = [
                         bodyIndex = nodeArray.indexOf nd.base?.body?.expressions[0]
                         
                         if type = nodeInfos[bodyIndex]?.type
-                            if type != '???'
-                                info.type = type
+                            # if type != '???'
+                            info.type = type
                         
                         log kstr.lpad(index, 3), info.type, bodyIndex
                     else
@@ -552,7 +553,7 @@ compileMetaIf = (node:,opts:) ->
         if body
             frag = frag.concat body.compileToFragments bodyOpt
         else
-            frag.push node.makeCode "''" # if info.block == false ???
+            frag.push node.makeCode "''" # if info.block == false ??
         
     if info.after
         frag.push node.makeCode ((info.block != false) and ('\n' + indent) or '') + info.after

@@ -34,9 +34,9 @@ META = [
         
         identifiers = node.condition.args.map (arg) -> arg.base.value
 
-        log identifiers
+        # log identifiers
         
-        log '▸vec node.body.expressions' node.body.expressions #, noon.stringify exps
+        # log '▸vec node.body.expressions' node.body.expressions #, noon.stringify exps
         
         for exp in node.body.expressions
             
@@ -107,13 +107,13 @@ META = [
                                 
                         else if firstIsVec
                             
-                                nodeInfos[nodeIndex].side  = 'left'
+                                # nodeInfos[nodeIndex].side  = 'left'
                                 nodeInfos[nodeIndex].vecOp = 'plus'
                                 nodeInfos[nodeIndex].type  = 'vec'
     
                         else if secondIsVec
                             
-                                nodeInfos[nodeIndex].side  = 'right'
+                                # nodeInfos[nodeIndex].side  = 'right'
                                 nodeInfos[nodeIndex].vecOp = 'plus'
                                 nodeInfos[nodeIndex].type  = 'vec'
                                 
@@ -134,13 +134,13 @@ META = [
     
                         else if firstIsVec
                             
-                                nodeInfos[nodeIndex].side  = 'left'
+                                # nodeInfos[nodeIndex].side  = 'left'
                                 nodeInfos[nodeIndex].vecOp = 'minus'
                                 nodeInfos[nodeIndex].type  = 'vec'
     
                         else if secondIsVec
                             
-                                nodeInfos[nodeIndex].side  = 'right'
+                                # nodeInfos[nodeIndex].side  = 'right'
                                 nodeInfos[nodeIndex].vecOp = 'minus'
                                 nodeInfos[nodeIndex].type  = 'vec'
                                 
@@ -192,7 +192,7 @@ META = [
                             info.vecOp = 'dot'
                             info.type  = 'num' 
                             
-                    log kstr.lpad(index, 3), info.type, "#{vecNode.base.value}.#{info.vecOp}(#{otherIndex})"
+                    # log kstr.lpad(index, 3), info.type, "#{vecNode.base.value}.#{info.vecOp}(#{otherIndex})"
                     
                 else if info.operator
                     
@@ -216,13 +216,13 @@ META = [
                     else if firstType == 'num' == secondType
                         info.type = 'num'
                     
-                    if info.vecOp
-                        if info.side != 'right'
-                            log kstr.lpad(index, 3), info.type, firstIndex, info.vecOp, secondIndex #, info
-                        else 
-                            log kstr.lpad(index, 3), info.type, secondIndex, info.vecOp, firstIndex #, info
-                    else
-                        log kstr.lpad(index, 3), info.type, firstIndex, info.operator, secondIndex #, info
+                    # if info.vecOp
+                        # if info.side != 'right'
+                            # log kstr.lpad(index, 3), info.type, firstIndex, info.vecOp, secondIndex #, info
+                        # else 
+                            # log kstr.lpad(index, 3), info.type, secondIndex, info.vecOp, firstIndex #, info
+                    # else
+                        # log kstr.lpad(index, 3), info.type, firstIndex, info.operator, secondIndex #, info
                     
                 else 
                 
@@ -233,8 +233,8 @@ META = [
                         if nd.base instanceof NumberLiteral     then info.type = 'num'
       
                     if info.type in ['num' 'vec']
-                        
-                        log kstr.lpad(index, 3), info.type, nd.base.value
+                        true
+                        # log kstr.lpad(index, 3), info.type, nd.base.value
                         
                     else if info.body == 'Op'
                         
@@ -244,10 +244,10 @@ META = [
                             # if type != '???'
                             info.type = type
                         
-                        log kstr.lpad(index, 3), info.type, bodyIndex
-                    else
-                        
-                        log kstr.lpad(index, 3), info.type, info#, nd
+                        # log kstr.lpad(index, 3), info.type, bodyIndex
+                    # else
+#                         
+                        # log kstr.lpad(index, 3), info.type, info#, nd
     
             # log noon.stringify nodeInfos
             # log noon.stringify nodeArray

@@ -26,7 +26,9 @@ META = [
         config = if args[0]?.dot? then args[0] else times:'times' dot:'dot' plus:'plus' minus:'minus'
 
         nodes = require './nodes'
-        { Op, Value, Block, NumberLiteral, IdentifierLiteral } = nodes
+        {   Op, Value, Call, Access, Block, 
+            NumberLiteral, IdentifierLiteral, 
+            PropertyName } = nodes
         
         noon = require 'noon'
         kstr = require 'kstr'
@@ -107,19 +109,16 @@ META = [
                                 
                         else if firstIsVec
                             
-                                # nodeInfos[nodeIndex].side  = 'left'
                                 nodeInfos[nodeIndex].vecOp = 'plus'
                                 nodeInfos[nodeIndex].type  = 'vec'
     
                         else if secondIsVec
                             
-                                # nodeInfos[nodeIndex].side  = 'right'
                                 nodeInfos[nodeIndex].vecOp = 'plus'
                                 nodeInfos[nodeIndex].type  = 'vec'
                                 
                         else 
                             nodeInfos[nodeIndex].operator  = '+'
-                            # nodeInfos[nodeIndex].type      = '???'
     
                     if node.operator == '-'
                                 
@@ -134,19 +133,16 @@ META = [
     
                         else if firstIsVec
                             
-                                # nodeInfos[nodeIndex].side  = 'left'
                                 nodeInfos[nodeIndex].vecOp = 'minus'
                                 nodeInfos[nodeIndex].type  = 'vec'
     
                         else if secondIsVec
                             
-                                # nodeInfos[nodeIndex].side  = 'right'
                                 nodeInfos[nodeIndex].vecOp = 'minus'
                                 nodeInfos[nodeIndex].type  = 'vec'
                                 
                         else 
                             nodeInfos[nodeIndex].operator  = '-'
-                            # nodeInfos[nodeIndex].type      = '???'
                             
                 else
                     if node.constructor.name == 'Value'
@@ -159,10 +155,6 @@ META = [
                             
                         if node.base.value in identifiers
                             nodeInfos[nodeIndex].type = 'vec'
-                        # else
-                            # nodeInfos[nodeIndex].type = '???'
-                                                
-                        # log 'node?' node.constructor.name
             
             preParse exp
             exp.traverseChildren true, preParse
@@ -184,10 +176,17 @@ META = [
                     vecIndex   = nodeArray.indexOf vecNode
                     otherInfo  = nodeInfos[otherIndex]
                     vecInfo    = nodeInfos[vecIndex]
+                    
                     if info.vecOp == 'timesOrDot'
-                        if otherInfo.type == 'num'
+                    
+                        if not otherInfo
                             info.vecOp = 'times'
                             info.type  = 'vec' 
+                        
+                        else if otherInfo.type == 'num'
+                            info.vecOp = 'times'
+                            info.type  = 'vec' 
+                            
                         else if otherInfo.type == 'vec'
                             info.vecOp = 'dot'
                             info.type  = 'num' 
@@ -203,8 +202,17 @@ META = [
                     secondType = secondIndex < 0 and 'num' or nodeInfos[secondIndex].type
     
                     if firstType == 'vec' == secondType
-                        info.vecOp = 'dot'
-                        info.type = 'num'
+                        
+                        if info.operator == '*'
+                            info.vecOp = 'dot'
+                            info.type = 'num'
+                        else if info.operator == '-'
+                            info.vecOp = 'minus'
+                            info.type = 'vec'                            
+                        else if info.operator == '+'
+                            info.vecOp = 'plus'
+                            info.type = 'vec'
+                            
                     else if firstType == 'vec' and secondType == 'num'
                         info.vecOp = 'times'
                         info.type = 'vec'
@@ -226,7 +234,6 @@ META = [
                     
                 else 
                 
-                    # if info.value and (not info.type or info.type == '???')
                     if info.value and not info.type
                         
                         if nd.base instanceof IdentifierLiteral then info.type = 'num'
@@ -241,12 +248,10 @@ META = [
                         bodyIndex = nodeArray.indexOf nd.base?.body?.expressions[0]
                         
                         if type = nodeInfos[bodyIndex]?.type
-                            # if type != '???'
                             info.type = type
                         
                         # log kstr.lpad(index, 3), info.type, bodyIndex
                     # else
-#                         
                         # log kstr.lpad(index, 3), info.type, info#, nd
     
             # log noon.stringify nodeInfos
@@ -259,24 +264,75 @@ META = [
                 
                 # log nodeIndex, info#, nd
                 
-                if info.vecOp
+                if not info
+                    return
+                else if info.vecOp
                     vn = if info.side == 'right' then nd.second else nd.first
                     pn = if info.side == 'right' then nd.first else nd.second
                     oi = nodeArray.indexOf pn
                     op = info.vecOp
                     "#{vn.base?.value ? resolve nodeArray.indexOf vn}.#{op}(#{resolve oi})"
                 else if info.operator
-                    firstIndex  = nodeArray.indexOf nd.first
-                    secondIndex = nodeArray.indexOf nd.second
+                    i1 = nodeArray.indexOf nd.first
+                    i2 = nodeArray.indexOf nd.second
                     op = info.operator
-                    "#{resolve firstIndex} #{op} #{resolve secondIndex}"
+                    "#{resolve i1} #{op} #{resolve i2}"
                 else
                     nd?.base?.value ? resolve nodeArray.indexOf nd.base.body.expressions[0]
                 
             log resolve 0
+            log nodeInfos
+                            
+            convert = (nd) ->
                 
-        # frag = body.compileToFragments opts
-        # console.log '▸vec frag' frag
+                index = nodeArray.indexOf nd
+                info = nodeInfos[index]
+                
+                log index, info
+                
+                if info?.vecOp
+                    vn = if info.side == 'right' then nd.second else nd.first
+                    pn = if info.side == 'right' then nd.first else nd.second
+                    oi = nodeArray.indexOf pn
+                    op = info.vecOp
+                    if not vn.base?.value
+                        vn = convert vn
+                    al = [convert pn]
+                    nn = new Call (new Value vn, [new Access new PropertyName op]), al
+                else
+                    nd
+                    
+            # convertChildren = (nd) ->
+#                 
+                # ni = nodeArray.indexOf nd
+                # log ni, nd.children
+                # if 'first' in nd.children and 'second' in nd.children
+                    # log '1st' nodeArray.indexOf nd.first
+                    # log '2nd' nodeArray.indexOf nd.second
+                    # nd.first = convert nd.first
+                    # nd.second = convert nd.second
+            
+            # node.traverseChildren true, convertChildren                    
+                    
+            # node.body.expressions[node.body.expressions.indexOf exp] = nodeArray[0]
+            
+            for info,index in nodeInfos
+                if info.vecOp
+                    nd = nodeArray[index]
+                    cn = convert nd
+                    node.traverseChildren true, (tn) ->
+                        if tn.first == nd
+                            tn.first = cn
+                        else if tn.second == nd
+                            tn.second = cn
+                        else if tn.expressions? and nd in tn.expressions
+                            tn.expressions[tn.expressions.indexOf nd] = cn
+            
+        # frag = node.body.compileToFragments opts
+        # log '▸vec frag' frag
+        # text = node.fragmentsToText frag
+        # log '▸vec' text
+        
         dedent: true
         reduce: true
         body:   true

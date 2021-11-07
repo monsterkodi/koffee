@@ -33,7 +33,7 @@ doc = (c) ->
 # 000 0 000  000          000     000   000        000  000       
 # 000   000  00000000     000     000   000        000  000       
 
-test "meta if", ->
+test "meta if" ->
             
     eq os?.platform, undefined
     equal "▸if os.platform()=='win' then no ▸else yes", require('os').platform()=='win' and 'false;;\n' or 'true;;\n'
@@ -87,7 +87,7 @@ test "meta if", ->
 #    000     000  000      000   000  000       
 #    000     000  0000000  0000000    00000000  
 
-test "meta if tilde", ->
+test "meta if tilde" ->
             
     eq os?.platform, undefined
     equal "~>if os.platform()=='win' then no ~>else yes", require('os').platform()=='win' and 'false;;\n' or 'true;;\n'
@@ -141,7 +141,7 @@ test "meta if tilde", ->
 # 000        000   000  000   000  000       000  000      000       
 # 000        000   000   0000000   000       000  0000000  00000000  
 
-test "meta profile", ->
+test "meta profile" ->
 
     check """
         ▸if ▸profile abc
@@ -176,7 +176,7 @@ test "meta profile", ->
             if (koffee_2_8 = process.hrtime.bigint()) {
                 bla();"""        
 
-test "meta profile shortcut", ->
+test "meta profile shortcut" ->
     
     check """
         ▸profile
@@ -244,7 +244,7 @@ test "meta profile shortcut", ->
 #      000     000     000   000  000   000     000           000       000  0000  000   000  
 # 0000000      000     000   000  000   000     000           00000000  000   000  0000000    
 
-test "start end", ->
+test "start end" ->
 
     check """
         ▸start 'a'      
@@ -262,7 +262,7 @@ test "start end", ->
 # 000   000  000   000  000   000  
 # 0000000    0000000     0000000   
 
-test "dbg", ->
+test "dbg" ->
     
     check """
     ▸dbg 'my object' a:1, b:2
@@ -278,7 +278,7 @@ test "dbg", ->
 # 000   000       000       000  000       000   000     000     
 # 000   000  0000000   0000000   00000000  000   000     000     
 
-test "assert", ->
+test "assert" ->
         
     # run """
         # ▸if ▸assert '1' then 1==2/2
@@ -310,7 +310,7 @@ test "assert", ->
 # 000   000  000   000  000       
 # 0000000     0000000    0000000  
 
-test "doc", ->
+test "doc" ->
                 
     doc """
     ▸doc 'hello'
@@ -354,7 +354,7 @@ test "doc", ->
     # worry about these  vvvv spaces?
     eq out, """## hello\n    \n## world\n!!!\n\nnice\nthing\n"""
     
-test "doc as value", ->
+test "doc as value" ->
     
     a = ▸doc 'is this possible?'
         'seems it is'
@@ -378,14 +378,37 @@ test "doc as value", ->
         'true'\n
     """
     
-test 'single line', ->
+test 'single line' ->
     
     doesNotThrow -> Koffee.compile "▸doc 'is this possible?' 'yes'"
     
-test "doesn't work", ->
+test "doesn't work" ->
     
     throws -> Koffee.compile "a = ▸doc 'is this possible?' ▸then 'no!'"
     throws -> Koffee.compile "▸doc 'is this possible?' ▸then 'no!'"
     throws -> Koffee.compile "▸doc 'is this possible?' then 'nope!'"
+    
+# 000   000  00000000   0000000  
+# 000   000  000       000       
+#  000 000   0000000   000       
+#    000     000       000       
+#     0      00000000   0000000  
 
+test 'vec' ->
+    
+    equal """
+        ▸vec a b c d
+            
+        d = 4 * b * c * 3       
+        a = b + c + d
+        d = 5 + b * c
+        d = b * c + 5
+        d = a * b * c 
+    """ """
+        d = 4 * b.dot(c) * 3
+        a = b.plus(c).plus(d)
+        d = 5 + b.dot(c)
+        d = b.dot(c)+5 
+        d = a.dot(b).dot(c)
+    """
     

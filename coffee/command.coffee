@@ -19,6 +19,7 @@ fs               = require 'fs'
 slash            = require 'kslash'
 nopt             = require 'nopt'
 helpers          = require './helpers'
+features         = require './features'
 Koffee           = require './koffee'
 { spawn, exec }  = require 'child_process'
 
@@ -26,7 +27,7 @@ useWinPathSep    = slash.sep is '\\'
 
 helpers.colors()
 
-{ FEATURES, logFeatures } = require './features'
+{ FEATURES, logFeatures } = features
 
 { baseFileName, isCoffee, stringify, merge, pad } = helpers
 
@@ -484,14 +485,18 @@ printTokens = (tokens) ->
 
 printFragments = (code, fragments) ->
 
+    log code, fragments
     log ''
     for index in [0...fragments.length]
         frag = fragments[index]
-        line = blueBright ''+frag.locationData.first_line 
-        if frag.locationData.last_line != frag.locationData.first_line 
-            line += dim blue '-'+frag.locationData.last_line
-        else line += '  '
-        column = blue ''+frag.locationData.first_column 
+        line = ''
+        column = ''
+        if frag.locationData
+            line = blueBright ''+frag.locationData.first_line 
+            if frag.locationData.last_line != frag.locationData.first_line 
+                line += dim blue '-'+frag.locationData.last_line
+            else line += '  '
+            column = blue ''+frag.locationData.first_column 
         trimmed = frag.code.replace(/ /g, '')
         if trimmed.length
             if trimmed.replace(/\n/g, '').length == 0
@@ -499,49 +504,49 @@ printFragments = (code, fragments) ->
             else
                 log line + ' ' + column + ' ' +  (dim gray helpers.pad frag.type, 20) + yellowBright(frag.code)
                     
-    map = Koffee.compile code, 
-            feature: header: true
-            filename: 'fragments'
-            sourceMap: yes
-            # inlineMap: yes
+    # map = Koffee.compile code, 
+            # feature: header: true
+            # filename: 'fragments'
+            # sourceMap: yes
+            # # inlineMap: yes
 
-    mapLineToString = (mapline, key='sourceLine') ->
-        s = ''
-        for column in mapline.columns
-            if column
-                s += column[key]%10
-            else
-                s += ' '
-        s
+    # mapLineToString = (mapline, key='sourceLine') ->
+        # s = ''
+        # for column in mapline.columns
+            # if column
+                # s += column[key]%10
+            # else
+                # s += ' '
+        # s
+#             
+    # log gray dim ' 123456789 123456789 123456789 123456789 123456789'
+    # codeLines = code.split '\n'
+    # for i in [0...codeLines.length]
+        # if codeLines[i].trim().length
+            # log gray(dim i+1) + greenBright codeLines[i]
+        # else log ''
+#             
+    # log ''
+    # log gray dim ' 123456789 123456789 123456789 123456789 123456789'
+    # codeLines = map.js.split '\n'
+    # for i in [0...codeLines.length]
+        # if codeLines[i].trim().length
+            # log gray(dim i+1) + redBright codeLines[i]
+        # else log ''
             
-    log gray dim ' 123456789 123456789 123456789 123456789 123456789'
-    codeLines = code.split '\n'
-    for i in [0...codeLines.length]
-        if codeLines[i].trim().length
-            log gray(dim i+1) + greenBright codeLines[i]
-        else log ''
-            
-    log ''
-    log gray dim ' 123456789 123456789 123456789 123456789 123456789'
-    codeLines = map.js.split '\n'
-    for i in [0...codeLines.length]
-        if codeLines[i].trim().length
-            log gray(dim i+1) + redBright codeLines[i]
-        else log ''
-            
-    log gray dim ' 123456789 123456789 123456789 123456789 123456789'    
-    for i in [0...map.sourceMap.lines.length]
-        mapline = map.sourceMap.lines[i]
-        if mapline
-            log gray(dim i+1) + redBright mapLineToString mapline
-        else log ''
+    # log gray dim ' 123456789 123456789 123456789 123456789 123456789'    
+    # for i in [0...map.sourceMap.lines.length]
+        # mapline = map.sourceMap.lines[i]
+        # if mapline
+            # log gray(dim i+1) + redBright mapLineToString mapline
+        # else log ''
 
-    log gray dim ' 123456789 123456789 123456789 123456789 123456789'    
-    for i in [0...map.sourceMap.lines.length]
-        mapline = map.sourceMap.lines[i]
-        if mapline
-            log gray(dim i+1) + blueBright mapLineToString mapline, 'sourceColumn'
-        else log ''
+    # log gray dim ' 123456789 123456789 123456789 123456789 123456789'    
+    # for i in [0...map.sourceMap.lines.length]
+        # mapline = map.sourceMap.lines[i]
+        # if mapline
+            # log gray(dim i+1) + blueBright mapLineToString mapline, 'sourceColumn'
+        # else log ''
             
 # 00000000   00000000  000   000  00000000   000  000000000  00000000  
 # 000   000  000       000 0 000  000   000  000     000     000       

@@ -2212,13 +2212,17 @@ exports.While = class While extends Base
 # Simple Arithmetic and logical operations. Performs some conversion from into their JavaScript equivalents.
 
 exports.Op = class Op extends Base
+    
     @: (op, first, second, flip ) ->
+        
         return new In first, second if op is 'in'
+        
         if op is 'do'
             return @generateDo first
         if op is 'new'
             return first.newInstance() if first instanceof Call and not first.do and not first.isNew
             first = new Parens first     if first instanceof Code and first.bound or first.do
+            
         @operator = CONVERSIONS[op] or op
         @first    = first
         @second   = second

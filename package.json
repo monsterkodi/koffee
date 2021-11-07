@@ -62,6 +62,7 @@
   "dependencies": {
     "colorette": "^2.0.16",
     "kslash": "^2.4.0",
+    "kstr": "^0.13.0",
     "nopt": "^5.0.0",
     "underscore": "^1.13.1"
   },

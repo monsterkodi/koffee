@@ -12,7 +12,237 @@ helpers = require './helpers'
 helpers.colors()
 
 META = [
+
+    # 000   000  00000000   0000000  
+    # 000   000  000       000       
+    #  000 000   0000000   000       
+    #    000     000       000       
+    #     0      00000000   0000000  
+    
+    key:  '▸vec'
+    desc: '▸vec(a, ...)'
+    meta: (args:,node:,opts:) ->
         
+        config = if args[0]?.dot? then args[0] else times:'times' dot:'dot' plus:'plus' minus:'minus'
+
+        nodes = require './nodes'
+        { Op, Value, Block, NumberLiteral, IdentifierLiteral } = nodes
+        
+        noon = require 'noon'
+        kstr = require 'kstr'
+        # log '▸vec node' node, noon.stringify node
+        
+        identifiers = node.condition.args.map (arg) -> arg.base.value
+
+        log identifiers
+        
+        body = node.body
+        
+        # exps = node.body.expressions
+        # log '▸vec node.body.expressions' exps #, noon.stringify exps
+        
+        nodeInfos = []
+        nodeIndex = -1
+        
+        node.body.traverseChildren true, (node) ->
+            
+            if node instanceof Op
+                
+                # log '▸vec child' node
+                    
+                firstIsValue  = node.first  instanceof Value 
+                secondIsValue = node.second instanceof Value 
+                
+                firstIsVec  = firstIsValue and node.first.base.value  in identifiers
+                secondIsVec = secondIsValue and node.second.base.value in identifiers
+                
+                if node.operator == '*'
+                           
+                    nodeInfos[++nodeIndex] = {node}
+                                                
+                    if firstIsVec and secondIsVec
+
+                            # log '▸vec dot' node.first.base.value, node.second.base.value 
+
+                            nodeInfos[nodeIndex].vecOp = 'dot'
+                            nodeInfos[nodeIndex].type  = 'num'
+                            
+                    else if firstIsVec
+                        
+                            # log '▸vec times' node.first.base.value
+
+                            nodeInfos[nodeIndex].side  = 'left'
+
+                            if secondIsValue and node.second.base instanceof NumberLiteral or node.second.base instanceof IdentifierLiteral
+                                nodeInfos[nodeIndex].vecOp = 'times'
+                                nodeInfos[nodeIndex].type  = 'vec'
+                            else
+                                nodeInfos[nodeIndex].vecOp = 'timesOrDot'
+                                nodeInfos[nodeIndex].type  = '???'
+                            
+                    else if secondIsVec
+                        
+                            # log '▸vec ltimes' node.second.base.value
+
+                            nodeInfos[nodeIndex].side  = 'right'
+
+                            if firstIsValue and node.first.base instanceof NumberLiteral or node.first.base instanceof IdentifierLiteral
+                                nodeInfos[nodeIndex].vecOp = 'times'
+                                nodeInfos[nodeIndex].type  = 'vec'
+                            else
+                                nodeInfos[nodeIndex].vecOp = 'timesOrDot'
+                                nodeInfos[nodeIndex].type  = '???'
+                    else 
+                        nodeInfos[nodeIndex].operator  = '*'
+                            
+                if node.operator == '+'
+                    
+                    nodeInfos[++nodeIndex] = {node}
+                                                
+                    if firstIsVec and secondIsVec
+
+                            # log '▸vec plus' node.first.base.value, node.second.base.value 
+                            
+                            nodeInfos[nodeIndex].vecOp = 'plus'
+                            nodeInfos[nodeIndex].type  = 'vec'
+                            
+                    else if firstIsVec
+                        
+                            nodeInfos[nodeIndex].side  = 'left'
+                            nodeInfos[nodeIndex].vecOp = 'plus'
+                            nodeInfos[nodeIndex].type  = 'vec'
+
+                    else if secondIsVec
+                        
+                            nodeInfos[nodeIndex].side  = 'right'
+                            nodeInfos[nodeIndex].vecOp = 'plus'
+                            nodeInfos[nodeIndex].type  = 'vec'
+                            
+                    else 
+                        nodeInfos[nodeIndex].operator  = '+'
+                        nodeInfos[nodeIndex].type      = '???'
+
+                if node.operator == '-'
+                            
+                    nodeInfos[++nodeIndex] = {node}
+                    
+                    if firstIsVec and secondIsVec
+
+                            # log '▸vec minus' node.first.base.value, node.second.base.value 
+
+                            nodeInfos[nodeIndex].vecOp = 'minus'
+                            nodeInfos[nodeIndex].type  = 'vec'
+
+                    else if firstIsVec
+                        
+                            nodeInfos[nodeIndex].side  = 'left'
+                            nodeInfos[nodeIndex].vecOp = 'minus'
+                            nodeInfos[nodeIndex].type  = 'vec'
+
+                    else if secondIsVec
+                        
+                            nodeInfos[nodeIndex].side  = 'right'
+                            nodeInfos[nodeIndex].vecOp = 'minus'
+                            nodeInfos[nodeIndex].type  = 'vec'
+                            
+                    else 
+                        nodeInfos[nodeIndex].operator  = '-'
+                        nodeInfos[nodeIndex].type      = '???'
+                        
+            else
+                if node.constructor.name == 'Value'
+                    nodeInfos[++nodeIndex] = {node}
+                    # log node
+                    if not node.base.value
+                        nodeInfos[nodeIndex].body = node.base.body?.expressions?[0]?.constructor.name
+                    else       
+                        nodeInfos[nodeIndex].value = node.base.value
+                        
+                    if node.base.value in identifiers
+                        nodeInfos[nodeIndex].type = 'vec'
+                    else
+                        nodeInfos[nodeIndex].type = '???'
+                                            
+                    # log 'node?' node.constructor.name
+                        
+        nodeArray = nodeInfos.map (i) -> n = i.node; delete i.node; n
+
+        # log noon.stringify nodeInfos
+        
+        for index in nodeInfos.length-1..0
+            
+            info = nodeInfos[index]
+            nd   = nodeArray[index]
+            
+            if info.vecOp
+                
+                otherNode = if info.side == 'left' then nd.second else nd.first
+                vecNode   = if info.side == 'left' then nd.first else nd.second
+                otherIndex = nodeArray.indexOf otherNode
+                vecIndex   = nodeArray.indexOf vecNode
+                otherInfo  = nodeInfos[otherIndex]
+                vecInfo    = nodeInfos[vecIndex]
+                if info.vecOp == 'timesOrDot'
+
+                    if otherInfo.type == 'num'
+                        info.vecOp = 'times'
+                        info.type  = 'vec' 
+                    else if otherInfo.type == 'vec'
+                        info.vecOp = 'dot'
+                        info.type  = 'num' 
+                log kstr.lpad(index, 3), info.type, "#{vecNode.base.value}.#{info.vecOp}(#{otherIndex})"
+                
+            else if info.operator
+                
+                firstIndex  = nodeArray.indexOf nd.first
+                secondIndex = nodeArray.indexOf nd.second
+                
+                firstType  = firstIndex  < 0 and 'num' or nodeInfos[firstIndex].type
+                secondType = secondIndex < 0 and 'num' or nodeInfos[secondIndex].type
+
+                if firstType == 'vec' and secondType == 'vec'
+                    info.vecOp = 'dot'
+                    info.type = 'num'
+                else if firstType == 'vec' and secondType == 'num'
+                    info.vecOp = 'times'
+                    info.type = 'vec'
+                else if firstType == 'num' and secondType == 'vec'
+                    info.vecOp = 'times'
+                    info.type = 'vec'
+                
+                log kstr.lpad(index, 3), info.type, firstIndex, info.operator, secondIndex #, info
+                
+            else 
+            
+                if info.value and (not info.type or info.type == '???')
+                    
+                    if nd.base instanceof IdentifierLiteral then info.type = 'num'
+                    if nd.base instanceof NumberLiteral     then info.type = 'num'
+  
+                if info.type in ['num' 'vec']
+                    
+                    log kstr.lpad(index, 3), info.type, nd.base.value
+                    
+                else if info.body == 'Op'
+                    
+                    bodyIndex = nodeArray.indexOf nd.base?.body?.expressions[0]
+                    
+                    if type = nodeInfos[bodyIndex]?.type
+                        if type != '???'
+                            info.type = type
+                    
+                    log kstr.lpad(index, 3), info.type, bodyIndex
+                else
+                    
+                    log kstr.lpad(index, 3), info.type, info#, nd
+                    
+        # frag = body.compileToFragments opts
+        # console.log '▸vec frag' frag
+        dedent: true
+        reduce: true
+        body:   true
+        block:  true
+,        
     # 0000000     0000000    0000000  
     # 000   000  000   000  000       
     # 000   000  000   000  000       
@@ -160,7 +390,8 @@ META = [
     desc: '▸assert [msg] ...'
     meta: (opts:,args:,node:) ->
         
-        { Block, extend } = require './nodes'
+        nodes = require './nodes'
+        { Block, extend } = nodes
         if node.body instanceof Block
             body = node.body.expressions[0]
         else
@@ -219,8 +450,10 @@ TAB = '    '
 
 compileMetaIf = (node:,opts:) ->
 
-    { Block, Assign, Value, Literal } = require './nodes'
-    { extend, merge } = require './helpers'
+    nodes = require './nodes'
+    
+    { Block, Assign, Value, Literal } = nodes
+    { extend, merge } = helpers
         
     info = reduce:true, eval:true
     
@@ -307,8 +540,10 @@ compileMetaIf = (node:,opts:) ->
 metaLog = (opts) -> opts.metalog ? 'console.log'
 
 logSource = (opts:,args:,node:,close:) ->
+    
     colorette = require 'colorette'
-    { yellow, blue, yellowBright, blueBright, whiteBright, dim, bold, gray } = colorette.createColors({ useColor: opts.feature.color })
+    { yellow, blue, yellowBright, blueBright, whiteBright, dim, bold, gray } = colorette.createColors useColor: opts.feature.color
+    
     source = opts.source ? opts.filename ? ''
     ext = ''
     if source
@@ -333,7 +568,7 @@ injectMeta = (options) -> # make sure that options has a meta set
     
     options ?= {}
     
-    { extend } = require './helpers'
+    { extend } = helpers
     
     defaultMeta = {}
     META.map (m) -> defaultMeta[m.key] = m.meta; m.meta.key = m.key; m.meta.info = m.info

@@ -50,6 +50,6 @@
     
     a + b - (c - b - a) 
     
-    a.cross(b)
+    2 * a.cross(b)
     
 # r = d.dot(e) * f

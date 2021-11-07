@@ -208,14 +208,19 @@ META = [
                     else if firstType == 'vec' and secondType == 'num'
                         info.vecOp = 'times'
                         info.type = 'vec'
+                        info.side = 'left'
                     else if firstType == 'num' and secondType == 'vec'
                         info.vecOp = 'times'
                         info.type = 'vec'
+                        info.side = 'right'
                     else if firstType == 'num' == secondType
                         info.type = 'num'
                     
                     if info.vecOp
-                        log kstr.lpad(index, 3), info.type, firstIndex, info.vecOp, secondIndex #, info
+                        if info.side != 'right'
+                            log kstr.lpad(index, 3), info.type, firstIndex, info.vecOp, secondIndex #, info
+                        else 
+                            log kstr.lpad(index, 3), info.type, secondIndex, info.vecOp, firstIndex #, info
                     else
                         log kstr.lpad(index, 3), info.type, firstIndex, info.operator, secondIndex #, info
                     
@@ -254,10 +259,11 @@ META = [
                 # log nodeIndex, info#, nd
                 
                 if info.vecOp
-                    vecNode   = if info.side == 'left' then nd.first else nd.second
-                    otherNode = if info.side == 'left' then nd.second else nd.first
-                    otherIndex = nodeArray.indexOf otherNode
-                    "#{vecNode.base.value}.#{info.vecOp}(#{resolve otherIndex})"
+                    vn = if info.side == 'right' then nd.second else nd.first
+                    pn = if info.side == 'right' then nd.first else nd.second
+                    oi = nodeArray.indexOf pn
+                    op = info.vecOp
+                    "#{vn.base?.value ? resolve nodeArray.indexOf vn}.#{op}(#{resolve oi})"
                 else if info.operator
                     firstIndex  = nodeArray.indexOf nd.first
                     secondIndex = nodeArray.indexOf nd.second

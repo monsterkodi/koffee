@@ -36,206 +36,238 @@ META = [
 
         log identifiers
         
-        body = node.body
+        log '▸vec node.body.expressions' node.body.expressions #, noon.stringify exps
         
-        # exps = node.body.expressions
-        # log '▸vec node.body.expressions' exps #, noon.stringify exps
-        
-        nodeInfos = []
-        nodeIndex = -1
-        
-        node.body.traverseChildren true, (node) ->
+        for exp in node.body.expressions
             
-            if node instanceof Op
+            nodeInfos = []
+            nodeIndex = -1
+            
+            preParse = (node) ->
                 
-                # log '▸vec child' node
+                if node instanceof Op
                     
-                firstIsValue  = node.first  instanceof Value 
-                secondIsValue = node.second instanceof Value 
-                
-                firstIsVec  = firstIsValue and node.first.base.value  in identifiers
-                secondIsVec = secondIsValue and node.second.base.value in identifiers
-                
-                if node.operator == '*'
-                           
-                    nodeInfos[++nodeIndex] = {node}
-                                                
-                    if firstIsVec and secondIsVec
-
-                            # log '▸vec dot' node.first.base.value, node.second.base.value 
-
-                            nodeInfos[nodeIndex].vecOp = 'dot'
-                            nodeInfos[nodeIndex].type  = 'num'
-                            
-                    else if firstIsVec
+                    # log '▸vec child' node
                         
-                            # log '▸vec times' node.first.base.value
-
-                            nodeInfos[nodeIndex].side  = 'left'
-
-                            if secondIsValue and node.second.base instanceof NumberLiteral or node.second.base instanceof IdentifierLiteral
-                                nodeInfos[nodeIndex].vecOp = 'times'
+                    firstIsValue  = node.first  instanceof Value 
+                    secondIsValue = node.second instanceof Value 
+                    
+                    firstIsVec  = firstIsValue and node.first.base.value  in identifiers
+                    secondIsVec = secondIsValue and node.second.base.value in identifiers
+                    
+                    if node.operator == '*'
+                               
+                        nodeInfos[++nodeIndex] = {node}
+                                                    
+                        if firstIsVec and secondIsVec
+    
+                                # log '▸vec dot' node.first.base.value, node.second.base.value 
+    
+                                nodeInfos[nodeIndex].vecOp = 'dot'
+                                nodeInfos[nodeIndex].type  = 'num'
+                                
+                        else if firstIsVec
+                            
+                                # log '▸vec times' node.first.base.value
+    
+                                nodeInfos[nodeIndex].side  = 'left'
+    
+                                if secondIsValue and node.second.base instanceof NumberLiteral or node.second.base instanceof IdentifierLiteral
+                                    nodeInfos[nodeIndex].vecOp = 'times'
+                                    nodeInfos[nodeIndex].type  = 'vec'
+                                else
+                                    nodeInfos[nodeIndex].vecOp = 'timesOrDot'
+                                    nodeInfos[nodeIndex].type  = '???'
+                                
+                        else if secondIsVec
+                            
+                                # log '▸vec ltimes' node.second.base.value
+    
+                                nodeInfos[nodeIndex].side  = 'right'
+    
+                                if firstIsValue and node.first.base instanceof NumberLiteral or node.first.base instanceof IdentifierLiteral
+                                    nodeInfos[nodeIndex].vecOp = 'times'
+                                    nodeInfos[nodeIndex].type  = 'vec'
+                                else
+                                    nodeInfos[nodeIndex].vecOp = 'timesOrDot'
+                                    nodeInfos[nodeIndex].type  = '???'
+                        else 
+                            nodeInfos[nodeIndex].operator  = '*'
+                                
+                    if node.operator == '+'
+                        
+                        nodeInfos[++nodeIndex] = {node}
+                                                    
+                        if firstIsVec and secondIsVec
+    
+                                # log '▸vec plus' node.first.base.value, node.second.base.value 
+                                
+                                nodeInfos[nodeIndex].vecOp = 'plus'
                                 nodeInfos[nodeIndex].type  = 'vec'
-                            else
-                                nodeInfos[nodeIndex].vecOp = 'timesOrDot'
-                                nodeInfos[nodeIndex].type  = '???'
+                                
+                        else if firstIsVec
                             
-                    else if secondIsVec
-                        
-                            # log '▸vec ltimes' node.second.base.value
-
-                            nodeInfos[nodeIndex].side  = 'right'
-
-                            if firstIsValue and node.first.base instanceof NumberLiteral or node.first.base instanceof IdentifierLiteral
-                                nodeInfos[nodeIndex].vecOp = 'times'
+                                nodeInfos[nodeIndex].side  = 'left'
+                                nodeInfos[nodeIndex].vecOp = 'plus'
                                 nodeInfos[nodeIndex].type  = 'vec'
-                            else
-                                nodeInfos[nodeIndex].vecOp = 'timesOrDot'
-                                nodeInfos[nodeIndex].type  = '???'
-                    else 
-                        nodeInfos[nodeIndex].operator  = '*'
+    
+                        else if secondIsVec
                             
-                if node.operator == '+'
-                    
-                    nodeInfos[++nodeIndex] = {node}
-                                                
-                    if firstIsVec and secondIsVec
-
-                            # log '▸vec plus' node.first.base.value, node.second.base.value 
+                                nodeInfos[nodeIndex].side  = 'right'
+                                nodeInfos[nodeIndex].vecOp = 'plus'
+                                nodeInfos[nodeIndex].type  = 'vec'
+                                
+                        else 
+                            nodeInfos[nodeIndex].operator  = '+'
+                            nodeInfos[nodeIndex].type      = '???'
+    
+                    if node.operator == '-'
+                                
+                        nodeInfos[++nodeIndex] = {node}
+                        
+                        if firstIsVec and secondIsVec
+    
+                                # log '▸vec minus' node.first.base.value, node.second.base.value 
+    
+                                nodeInfos[nodeIndex].vecOp = 'minus'
+                                nodeInfos[nodeIndex].type  = 'vec'
+    
+                        else if firstIsVec
                             
-                            nodeInfos[nodeIndex].vecOp = 'plus'
-                            nodeInfos[nodeIndex].type  = 'vec'
+                                nodeInfos[nodeIndex].side  = 'left'
+                                nodeInfos[nodeIndex].vecOp = 'minus'
+                                nodeInfos[nodeIndex].type  = 'vec'
+    
+                        else if secondIsVec
                             
-                    else if firstIsVec
-                        
-                            nodeInfos[nodeIndex].side  = 'left'
-                            nodeInfos[nodeIndex].vecOp = 'plus'
-                            nodeInfos[nodeIndex].type  = 'vec'
-
-                    else if secondIsVec
-                        
-                            nodeInfos[nodeIndex].side  = 'right'
-                            nodeInfos[nodeIndex].vecOp = 'plus'
-                            nodeInfos[nodeIndex].type  = 'vec'
+                                nodeInfos[nodeIndex].side  = 'right'
+                                nodeInfos[nodeIndex].vecOp = 'minus'
+                                nodeInfos[nodeIndex].type  = 'vec'
+                                
+                        else 
+                            nodeInfos[nodeIndex].operator  = '-'
+                            nodeInfos[nodeIndex].type      = '???'
                             
-                    else 
-                        nodeInfos[nodeIndex].operator  = '+'
-                        nodeInfos[nodeIndex].type      = '???'
-
-                if node.operator == '-'
-                            
-                    nodeInfos[++nodeIndex] = {node}
-                    
-                    if firstIsVec and secondIsVec
-
-                            # log '▸vec minus' node.first.base.value, node.second.base.value 
-
-                            nodeInfos[nodeIndex].vecOp = 'minus'
-                            nodeInfos[nodeIndex].type  = 'vec'
-
-                    else if firstIsVec
-                        
-                            nodeInfos[nodeIndex].side  = 'left'
-                            nodeInfos[nodeIndex].vecOp = 'minus'
-                            nodeInfos[nodeIndex].type  = 'vec'
-
-                    else if secondIsVec
-                        
-                            nodeInfos[nodeIndex].side  = 'right'
-                            nodeInfos[nodeIndex].vecOp = 'minus'
-                            nodeInfos[nodeIndex].type  = 'vec'
-                            
-                    else 
-                        nodeInfos[nodeIndex].operator  = '-'
-                        nodeInfos[nodeIndex].type      = '???'
-                        
-            else
-                if node.constructor.name == 'Value'
-                    nodeInfos[++nodeIndex] = {node}
-                    # log node
-                    if not node.base.value
-                        nodeInfos[nodeIndex].body = node.base.body?.expressions?[0]?.constructor.name
-                    else       
-                        nodeInfos[nodeIndex].value = node.base.value
-                        
-                    if node.base.value in identifiers
-                        nodeInfos[nodeIndex].type = 'vec'
-                    else
-                        nodeInfos[nodeIndex].type = '???'
-                                            
-                    # log 'node?' node.constructor.name
-                        
-        nodeArray = nodeInfos.map (i) -> n = i.node; delete i.node; n
-
-        # log noon.stringify nodeInfos
-        
-        for index in nodeInfos.length-1..0
-            
-            info = nodeInfos[index]
-            nd   = nodeArray[index]
-            
-            if info.vecOp
-                
-                otherNode = if info.side == 'left' then nd.second else nd.first
-                vecNode   = if info.side == 'left' then nd.first else nd.second
-                otherIndex = nodeArray.indexOf otherNode
-                vecIndex   = nodeArray.indexOf vecNode
-                otherInfo  = nodeInfos[otherIndex]
-                vecInfo    = nodeInfos[vecIndex]
-                if info.vecOp == 'timesOrDot'
-
-                    if otherInfo.type == 'num'
-                        info.vecOp = 'times'
-                        info.type  = 'vec' 
-                    else if otherInfo.type == 'vec'
-                        info.vecOp = 'dot'
-                        info.type  = 'num' 
-                log kstr.lpad(index, 3), info.type, "#{vecNode.base.value}.#{info.vecOp}(#{otherIndex})"
-                
-            else if info.operator
-                
-                firstIndex  = nodeArray.indexOf nd.first
-                secondIndex = nodeArray.indexOf nd.second
-                
-                firstType  = firstIndex  < 0 and 'num' or nodeInfos[firstIndex].type
-                secondType = secondIndex < 0 and 'num' or nodeInfos[secondIndex].type
-
-                if firstType == 'vec' and secondType == 'vec'
-                    info.vecOp = 'dot'
-                    info.type = 'num'
-                else if firstType == 'vec' and secondType == 'num'
-                    info.vecOp = 'times'
-                    info.type = 'vec'
-                else if firstType == 'num' and secondType == 'vec'
-                    info.vecOp = 'times'
-                    info.type = 'vec'
-                
-                log kstr.lpad(index, 3), info.type, firstIndex, info.operator, secondIndex #, info
-                
-            else 
-            
-                if info.value and (not info.type or info.type == '???')
-                    
-                    if nd.base instanceof IdentifierLiteral then info.type = 'num'
-                    if nd.base instanceof NumberLiteral     then info.type = 'num'
-  
-                if info.type in ['num' 'vec']
-                    
-                    log kstr.lpad(index, 3), info.type, nd.base.value
-                    
-                else if info.body == 'Op'
-                    
-                    bodyIndex = nodeArray.indexOf nd.base?.body?.expressions[0]
-                    
-                    if type = nodeInfos[bodyIndex]?.type
-                        if type != '???'
-                            info.type = type
-                    
-                    log kstr.lpad(index, 3), info.type, bodyIndex
                 else
+                    if node.constructor.name == 'Value'
+                        nodeInfos[++nodeIndex] = {node}
+                        # log node
+                        if not node.base.value
+                            nodeInfos[nodeIndex].body = node.base.body?.expressions?[0]?.constructor.name
+                        else       
+                            nodeInfos[nodeIndex].value = node.base.value
+                            
+                        if node.base.value in identifiers
+                            nodeInfos[nodeIndex].type = 'vec'
+                        else
+                            nodeInfos[nodeIndex].type = '???'
+                                                
+                        # log 'node?' node.constructor.name
+            
+            preParse exp
+            exp.traverseChildren true, preParse
+                        
+            nodeArray = nodeInfos.map (i) -> n = i.node; delete i.node; n
+    
+            # log noon.stringify nodeInfos
+            
+            for index in nodeInfos.length-1..0
+                
+                info = nodeInfos[index]
+                nd   = nodeArray[index]
+                
+                if info.vecOp
                     
-                    log kstr.lpad(index, 3), info.type, info#, nd
+                    otherNode = if info.side == 'left' then nd.second else nd.first
+                    vecNode   = if info.side == 'left' then nd.first else nd.second
+                    otherIndex = nodeArray.indexOf otherNode
+                    vecIndex   = nodeArray.indexOf vecNode
+                    otherInfo  = nodeInfos[otherIndex]
+                    vecInfo    = nodeInfos[vecIndex]
+                    if info.vecOp == 'timesOrDot'
+                        if otherInfo.type == 'num'
+                            info.vecOp = 'times'
+                            info.type  = 'vec' 
+                        else if otherInfo.type == 'vec'
+                            info.vecOp = 'dot'
+                            info.type  = 'num' 
+                            
+                    log kstr.lpad(index, 3), info.type, "#{vecNode.base.value}.#{info.vecOp}(#{otherIndex})"
                     
+                else if info.operator
+                    
+                    firstIndex  = nodeArray.indexOf nd.first
+                    secondIndex = nodeArray.indexOf nd.second
+                    
+                    firstType  = firstIndex  < 0 and 'num' or nodeInfos[firstIndex].type
+                    secondType = secondIndex < 0 and 'num' or nodeInfos[secondIndex].type
+    
+                    if firstType == 'vec' == secondType
+                        info.vecOp = 'dot'
+                        info.type = 'num'
+                    else if firstType == 'vec' and secondType == 'num'
+                        info.vecOp = 'times'
+                        info.type = 'vec'
+                    else if firstType == 'num' and secondType == 'vec'
+                        info.vecOp = 'times'
+                        info.type = 'vec'
+                    else if firstType == 'num' == secondType
+                        info.type = 'num'
+                    
+                    if info.vecOp
+                        log kstr.lpad(index, 3), info.type, firstIndex, info.vecOp, secondIndex #, info
+                    else
+                        log kstr.lpad(index, 3), info.type, firstIndex, info.operator, secondIndex #, info
+                    
+                else 
+                
+                    if info.value and (not info.type or info.type == '???')
+                        
+                        if nd.base instanceof IdentifierLiteral then info.type = 'num'
+                        if nd.base instanceof NumberLiteral     then info.type = 'num'
+      
+                    if info.type in ['num' 'vec']
+                        
+                        log kstr.lpad(index, 3), info.type, nd.base.value
+                        
+                    else if info.body == 'Op'
+                        
+                        bodyIndex = nodeArray.indexOf nd.base?.body?.expressions[0]
+                        
+                        if type = nodeInfos[bodyIndex]?.type
+                            if type != '???'
+                                info.type = type
+                        
+                        log kstr.lpad(index, 3), info.type, bodyIndex
+                    else
+                        
+                        log kstr.lpad(index, 3), info.type, info#, nd
+    
+            # log noon.stringify nodeInfos
+            # log noon.stringify nodeArray
+            
+            resolve = (nodeIndex) ->
+    
+                info = nodeInfos[nodeIndex]
+                nd = nodeArray[nodeIndex]
+                
+                # log nodeIndex, info#, nd
+                
+                if info.vecOp
+                    vecNode   = if info.side == 'left' then nd.first else nd.second
+                    otherNode = if info.side == 'left' then nd.second else nd.first
+                    otherIndex = nodeArray.indexOf otherNode
+                    "#{vecNode.base.value}.#{info.vecOp}(#{resolve otherIndex})"
+                else if info.operator
+                    firstIndex  = nodeArray.indexOf nd.first
+                    secondIndex = nodeArray.indexOf nd.second
+                    op = info.operator
+                    "#{resolve firstIndex} #{op} #{resolve secondIndex}"
+                else
+                    nd?.base?.value ? resolve nodeArray.indexOf nd.base.body.expressions[0]
+                
+            log resolve 0
+                
         # frag = body.compileToFragments opts
         # console.log '▸vec frag' frag
         dedent: true

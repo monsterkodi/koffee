@@ -397,18 +397,18 @@ test "doesn't work" ->
 test 'vec' ->
     
     equal """
-        ▸vec a b c d
-            
-        d = 4 * b * c * 3       
-        a = b + c + d
-        d = 5 + b * c
-        d = b * c + 5
-        d = a * b * c 
+        ▸vec(a, b, c, d)
+            d = 4 * b * c * 3       
+            a = b + c + d
+            d = 5 + b * c
+            d = b * c + 5
+            d = a * b * c 
     """ """
-        d = 4 * b.dot(c) * 3
-        a = b.plus(c).plus(d)
-        d = 5 + b.dot(c)
-        d = b.dot(c)+5 
-        d = a.dot(b).dot(c)
-    """
+        var a, d;
+        
+        d = c.dot(b.times(4)) * 3;
+        a = b.plus(c).plus(d);
+        d = 5 + b.dot(c);
+        d = b.dot(c) + 5;
+        d = c.times(a.dot(b));;\n"""
     

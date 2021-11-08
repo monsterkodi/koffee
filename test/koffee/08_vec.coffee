@@ -282,6 +282,9 @@ test 'misc2' ->
             d = 5 + b * c
             d = b * c + 5
             d = a * b * c 
+            
+        ▸vec(viewPos,zoomCenter)
+            (viewPos - kpos(@width/4, @height/4)) * 2/zoom.value + zoomCenter
     """ """
         var a, d;
         
@@ -289,5 +292,7 @@ test 'misc2' ->
         a = b.plus(c).plus(d);
         d = 5 + b.dot(c);
         d = b.dot(c) + 5;
-        d = c.times(a.dot(b));;\n"""
+        d = c.times(a.dot(b));;
+        
+        (viewPos.minus(kpos(this.width / 4, this.height / 4))).times(2).times(1 / zoom.value).plus(zoomCenter);;\n"""
         

@@ -83,33 +83,26 @@ META = [
                     if node.operator == '/'
                                
                         nodeInfos[++nodeIndex] = {node}
-                                                    
                         if firstIsVec
                             nodeInfos[nodeIndex].side = 'left'
                             nodeInfos[nodeIndex].vecOp = 'times/'
                             nodeInfos[nodeIndex].type  = 'vec'
                         else 
-                            nodeInfos[nodeIndex].operator  = '/'
+                            nodeInfos[nodeIndex].operator = '/'
                             
                     if node.operator == '+'
                         
                         nodeInfos[++nodeIndex] = {node}
                                                     
                         if firstIsVec and secondIsVec
-    
                                 nodeInfos[nodeIndex].vecOp = 'plus'
                                 nodeInfos[nodeIndex].type  = 'vec'
-                                
                         else if firstIsVec
-                            
                                 nodeInfos[nodeIndex].vecOp = 'plus'
                                 nodeInfos[nodeIndex].type  = 'vec'
-    
                         else if secondIsVec
-                            
                                 nodeInfos[nodeIndex].vecOp = 'plus'
                                 nodeInfos[nodeIndex].type  = 'vec'
-                                
                         else 
                             nodeInfos[nodeIndex].operator  = '+'
     
@@ -118,20 +111,14 @@ META = [
                         nodeInfos[++nodeIndex] = {node}
                         
                         if firstIsVec and secondIsVec
-    
                                 nodeInfos[nodeIndex].vecOp = 'minus'
                                 nodeInfos[nodeIndex].type  = 'vec'
-    
                         else if firstIsVec
-                            
                                 nodeInfos[nodeIndex].vecOp = 'minus'
                                 nodeInfos[nodeIndex].type  = 'vec'
-    
                         else if secondIsVec
-                            
                                 nodeInfos[nodeIndex].vecOp = 'minus'
                                 nodeInfos[nodeIndex].type  = 'vec'
-                                
                         else 
                             nodeInfos[nodeIndex].operator  = '-'
                             

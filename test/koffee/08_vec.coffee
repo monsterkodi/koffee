@@ -46,7 +46,39 @@ test 'times' ->
         a.times(b);
         a.times(Math.cos(0.5));
         a.times(Math.cos(0.5));;\n"""
-    
+        
+test 'div' ->
+
+    equal """
+        ▸vec(a)
+            a / 3
+            a / 1.2
+            a / Math.cos(0.5)
+            a * 2/3
+            a * (2/3)
+            2/3 * a
+            a / 1.2
+            1/1.2 * a
+            a * 1/f
+            1/f * a
+            a * 1/Math.cos(0.5)
+            1/Math.cos(0.5) * a
+            a / 2 / 3
+    """ """
+        a.times(1 / 3);
+        a.times(1 / 1.2);
+        a.times(1 / Math.cos(0.5));
+        a.times(2).times(1 / 3);
+        a.times(2 / 3);
+        a.times(2 / 3);
+        a.times(1 / 1.2);
+        a.times(1 / 1.2);
+        a.times(1).times(1 / f);
+        a.times(1 / f);
+        a.times(1).times(1 / Math.cos(0.5));
+        a.times(1 / Math.cos(0.5));
+        a.times(1 / 2).times(1 / 3);;\n"""
+        
 test 'dot2' ->
 
     equal """
@@ -258,3 +290,4 @@ test 'misc2' ->
         d = 5 + b.dot(c);
         d = b.dot(c) + 5;
         d = c.times(a.dot(b));;\n"""
+        

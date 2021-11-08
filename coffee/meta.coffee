@@ -79,7 +79,18 @@ META = [
                                     nodeInfos[nodeIndex].vecOp = 'timesOrDot'
                         else 
                             nodeInfos[nodeIndex].operator  = '*'
-                                
+
+                    if node.operator == '/'
+                               
+                        nodeInfos[++nodeIndex] = {node}
+                                                    
+                        if firstIsVec
+                            nodeInfos[nodeIndex].side = 'left'
+                            nodeInfos[nodeIndex].vecOp = 'times/'
+                            nodeInfos[nodeIndex].type  = 'vec'
+                        else 
+                            nodeInfos[nodeIndex].operator  = '/'
+                            
                     if node.operator == '+'
                         
                         nodeInfos[++nodeIndex] = {node}
@@ -202,7 +213,7 @@ META = [
                             info.type = 'vec'
                             
                     else if firstType == 'vec' and secondType == 'num'
-                        info.vecOp = 'times'
+                        info.vecOp = if info.operator == '/' then 'times/' else 'times'
                         info.type = 'vec'
                         info.side = 'left'
                     else if firstType == 'num' and secondType == 'vec'
@@ -241,6 +252,9 @@ META = [
                     if not vn.base?.value
                         vn = convert vn
                     al = [convert pn]
+                    if op == 'times/'
+                        al = [new Op '/' (new Value new NumberLiteral 1), al[0]]
+                        op = 'times'
                     nn = new Call (new Value vn, [new Access new PropertyName op]), al
                 else if info?.call
                     if nd.args?.length

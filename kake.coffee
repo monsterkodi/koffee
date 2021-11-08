@@ -197,10 +197,12 @@ runTests = (testsets) ->
                     log white  "    #{source}" 
                 else
                     log red    "    #{error}"
+        else
+            log gray path.basename(filename, '.coffee')
         failures = []
             
     time = ((Date.now() - startTime) / 1000).toFixed(2)
-    message = green "#{passedTests} passed tests in #{time} seconds"
+    message = green "#{passedTests} tests passed in #{time} seconds"
     if not failedTests
         log message
     else

@@ -217,7 +217,6 @@ META = [
                         
                         if      nd.base instanceof IdentifierLiteral then info.type = 'num'
                         else if nd.base instanceof NumberLiteral     then info.type = 'num'
-                        else log 'nd.base' nd
       
                     if info.type in ['num' 'vec']
                         true

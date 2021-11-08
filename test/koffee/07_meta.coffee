@@ -394,21 +394,21 @@ test "doesn't work" ->
 #    000     000       000       
 #     0      00000000   0000000  
 
-test 'vec' ->
-    
-    equal """
-        ▸vec(a, b, c, d)
-            d = 4 * b * c * 3       
-            a = b + c + d
-            d = 5 + b * c
-            d = b * c + 5
-            d = a * b * c 
-    """ """
-        var a, d;
-        
-        d = c.dot(b.times(4)) * 3;
-        a = b.plus(c).plus(d);
-        d = 5 + b.dot(c);
-        d = b.dot(c) + 5;
-        d = c.times(a.dot(b));;\n"""
+# test 'vec' ->
+#     
+    # equal """
+        # ▸vec(a, b, c, d)
+            # d = 4 * b * c * 3       
+            # a = b + c + d
+            # d = 5 + b * c
+            # d = b * c + 5
+            # d = a * b * c 
+    # """ """
+        # var a, d;
+#         
+        # d = c.dot(b.times(4)) * 3;
+        # a = b.plus(c).plus(d);
+        # d = 5 + b.dot(c);
+        # d = b.dot(c) + 5;
+        # d = c.times(a.dot(b));;\n"""
     

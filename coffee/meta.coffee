@@ -565,7 +565,8 @@ compileMetaIf = (node:,opts:) ->
 # 000      000   000  000   000             000  000   000  000   000  000   000  000       000       
 # 0000000   0000000    0000000         0000000    0000000    0000000   000   000   0000000  00000000  
 
-metaLog = (opts) -> opts.metalog ? 'console.log'
+#metaLog = (opts) -> opts.metalog ? 'console.log'
+metaLog = -> 'console.log'
 
 logSource = (opts:,args:,node:,close:) ->
     

@@ -8,7 +8,7 @@ keywords
 author          Jeremy Ashkenas
 contributors
                 monsterkodi
-version         1.19.0
+version         1.20.0
 license         MIT
 engines
                 node >=10.0.0
@@ -46,11 +46,11 @@ repository
                 url   https://github.com/monsterkodi/koffee.git
 dependencies
                 colorette   ^2.0.16
-                kslash      ^2.4.0
+                kslash      ^2.6.0
                 kstr        ^0.13.0
                 nopt        ^5.0.0
                 underscore  ^1.13.1
 devDependencies
                 jison   ~0.4.18
-                kxk     ^0.420.0
-                noon    ^3.1.0
+                kxk     ^0.422.0
+                noon    ^3.5.0

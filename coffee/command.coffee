@@ -6,7 +6,7 @@
  0000000   0000000   000   000  000   000  000   000  000   000  0000000    
 ###
 
-# handle various tasks: 
+# handle various tasks:
 #
 #   - compile and save into `.js` files 
 #   - compile and print to stdout 
